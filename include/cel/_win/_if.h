@@ -1,0 +1,61 @@
+/**
+ * CEL(C Extension Library)
+ * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com)
+ */
+#ifndef __CEL_NET_IF_WIN_H__
+#define __CEL_NET_IF_WIN_H__
+
+#include "cel/types.h"
+#include <ws2tcpip.h>
+
+#pragma comment(lib, "ws2_32.lib")
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define RTM_NEWADDR 0
+#define RTM_DELADDR 1
+
+#ifdef InetNtop
+#undef InetNtop
+#endif
+#ifdef InetPton
+#undef InetPton
+#endif
+
+typedef struct in_addr CelIpAddr, CelIpNetmask;
+typedef struct in6_addr CelIp6Addr, CelIp6Netmask;
+
+const TCHAR *InetNtop(int af, const void *src, TCHAR *dst, socklen_t size);
+int InetPton(int af, const TCHAR *src, void *dst);
+
+int cel_if_getindex(const TCHAR *if_name, int *if_index);
+int cel_if_gethrdaddr(const TCHAR *if_name, CelHrdAddr *hrdaddr);
+int cel_if_getipaddr(const TCHAR *if_name, CelIpAddr *ipaddr);
+int cel_if_getip6addr(const TCHAR *if_name, CelIp6Addr *ip6addr);
+
+int cel_if_sethrdaddr(const TCHAR *if_name, CelHrdAddr *hrdaddr);
+int cel_if_setipaddr(const TCHAR *if_name, CelIpAddr *ipaddr);
+int cel_if_setip6addr(const TCHAR *if_name, CelIp6Addr *ip6addr);
+
+BOOL cel_if_isup(const TCHAR *if_name);
+
+int cel_ipaddr_op(int if_index, CelIpAddr *addr, const TCHAR *label, int type);
+/* 
+ * int cel_if_newipaddr(int if_index, CelIpAddr *ipaddr)
+ * int cel_if_delipaddr(int if_index, CelIpAddr *ipaddr)
+ * int cel_if_getipaddr(int if_index, CelIpAddr *ipaddr) 
+ */
+#define cel_if_newipaddr(if_index, ipaddr, label) \
+    cel_ipaddr_op(if_index, ipaddr, label, RTM_NEWADDR)
+#define cel_if_delipaddr(if_index, ipaddr) \
+    cel_ipaddr_op(if_index, ipaddr, NULL, RTM_DELADDR)
+//#define cel_if_getipaddr(if_index, ipaddr)
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

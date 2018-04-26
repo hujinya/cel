@@ -1,0 +1,19 @@
+/**
+ * CEL(C Extension Library)
+ * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com)
+ */
+#ifndef __CEL_SQL_MSSQL_H__
+#define __CEL_SQL_MSSQL_H__
+
+#include "cel/types.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

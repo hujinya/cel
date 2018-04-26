@@ -1,0 +1,30 @@
+- cel_long_equal类型转换问题导致windows下hashtable查找出错。
+
+* Tue Aug 29 2017 Hu Jinya <hu_jinya@163.com> 1.0.5
+- http相关库更新。
+
+* Thu Apr 13 2017 Hu Jinya <hu_jinya@163.com> 1.0.4
+- 修改windows自旋锁循环判断BUG。
+- 增加alloctor库。
+- 修改cel_getmemperf在centos 7上不兼容。
+- 修改windows下cel_userpswd不生效问题。
+- 修改user_unix下用户ID和组ID的生成算法，centos 7兼容。
+
+* Mon Oct 10 2016 Hu Jinya <hu_jinya@163.com> 1.0.3
+- cel_datetime_init_strtime_a把sscanf写成scanf时导致http在解析Date头部时卡死；
+- cel_socket_async_accept设置buffer_size大于ACCEPTEX_RECEIVEDATA_OFFSET时，如果客户端一直不发数据，会导致卡死；
+- 增加taskscheduler库。
+- cel_service_pidfile_exist服务异常自动重启时判断异常会导致服务自动退出。
+- 优化json库，支持value为"",解决json文件最后一行为数字解析出错BUG。
+- cel_error支持多字节和UNICODE。
+   
+* Thu May 12 2016 Hu Jinya <hu_jinya@163.com> 1.0.2
+- 修改json解析bug。
+ 
+* Fri Apr 15 2016 Hu Jinya <hu_jinya@163.com> 1.0.1
+- cel_httprequest_get_query()修改内存拷贝越界问题;
+- ssl目录合并到net目录，删除过时异步接口;
+- cel_socket_set_rcvtimeout() 超时值设置时需要转换为秒和微秒，否则提示溢出;
+- socket_unix 异步连接发生EALREADY，EINVAL强制改为ETIMEDOUT，避免应用返回错误提示信息;
+- 增加balancer函数库;
+- cel_vstring_init()针对CHAR与WACHR需要单独定义。
