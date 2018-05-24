@@ -1,3 +1,17 @@
+/**
+ * CEL(C Extension Library)
+ * Copyright (C)2008 - 2016 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
+ */
 #include "cel/json.h"
 #include "cel/allocator.h"
 #include "cel/error.h"
@@ -901,7 +915,7 @@ CelJsonNode *cel_json_bool_new(BOOL bool_value)
     return node;
 }
 
-CelJsonNode *cel_json_int_new(long int_value)
+CelJsonNode *cel_json_long_new(long int_value)
 {
     CelJsonNode *node;
     if ((node = cel_json_node_new(CEL_JSONT_INT)) != NULL)
@@ -1126,6 +1140,19 @@ int cel_json_array_get_int(CelJsonNode *_array, int which, int *value)
     return -1;
 }
 
+int cel_json_array_get_long(CelJsonNode *_array, int which, long *value)
+{
+    CelJsonNode *node;
+
+    if ((node = cel_json_array_get(_array, which)) != NULL
+        && node->type == CEL_JSONT_INT)
+    {
+        *value = node->lvalue;
+        return 0;
+    }
+    return -1;
+}
+
 int cel_json_array_get_double(CelJsonNode *_array, int which, double *value)
 {
     CelJsonNode *node;
@@ -1222,6 +1249,19 @@ int cel_json_object_get_bool(CelJsonNode *object, const char *key, BOOL *value)
 }
 
 int cel_json_object_get_int(CelJsonNode *object, const char *key, int *value)
+{
+    CelJsonNode *node;
+
+    if ((node = cel_json_object_get(object, key)) != NULL
+        && node->type == CEL_JSONT_INT)
+    {
+        *value = node->lvalue;
+        return 0;
+    }
+    return -1;
+}
+
+int cel_json_object_get_long(CelJsonNode *object, const char *key, long *value)
 {
     CelJsonNode *node;
 

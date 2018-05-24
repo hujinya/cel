@@ -1,6 +1,16 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com)
+ * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
  */
 #ifndef __CEL_VSTRING_H__
 #define __CEL_VSTRING_H__
@@ -51,7 +61,7 @@ int __cel_vstring_resize(CelVString *vstr, size_t size, size_t cw);
 static __inline 
 void cel_vstring_assign_a(CelVStringA *vstr, const CHAR *val, size_t n)
 {
-    if (_cel_vstring_resize(vstr, n, sizeof(CHAR)) == 0) {
+    if (n > 0 && _cel_vstring_resize(vstr, n, sizeof(CHAR)) == 0) {
         memcpy(vstr->str, val, n * sizeof(CHAR)); 
         vstr->size = n;
     }

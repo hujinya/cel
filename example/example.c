@@ -46,5 +46,5 @@ int _tmain(int argc, TCHAR *argv[])
 {
     //_tscanf(_T("%s", ))
 
-    return jwt_test(argc, argv);
+    return file_test(argc, argv);
 }

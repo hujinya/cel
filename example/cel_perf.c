@@ -1,6 +1,6 @@
 #include "cel/sys/perf.h"
 
-#ifdef __UNIX__
+#ifdef _CEL_UNIX
 #define XLEFT(x)  printf("\033[%dD", x)
 #define YUP(y)    printf("\033[%dA", y)
 #define CLL       printf("\033[K")

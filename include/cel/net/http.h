@@ -1,6 +1,16 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com)
+ * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
  */
 #ifndef __CEL_NET_HTTP_H__
 #define __CEL_NET_HTTP_H__
@@ -352,23 +362,25 @@ int cel_http_chunked_get_buffer_position(CelHttpChunked *chunked)
 {
     return chunked->start + chunked->size + 9;
 }
-static __inline void *cel_http_chunked_get_buffer(CelHttpChunked *chunked,
-                                                  CelStream *s) 
+static __inline 
+void *cel_http_chunked_get_buffer(CelHttpChunked *chunked, CelStream *s)
 {
     cel_stream_set_position(s, 
         cel_http_chunked_get_buffer_position(chunked));
     return cel_stream_get_pointer(s);
 }
-#define cel_http_chunked_get_buffer_size(chunked, s) \
-    (cel_stream_get_remaining_capacity(s) - 11)
-#define cel_http_chunked_resize_buffer(chunked, s, resize) \
-    cel_stream_remaining_resize(s, resize + 11)
-long cel_http_chunked_reading(CelStream *s);
-
 static __inline void cel_http_chunked_seek(CelHttpChunked *chunked, int offset)
 {
     chunked->size += offset;
 }
+
+#define cel_http_chunked_get_buffer_size(chunked, s) \
+    (cel_stream_get_remaining_capacity(s) - 11)
+#define cel_http_chunked_resize_buffer(chunked, s, resize) \
+    cel_stream_remaining_resize(s, resize + 11)
+
+
+long cel_http_chunked_reading(CelStream *s);
 long cel_http_chunked_last(CelHttpChunked *chunked, CelStream *s);
 
 

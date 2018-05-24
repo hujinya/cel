@@ -1,5 +1,5 @@
 #include "cel/process.h"
-#ifdef __UNIX__
+#ifdef _CEL_UNIX
 static int process_each(CelProcessStat *proc_stat, void *user_data)
 {
     printf("%s %c %d %d\r\n", proc_stat->name, proc_stat->state, 

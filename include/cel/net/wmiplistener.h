@@ -1,11 +1,21 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com)
+ * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
  */
 #ifndef __CEL_NET_WMIPLISTENER_H__
 #define __CEL_NET_WMIPLISTENER_H__
 
-#include "cel/eventloop.h"
+#include "cel/eventloopgroup.h"
 #include "cel/net/httplistener.h"
 #include "cel/net/wmipclient.h"
 
@@ -29,7 +39,11 @@ struct _CelWmipListener
 {
     CelHttpListener http_listener;
     CelWmipContext *wmip_ctx;
-    CelEventLoop *evt_loop;
+    BOOL is_run_group;
+    union {
+        CelEventLoop *evt_loop;
+        CelEventLoopGroup *evt_loop_group;
+    };
     CelWmipListenerAsyncArgs *async_args;
     CelRefCounted ref_counted;
 };
@@ -61,6 +75,7 @@ int cel_wmiplistener_start(CelWmipListener *listener, CelSockAddr *addr);
 int cel_wmiplistener_accept(CelWmipListener *listener, CelWmipClient *client);
 int cel_wmiplistener_post_accept(CelWmipListener *listener);
 int cel_wmiplistener_run(CelWmipListener *listener, CelEventLoop *evt_loop);
+int cel_wmiplistener_run_group(CelWmipListener *listener, CelEventLoopGroup *evt_loop_grp);
 
 #ifdef __cplusplus
 }

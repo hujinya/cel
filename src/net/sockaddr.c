@@ -1,3 +1,17 @@
+/**
+ * CEL(C Extension Library)
+ * Copyright (C)2008 - 2016 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
+ */
 #include "cel/net/sockaddr.h"
 #include "cel/net/if.h"
 #include "cel/allocator.h"
@@ -272,30 +286,25 @@ void cel_sockaddr_free(CelSockAddr *addr)
     cel_free(addr);
 }
 
-const CHAR *cel_gethostname_r_a(CHAR *buf, size_t size)
+const TCHAR *cel_sockaddr_get_ipstr(CelSockAddr *addr)
 {
-    static CHAR s_buf[CEL_HNLEN] = { _T('\0')};
-
-    if (s_buf[0] == _T('\0'))
+    switch (addr->sa_family)
     {
-        if (gethostname(s_buf, CEL_HNLEN) != 0)
-            return NULL;
+    case AF_INET:
+        return cel_ipaddr_ntop(&(addr->addr_in.sin_addr));
+    case AF_INET6:
+        return cel_ip6addr_ntop(&(addr->addr_in6.sin6_addr));
+#ifdef _CEL_UNIX
+    case AF_UNIX:
+        return addr->addr_un.sun_path;
+#endif
+    default:
+        Err((_T("Socket address family \"%d\" undefined¡£"), 
+            addr->sa_family));
+        return NULL;
     }
-    return (buf == NULL ? s_buf : strncpy(buf, s_buf, size));
-}
 
-const WCHAR *cel_gethostname_r_w(WCHAR *buf, size_t size)
-{
-    static WCHAR s_buf[CEL_HNLEN] = { _T('\0')};
-    char local_buf[CEL_HNLEN];
-
-    if (s_buf[0] == _T('\0'))
-    {
-        if (gethostname(local_buf, CEL_HNLEN) != 0
-            || cel_mb2unicode(local_buf, -1, s_buf, CEL_HNLEN) <= 0)
-            return NULL;
-    }
-    return (buf == NULL ? s_buf : wcsncpy(buf, s_buf, size));
+    return NULL;
 }
 
 TCHAR *cel_sockaddr_get_addrs_r(CelSockAddr *addr, TCHAR *buf, size_t size)
@@ -338,3 +347,109 @@ TCHAR *cel_sockaddr_get_addrs_r(CelSockAddr *addr, TCHAR *buf, size_t size)
     return buf;
 }
 
+const CHAR *cel_gethostname_r_a(CHAR *buf, size_t size)
+{
+    static CHAR s_buf[CEL_HNLEN] = { _T('\0')};
+
+    if (s_buf[0] == _T('\0'))
+    {
+        if (gethostname(s_buf, CEL_HNLEN) != 0)
+            return NULL;
+    }
+    return (buf == NULL ? s_buf : strncpy(buf, s_buf, size));
+}
+
+const WCHAR *cel_gethostname_r_w(WCHAR *buf, size_t size)
+{
+    static WCHAR s_buf[CEL_HNLEN] = { _T('\0')};
+    char local_buf[CEL_HNLEN];
+
+    if (s_buf[0] == _T('\0'))
+    {
+        if (gethostname(local_buf, CEL_HNLEN) != 0
+            || cel_mb2unicode(local_buf, -1, s_buf, CEL_HNLEN) <= 0)
+            return NULL;
+    }
+    return (buf == NULL ? s_buf : wcsncpy(buf, s_buf, size));
+}
+
+const CHAR *cel_getipstr_full(const CHAR *hostname, CHAR *ipstr, int family)
+{
+    int ret;
+    char hname[128];
+    ADDRINFOT *addr_info, *result, hints;
+    const char *_ipstr;
+
+    if (hostname == NULL)
+    {
+        gethostname(hname, sizeof(hname));
+        hostname = hname;
+    }
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_flags = AI_PASSIVE;
+    hints.ai_family = family;
+    hints.ai_socktype = 0;
+    hints.ai_protocol = 0;
+    if ((ret = GetAddrInfo(hostname, NULL, &hints, &addr_info)) != 0)
+    {
+        Err((_T("GetAddrInfo():%s."), gai_strerror(ret)));
+        return NULL;
+    }
+    result = addr_info;
+    while (addr_info != NULL)
+    {
+        if ((_ipstr = cel_sockaddr_get_ipstr(
+            (CelSockAddr *)addr_info->ai_addr)) != NULL
+            && strncmp(_ipstr, "127.0.0.1", CEL_IP6STRLEN) != 0)
+        {
+            //printf("get %s\r\n", _ipstr);
+            strncpy(ipstr, _ipstr, CEL_IP6STRLEN);
+            FreeAddrInfo(result);
+            return ipstr;
+        }
+        //printf("##%s\r\n", _ipstr);
+        addr_info = addr_info->ai_next;
+    }
+    FreeAddrInfo(result);
+    return NULL;
+}
+
+BOOL cel_isipstr_full(const CHAR *hostname, const CHAR *ipstr, int family)
+{
+    int ret;
+    char hname[128];
+    ADDRINFOT *addr_info, *result, hints;
+    const char *_ipstr;
+
+    if (hostname == NULL)
+    {
+        gethostname(hname, sizeof(hname));
+        hostname = hname;
+    }
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_flags = AI_PASSIVE;
+    hints.ai_family = family;
+    hints.ai_socktype = 0;
+    hints.ai_protocol = 0;
+    if ((ret = GetAddrInfo(hostname, NULL, &hints, &addr_info)) != 0)
+    {
+        Err((_T("GetAddrInfo():%s."), gai_strerror(ret)));
+        return FALSE;
+    }
+    result = addr_info;
+    while (addr_info != NULL)
+    {
+        if ((_ipstr = cel_sockaddr_get_ipstr(
+            (CelSockAddr *)addr_info->ai_addr)) != NULL
+            && strncmp(ipstr, _ipstr, CEL_IP6STRLEN) == 0
+            && strncmp(ipstr, "127.0.0.1", CEL_IP6STRLEN) != 0)
+        {
+            FreeAddrInfo(result);
+            return TRUE;
+        }
+        //printf("@@%s\r\n", _ipstr);
+        addr_info = addr_info->ai_next;
+    }
+    FreeAddrInfo(result);
+    return FALSE;
+}

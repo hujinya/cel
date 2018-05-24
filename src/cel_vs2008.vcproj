@@ -219,6 +219,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\eventloopgroup.c"
+				>
+			</File>
+			<File
 				RelativePath=".\file.c"
 				>
 			</File>
@@ -398,6 +402,26 @@
 					>
 				</File>
 				<File
+					RelativePath=".\net\httpwebclient.c"
+					>
+				</File>
+				<File
+					RelativePath=".\net\httpwebcookie.c"
+					>
+				</File>
+				<File
+					RelativePath=".\net\httpweblistener.c"
+					>
+				</File>
+				<File
+					RelativePath=".\net\httpwebroute.c"
+					>
+				</File>
+				<File
+					RelativePath=".\net\httpwebsession.c"
+					>
+				</File>
+				<File
 					RelativePath=".\net\if.c"
 					>
 				</File>
@@ -447,26 +471,6 @@
 				</File>
 				<File
 					RelativePath=".\net\vrrp.c"
-					>
-				</File>
-				<File
-					RelativePath=".\net\webclient.c"
-					>
-				</File>
-				<File
-					RelativePath=".\net\webcookie.c"
-					>
-				</File>
-				<File
-					RelativePath=".\net\weblistener.c"
-					>
-				</File>
-				<File
-					RelativePath=".\net\webroute.c"
-					>
-				</File>
-				<File
-					RelativePath=".\net\websession.c"
 					>
 				</File>
 				<File
@@ -686,6 +690,18 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath=".\_unix\_rand.c"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath=".\_unix\_service.c"
 					>
 					<FileConfiguration
@@ -790,6 +806,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\_win\_rand.c"
+					>
+				</File>
+				<File
 					RelativePath=".\_win\_service.c"
 					>
 				</File>
@@ -861,14 +881,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\include\cel\_guid.h"
-				>
-			</File>
-			<File
-				RelativePath="..\include\cel\_rand.h"
-				>
-			</File>
-			<File
 				RelativePath="..\include\cel\_readline.h"
 				>
 			</File>
@@ -937,11 +949,19 @@
 				>
 			</File>
 			<File
+				RelativePath="..\include\cel\eventloopgroup.h"
+				>
+			</File>
+			<File
 				RelativePath="..\include\cel\file.h"
 				>
 			</File>
 			<File
 				RelativePath="..\include\cel\freelist.h"
+				>
+			</File>
+			<File
+				RelativePath="..\include\cel\guid.h"
 				>
 			</File>
 			<File
@@ -993,15 +1013,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\include\cel\rand.h"
+				>
+			</File>
+			<File
 				RelativePath="..\include\cel\rbtree.h"
 				>
 			</File>
 			<File
 				RelativePath="..\include\cel\refcounted.h"
-				>
-			</File>
-			<File
-				RelativePath=".\resource.h"
 				>
 			</File>
 			<File
@@ -1124,6 +1144,26 @@
 					>
 				</File>
 				<File
+					RelativePath="..\include\cel\net\httpwebclient.h"
+					>
+				</File>
+				<File
+					RelativePath="..\include\cel\net\httpwebcookie.h"
+					>
+				</File>
+				<File
+					RelativePath="..\include\cel\net\httpweblistener.h"
+					>
+				</File>
+				<File
+					RelativePath="..\include\cel\net\httpwebroute.h"
+					>
+				</File>
+				<File
+					RelativePath="..\include\cel\net\httpwebsession.h"
+					>
+				</File>
+				<File
 					RelativePath="..\include\cel\net\if.h"
 					>
 				</File>
@@ -1177,26 +1217,6 @@
 				</File>
 				<File
 					RelativePath="..\include\cel\net\vrrp.h"
-					>
-				</File>
-				<File
-					RelativePath="..\include\cel\net\webclient.h"
-					>
-				</File>
-				<File
-					RelativePath="..\include\cel\net\webcookie.h"
-					>
-				</File>
-				<File
-					RelativePath="..\include\cel\net\weblistener.h"
-					>
-				</File>
-				<File
-					RelativePath="..\include\cel\net\webroute.h"
-					>
-				</File>
-				<File
-					RelativePath="..\include\cel\net\websession.h"
 					>
 				</File>
 				<File
@@ -1361,6 +1381,10 @@
 				</File>
 				<File
 					RelativePath="..\include\cel\_win\_process.h"
+					>
+				</File>
+				<File
+					RelativePath="..\include\cel\_win\_rand.h"
 					>
 				</File>
 				<File
@@ -1572,6 +1596,18 @@
 					</FileConfiguration>
 				</File>
 				<File
+					RelativePath="..\include\cel\_unix\_rand.h"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
 					RelativePath="..\include\cel\_unix\_service.h"
 					>
 					<FileConfiguration
@@ -1652,6 +1688,10 @@
 			>
 			<File
 				RelativePath="..\CHANGES"
+				>
+			</File>
+			<File
+				RelativePath="..\LICENSE"
 				>
 			</File>
 			<File

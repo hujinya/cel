@@ -1,6 +1,16 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com)
+ * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
  */
 #ifndef __CEL_NET_JWT_H__
 #define __CEL_NET_JWT_H__
@@ -67,11 +77,11 @@ void cel_jwt_payload_add_bool(CelJwt *jwt, const char *key, BOOL value)
     cel_json_object_add_bool(jwt->payload.root_node, key, value);
 }
 static __inline 
-void cel_jwt_payload_add_int(CelJwt *jwt, const char *key, int value)
+void cel_jwt_payload_add_long(CelJwt *jwt, const char *key, long value)
 {
     if (jwt->payload.root_node == NULL)
         jwt->payload.root_node = cel_json_object_new();
-    cel_json_object_add_int(jwt->payload.root_node, key, value);
+    cel_json_object_add_long(jwt->payload.root_node, key, value);
 }
 static __inline 
 void cel_jwt_payload_add_double(CelJwt *jwt, const char *key, double value)
@@ -93,13 +103,13 @@ static __inline void cel_jwt_payload_iss_set(CelJwt *jwt, const char *iss)
     cel_jwt_payload_add_string(jwt, "iss", iss);
 }
 
-static __inline void cel_jwt_payload_exp_set(CelJwt *jwt, int seconds)
+static __inline void cel_jwt_payload_exp_set(CelJwt *jwt, long seconds)
 {
     CelDateTime dt;
 
     cel_datetime_init_now(&dt);
     cel_datetime_add_seconds(&dt, seconds);
-    cel_jwt_payload_add_int(jwt, "exp", (int)dt);
+    cel_jwt_payload_add_long(jwt, "exp", (long)dt);
 }
 
 static __inline 

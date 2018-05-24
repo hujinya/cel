@@ -1,3 +1,17 @@
+/**
+ * CEL(C Extension Library)
+ * Copyright (C)2008 - 2016 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
+ */
 #include "cel/convert.h"
 #include "cel/error.h"
 #include "cel/allocator.h"
@@ -81,7 +95,7 @@ int cel_power2bits(int n, int min_bits, int max_bits)
     else if (hex >= _T('a') && hex <= _T('f')){ bin = hex - _T('a')+ 10; }\
     else { bin = _T('0'); }
 
-int cel_hextobin(const TBYTE *input, size_t ilen, TBYTE *output, size_t *olen)
+int cel_hextobin(const BYTE *input, size_t ilen, BYTE *output, size_t *olen)
 {
     size_t n1, n2;
     BYTE ch;
@@ -92,23 +106,6 @@ int cel_hextobin(const TBYTE *input, size_t ilen, TBYTE *output, size_t *olen)
     for (n1 = 0, n2 = 0; n1 < ilen && n2 <  (*olen - 1);)
     {
         output[n2] = 0;
-#ifdef _UNICODE
-        HEXTOBIN(input[n1], ch);
-        if (input[n1++] == _T('\0'))
-        {
-            output[n2++] = ch;
-            break;
-        }
-        output[n2] |= (ch << 12);
-
-        HEXTOBIN(input[n1], ch);
-        if (input[n1++] == _T('\0'))
-        {
-            output[n2++] = ch;
-            break;
-        }
-        output[n2] |= (ch << 8);
-#endif
         HEXTOBIN(input[n1], ch);
         if (input[n1++] == _T('\0'))
         {
@@ -128,8 +125,8 @@ int cel_hextobin(const TBYTE *input, size_t ilen, TBYTE *output, size_t *olen)
     return 0;
 }
 
-int cel_bintohex(const TBYTE *input, size_t ilen, 
-                 TBYTE *output, size_t *olen, int is_caps)
+int cel_bintohex(const BYTE *input, size_t ilen, 
+                 BYTE *output, size_t *olen, int is_caps)
 {
     size_t n1, n2;
     BYTE ch, hex_ch;
@@ -137,21 +134,15 @@ int cel_bintohex(const TBYTE *input, size_t ilen,
     if (input == NULL || output == NULL) return -1;
 
     hex_ch = (is_caps == 0 ? _T('a') : _T('A'));
-#ifdef _UNICODE
-    for (n1 = 0, n2 = 0; n1 < ilen && n2 < (int)(*olen - 4); ++n1)
+    for (n1 = 0, n2 = 0; n1 < ilen; ++n1)
     {
-        ch = ((input[n1] >> 12) & 0x0F);
-        output[n2++] = (ch <= 0x09 ? (ch + _T('0')): (ch - 10 + hex_ch));
-
-        ch = ((input[n1] >> 8) & 0x0F);
-        output[n2++] = (ch <= 0x09 ? (ch + _T('0')): (ch - 10 + hex_ch));
-#else
-    for (n1 = 0, n2 = 0; n1 < ilen && n2 < (*olen - 2); ++n1)
-    {
-#endif
+        if (n2 >= *olen)
+            break;
         ch = ((input[n1] >> 4) & 0x0F);
         output[n2++] = (ch <= 0x09 ? (ch + _T('0')): (ch - 10 + hex_ch));
 
+        if (n2 >= *olen)
+            break;
         ch = input[n1] & 0x0F;
         output[n2++] = (ch <= 0x09 ? (ch + _T('0')): (ch - 10 + hex_ch));
     }

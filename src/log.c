@@ -1,3 +1,17 @@
+/**
+ * CEL(C Extension Library)
+ * Copyright (C)2008 - 2016 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
+ */
 #include "cel/log.h"
 #include "cel/error.h"
 #include "cel/allocator.h"
@@ -589,7 +603,7 @@ int cel_logmsg_fwrite(CelLogMsg *msg, void *path)
     }
     /* Write log line*/
     cel_datetime_strfltime(&(msg->timestamp), strtime, 26, _T("%b %d %X"));
-    if (_ftprintf(s_fp, _T("%s [%ld]: <%s>%s")CEL_CRLF, 
+    if (_ftprintf(s_fp, _T("%s [%ld]: <%s>%s.")CEL_CRLF, 
         /*((msg->facility << 3) | msg->level), */
         strtime, msg->pid, s_loglevelstr[msg->level], msg->content) == EOF)
     {
@@ -610,7 +624,7 @@ int cel_logmsg_puts(CelLogMsg *msg, void *user_data)
     TCHAR strtime[26];
 
     cel_datetime_strfltime(&(msg->timestamp), strtime, 26, _T("%b %d %X"));
-    _tprintf(_T("%s [%ld]: <%s>%s")CEL_CRLF, 
+    _tprintf(_T("%s [%ld]: <%s>%s.")CEL_CRLF, 
         /*((msg->facility << 3) | msg->level), */
         strtime, 
         msg->pid,

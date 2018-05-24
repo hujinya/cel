@@ -1,3 +1,17 @@
+/**
+ * CEL(C Extension Library)
+ * Copyright (C)2008 - 2016 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
+ */
 #include "cel/file.h"
 #include "cel/error.h"
 #include "cel/log.h"
@@ -398,68 +412,98 @@ int cel_fforeach(const TCHAR *file_name,
     return ret;
 }
 
-int cel_mkdirs_a(const CHAR *dir, int mode)
+int cel_mkdirs_intern_a(CHAR *dir, int dir_idx, int mode)
 {
-    int dir_idx = 0, child_idx = 0;
-    CHAR childdir_name[CEL_PATHLEN];
+    CHAR _c;
 
-    while (dir[dir_idx] != '\0' && dir_idx < CEL_PATHLEN)
+    while (dir_idx > 0)
     {
-        if ((dir[dir_idx] == '\\' ||  dir[dir_idx] == '/' ) 
-            && dir_idx != 0)
+        if (dir[dir_idx] == '\\' ||  dir[dir_idx] == '/')
         {
-            childdir_name[child_idx] = '\0';
-            //_putts(childdir_name);
-            if (cel_mkdir_a(childdir_name, mode) != 0)
+            _c = dir[dir_idx];
+            dir[dir_idx] = '\0';
+            //puts(dir);
+            if (!cel_fexists_a(dir))
             {
-                if (cel_sys_geterrno() != CEL_ERROR_EXIST)
+                if (cel_mkdirs_intern_a(dir, dir_idx, mode) != 0)
                     return -1;
             }
-#ifdef _CEL_UNIX
-            else
+            dir[dir_idx] = _c;
+            if (cel_mkdir_a(dir, mode) != 0)
             {
-                cel_chmod_a(childdir_name, mode);
+                if (cel_sys_geterrno() != CEL_ERROR_EXIST)
+                {
+                    printf("mkdir %s error\r\n", dir);
+                    return -1;
+                }
             }
+#ifdef _CEL_UNIX
+            cel_chmod_a(dir, mode);
 #endif
+            return 0;
         }
-        childdir_name[child_idx++] = dir[dir_idx++];
+        dir_idx--;
     }
-    return 0;
+    return -1;
+}
+
+int cel_mkdirs_a(const CHAR *dir, int mode)
+{
+    int dir_idx;
+    CHAR _dir[CEL_PATHLEN + 1];
+
+    if ((dir_idx = strlen(dir)) > CEL_PATHLEN)
+        return -1;
+    memcpy(_dir, dir, dir_idx);
+    _dir[dir_idx] = '\0';
+    return cel_mkdirs_intern_a(_dir, dir_idx - 1, mode);
+}
+
+int cel_mkdirs_intern_w(WCHAR *dir, int dir_idx, int mode)
+{
+    WCHAR _c;
+
+    while (dir_idx > 0)
+    {
+        if (dir[dir_idx] == L'\\' ||  dir[dir_idx] == L'/')
+        {
+            _c = dir[dir_idx];
+            dir[dir_idx] = L'\0';
+            //puts(dir);
+            if (!cel_fexists_w(dir))
+            {
+                if (cel_mkdirs_intern_w(dir, dir_idx, mode) != 0)
+                    return -1;
+            }
+            dir[dir_idx] = _c;
+            if (cel_mkdir_w(dir, mode) != 0)
+            {
+                if (cel_sys_geterrno() != CEL_ERROR_EXIST)
+                {
+                    puts("mkdir error ");
+                    return -1;
+                }
+            }
+#ifdef _CEL_UNIX
+            cel_chmod_w(dir, mode);
+#endif
+            return 0;
+        }
+        dir_idx--;
+    }
+    return -1;
 }
 
 int cel_mkdirs_w(const WCHAR *dir, int mode)
 {
-#ifdef _CEL_UNIX
-    puts("cel_mkdirs_w is null #######");
-    return -1;
-#endif
-#ifdef _CEL_WIN
-    int dir_idx = 0, child_idx = 0;
-    WCHAR childdir_name[CEL_PATHLEN];
+    int dir_idx;
+    WCHAR _dir[CEL_PATHLEN + 1];
 
-    while (dir[dir_idx] != L'\0' && dir_idx < CEL_PATHLEN)
-    {
-        if ((dir[dir_idx] == L'\\' ||  dir[dir_idx] == L'/' ) 
-            && dir_idx != 0)
-        {
-            childdir_name[child_idx] = L'\0';
-            //_putts(childdir_name);
-            if (cel_mkdir_w(childdir_name, mode) != 0)
-            {
-                if (cel_sys_geterrno() != CEL_ERROR_EXIST)
-                    return -1;
-            }
-#ifdef _CEL_UNIX
-            else
-            {
-                cel_chmod_w(childdir_name, mode);
-            }
-#endif
-        }
-        childdir_name[child_idx++] = dir[dir_idx++];
-    }
-    return 0;
-#endif
+    if ((dir_idx = wcslen(dir)) > CEL_PATHLEN)
+        return -1;
+    memcpy(_dir, dir, dir_idx * sizeof(WCHAR));
+    _dir[dir_idx] = L'\0';
+    return cel_mkdirs_intern_w(_dir, dir_idx - 1, mode);
 }
 
 int cel_rmdirs(const TCHAR *dir_name)

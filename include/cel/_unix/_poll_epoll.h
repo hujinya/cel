@@ -1,6 +1,16 @@
 /**
  * CEL(C Extension Library)
  * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com)
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
  */
 #ifndef __CEL_POLL_EPOLL_H__
 #define __CEL_POLL_EPOLL_H__
@@ -110,11 +120,46 @@ typedef struct _CelPoll
 int cel_poll_init(CelPoll *poll, int max_threads, int max_fileds);
 void cel_poll_destroy(CelPoll *poll);
 
+static __inline void cel_poll_lock(CelPoll *poll, CelMutex *locker)
+{
+    if (poll->max_threads > 1)
+        cel_mutex_lock(locker);
+}
+
+static __inline int cel_poll_trylock(CelPoll *poll, CelMutex *locker)
+{
+    if (poll->max_threads > 1)
+        return cel_mutex_trylock(locker);
+    return 0;
+}
+
+static __inline void cel_poll_unlock(CelPoll *poll, CelMutex *locker)
+{
+    if (poll->max_threads > 1)
+        cel_mutex_unlock(locker);
+}
+
+static __inline void cel_poll_push(CelPoll *poll, void *task)
+{
+    /*if (poll->max_threads > 1)*/
+        cel_asyncqueue_push(&(poll->async_queue), task);
+    /*else
+        cel_asyncqueue_push_unlocked(&(poll->async_queue), task);*/
+}
+
+static __inline void *cel_poll_try_pop(CelPoll *poll)
+{
+    /*if (poll->max_threads > 1)*/
+        return cel_asyncqueue_try_pop(&(poll->async_queue));
+    /*else
+        return cel_asyncqueue_try_pop_unlocked(&(poll->async_queue));*/
+}
+
 int cel_poll_add(CelPoll *poll, CelChannel *channel, void *key);
 int cel_poll_post(CelPoll *poll, int fileds, CelOverLapped *ol);
 static __inline void cel_poll_queued(CelPoll *poll, CelOverLapped *ol)
 {
-    cel_asyncqueue_push(&(poll->async_queue), ol);
+    cel_poll_push(poll, ol);
     cel_eventchannel_write(&(poll->wakeup_ch), 1);
     //_putts(_T("eventchannel_write"));
 }

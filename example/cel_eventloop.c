@@ -50,8 +50,7 @@ int eventloop_test(int argc, TCHAR *argv[])
         while (n < TIMER_MAX / 2)
         {
             usleep(20 * 1000);
-            if (cel_eventloop_cancel_timer(loop, t[(n++ * 2)]) == -1)
-                _putts(cel_geterrstr(cel_geterrno()));
+            cel_timer_stop(t[(n++ * 2)], NULL);
         }
         sleep(2);
         cel_eventloop_exit(loop);

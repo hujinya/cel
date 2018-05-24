@@ -1,6 +1,16 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com)
+ * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
  */
 #ifndef __CEL_EVENTLOOP_H__
 #define __CEL_EVENTLOOP_H__
@@ -72,11 +82,6 @@ CelTimerId cel_eventloop_schedule_timer(CelEventLoop *evt_loop,
                                         long milliseconds, int repeat, 
                                         CelTimerCallbackFunc call_back, 
                                         void *user_data);
-/*
- * int cel_eventloop_cancel_timer(CelEventLoop *evt_loop, CelTimerId timer_id)
- */
-#define cel_eventloop_cancel_timer(evt_loop, timer_id) \
-    cel_timerqueue_cancel(&((evt_loop)->timer_queue), timer_id)
 /* 
  * int cel_eventloop_xx_channel(CelEventLoop *evt_loop, 
  *                              CelChannel *channel, void *key)

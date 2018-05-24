@@ -20,7 +20,7 @@ int vrrp_test(int argc, TCHAR *argv[])
     //_tprintf(_T("Netmask:%s\r\n"), cel_ip6addr_ntop(&ip6addr));
     //_tprintf(_T("Prefixlen:%d\r\n"), cel_ip6netmask_ntod(&ip6addr));
 
-#ifdef __UNIX__
+#ifdef _CEL_UNIX
     //const TCHAR *vaddr[6] = {"192.168.2.44"};
     //const TCHAR *peers[6] = {"192.168.0.132", "192.168.2.45", "192.168.0.177"};
     //CelVrrpRouter *vrrp_rt;

@@ -1,3 +1,17 @@
+/**
+ * CEL(C Extension Library)
+ * Copyright (C)2008 - 2016 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
+ */
 #include "cel/poll.h"
 #ifdef _CEL_UNIX
 #include "cel/allocator.h"
@@ -46,7 +60,7 @@ int cel_eventchannel_read_async(CelEventReadAsyncArgs *args)
     return cel_poll_post(channel->poll, channel->handle, (CelOverLapped *)args);
 }
 
-void cel_eventchannel_do_read(CelEventReadAsyncArgs *args)
+static void cel_eventchannel_do_read(CelEventReadAsyncArgs *args)
 {
     //_tprintf(_T("event channel read %lld\r\n"), args->value);
     cel_eventchannel_read_async(args);
@@ -138,7 +152,8 @@ int cel_poll_add(CelPoll *poll, CelChannel *channel, void *key)
     return 0;
 }
 
-static int cel_poll_handle(CelPoll *poll, CelOverLapped *ol, CelPollData *poll_data)
+static int cel_poll_handle(CelPoll *poll, 
+                           CelOverLapped *ol, CelPollData *poll_data)
 {
     /* Clear epoll events, call aio process function */
     switch (ol->evt_type)
@@ -159,32 +174,34 @@ static int cel_poll_handle(CelPoll *poll, CelOverLapped *ol, CelPollData *poll_d
         {
             if (CEL_POLLSTATE_CHECK(ol, CEL_POLLSTATE_WANTIN))
             {
-                cel_mutex_lock(&(poll->event_locker));
-                if (POLLIN_CHK(poll_data->events) || POLLERROR_CHK(poll_data->events))
+                cel_poll_lock(poll, &(poll->event_locker));
+                if (POLLIN_CHK(poll_data->events) 
+                    || POLLERROR_CHK(poll_data->events))
                 {
                     ol->_ol.events = poll_data->events;
                     POLLIN_CLR(poll_data->events);
-                    cel_mutex_unlock(&(poll->event_locker));
+                    cel_poll_unlock(poll, &(poll->event_locker));
                     continue;
                 }
                 ol->evt_type = CEL_EVENT_CHANNELIN;
                 poll_data->in_ol = ol;
-                cel_mutex_unlock(&(poll->event_locker));
+                cel_poll_unlock(poll, &(poll->event_locker));
                 return 0;
             }
             else if (CEL_POLLSTATE_CHECK(ol, CEL_POLLSTATE_WANTOUT))
             {
-                cel_mutex_lock(&(poll->event_locker));
-                if (POLLOUT_CHK(poll_data->events) || POLLERROR_CHK(poll_data->events))
+                cel_poll_lock(poll, &(poll->event_locker));
+                if (POLLOUT_CHK(poll_data->events) 
+                    || POLLERROR_CHK(poll_data->events))
                 {
                     ol->_ol.events = poll_data->events;
                     POLLOUT_CLR(poll_data->events);
-                    cel_mutex_unlock(&(poll->event_locker));
+                    cel_poll_unlock(poll, &(poll->event_locker));
                     continue;
                 }
                 ol->evt_type = CEL_EVENT_CHANNELOUT;
                 poll_data->out_ol = ol;
-                cel_mutex_unlock(&(poll->event_locker));
+                cel_poll_unlock(poll, &(poll->event_locker));
                 return 0;
             }
         }
@@ -212,7 +229,7 @@ int cel_poll_post(CelPoll *poll, int fileds, CelOverLapped *ol)
     else if (ret == 1)
     {
         //_tprintf(_T("fileds %d, error %d\r\n"), fileds, ol->error);
-        cel_asyncqueue_push(&(poll->async_queue), ol);
+        cel_poll_push(poll, ol);
         if (poll->max_threads <= 1 && poll->is_waited)
         {
             cel_eventchannel_write(&(poll->wakeup_ch), 1);
@@ -252,10 +269,10 @@ static int cel_poll_do(CelPoll *poll, int milliseconds)
         {
             if ((ol = poll_data->in_ol) == NULL)
             {
-                cel_mutex_lock(&(poll->event_locker));
+                cel_poll_lock(poll, &(poll->event_locker));
                 if ((ol = poll_data->in_ol) == NULL)
                     poll_data->events = event->events;
-                cel_mutex_unlock(&(poll->event_locker));
+                cel_poll_unlock(poll, &(poll->event_locker));
             }
             if (ol != NULL)
             {
@@ -263,17 +280,17 @@ static int cel_poll_do(CelPoll *poll, int milliseconds)
                 ol->_ol.fileds = event->data.fd;
                 ol->_ol.events = event->events;
                 poll_data->in_ol = NULL;
-                cel_asyncqueue_push(&(poll->async_queue), ol);
+                cel_poll_push(poll, ol);
             }
         }
         if (POLLOUT_CHK(event->events) || POLLERROR_CHK(event->events))
         {
             if ((ol = poll_data->out_ol) == NULL)
             {
-                cel_mutex_lock(&(poll->event_locker));
+                cel_poll_lock(poll, &(poll->event_locker));
                 if ((ol = poll_data->out_ol) == NULL)
                     poll_data->events = event->events;
-                cel_mutex_unlock(&(poll->event_locker));
+                cel_poll_unlock(poll, &(poll->event_locker));
             }
             if (ol != NULL)
             {
@@ -281,7 +298,7 @@ static int cel_poll_do(CelPoll *poll, int milliseconds)
                 ol->_ol.fileds = event->data.fd;
                 ol->_ol.events = event->events;
                 poll_data->out_ol = NULL;
-                cel_asyncqueue_push(&(poll->async_queue), ol);
+                cel_poll_push(poll, ol);
             }
         }
     }
@@ -296,26 +313,27 @@ int cel_poll_wait(CelPoll *poll, CelOverLapped **ol, int milliseconds)
     /*_tprintf("Asyncqueue size %d %d\r\n", 
         cel_asyncqueue_get_size(&(poll->async_queue)), cel_thread_getid()); */
     if (!(poll->is_waited)
-        && cel_mutex_trylock(&(poll->wait_locker)) == 0)
+        && cel_poll_trylock(poll, &(poll->wait_locker)) == 0)
     {
         poll->is_waited = TRUE;
-        if ((*ol = (CelOverLapped *)cel_asyncqueue_try_pop(&(poll->async_queue))) == NULL)
+        if ((*ol = (CelOverLapped *)cel_poll_try_pop(poll)) == NULL)
         {
             //_tprintf("poll wait %d\r\n", (int)cel_thread_getid());
             if ((ret = cel_poll_do(poll, milliseconds)) == -1)
             {
-                cel_mutex_unlock(&(poll->wait_locker));
+                cel_poll_unlock(poll, &(poll->wait_locker));
                 return -1;
             }
-            *ol = (CelOverLapped *)cel_asyncqueue_try_pop(&(poll->async_queue));
+            *ol = (CelOverLapped *)cel_poll_try_pop(poll);
             /*_tprintf(_T("poll return ol %p, milliseconds= %d, pid %d\r\n"), 
                 *ol,  milliseconds, cel_thread_getid());*/
         }
         poll->is_waited = FALSE;
-        cel_mutex_unlock(&(poll->wait_locker));
+        cel_poll_unlock(poll, &(poll->wait_locker));
     }
     else
     {
+        //puts("cel_asyncqueue_timed_pop");
         *ol = (CelOverLapped *)cel_asyncqueue_timed_pop(
             &(poll->async_queue), milliseconds);
         /*_tprintf(_T("poll return ol %p, milliseconds= %d, evt_type %d, pid %d\r\n"), 

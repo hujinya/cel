@@ -1,6 +1,16 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com)
+ * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
  */
 #ifndef __CEL_FILE_H__
 #define __CEL_FILE_H__
@@ -79,10 +89,21 @@ WCHAR *cel_fullpath_r_w(const WCHAR *rel_path, WCHAR *full_path, size_t size);
 #define cel_fullpath_a(rel_path) cel_fullpath_r_a(rel_path, NULL, 0)
 #define cel_fullpath_w(rel_path) cel_fullpath_r_w(rel_path, NULL, 0)
 
-static __inline BOOL cel_fexists(const TCHAR *file_name)
+static __inline BOOL cel_fexists_a(const CHAR *file_name)
 {
     CelStat my_stat; 
-    return (_tstat(file_name, &my_stat) == 0);
+    return (_stat(file_name, &my_stat) == 0);
+}
+static __inline BOOL cel_fexists_w(const WCHAR *file_name)
+{
+#ifdef _CEL_UNIX
+    puts("cel_fexists_w is null############");
+    return FALSE;
+#endif
+#ifdef _CEL_WIN
+    CelStat my_stat;
+    return (_wstat(file_name, &my_stat) == 0);
+#endif
 }
 FILE *cel_fopen(const TCHAR *file_name, const TCHAR *mode);
 #define cel_fclose(fp) fclose(fp)
@@ -109,6 +130,7 @@ int cel_foreachdir(const TCHAR *dir_name,
 #define cel_modulefile cel_modulefile_a
 #define cel_fullpath_r cel_fullpath_r_a
 #define cel_fullpath cel_fullpath_a
+#define cel_fexists cel_fexists_a
 #define cel_mkdirs cel_mkdirs_a
 #else
 #define cel_filedir_r cel_filedir_r_w
@@ -121,6 +143,7 @@ int cel_foreachdir(const TCHAR *dir_name,
 #define cel_modulefile cel_modulefile_w
 #define cel_fullpath_r cel_fullpath_r_w
 #define cel_fullpath cel_fullpath_w
+#define cel_fexists cel_fexists_w
 #define cel_mkdirs cel_mkdirs_w
 #endif
 

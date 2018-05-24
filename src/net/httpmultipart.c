@@ -1,3 +1,17 @@
+/**
+ * CEL(C Extension Library)
+ * Copyright (C)2008 - 2016 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
+ */
 #include "cel/net/httpmultipart.h"
 #include "cel/log.h"
 #include "cel/error.h"
@@ -150,12 +164,14 @@ int cel_httpmultipart_reading_value(CelHttpMultipart *multipart,
             && (size = cel_httpmultipart_reading_boundary(
             multipart, s, len - _size)) != -1)
         {
-            //puts("cel_httpmultipart_reading_value ok");
-            _size -= 2;
-            if (cel_httpbodycache_reading(
+            /* \r\n-- */
+            _size -= 4;
+            //printf("last size %d\r\n", _size);
+            if (_size > 0
+                && cel_httpbodycache_reading(
                 &(reading_entity->cache), (char *)start, _size) != _size)
                 return -1;
-            return (int)size + _size + 2;
+            return (int)size + _size + 4;
         }
         ch1 = ch;
     }

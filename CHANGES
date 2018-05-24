@@ -1,4 +1,10 @@
+* Mon May 09 2018 Hu Jinya <hu_jinya@163.com> 1.0.6.103
 - cel_long_equal类型转换问题导致windows下hashtable查找出错。
+- 修正http chunked编解码last chunk多出\r\n问题。
+- 增加http头部keep-alive小写兼容。
+- 修正httpmultipart上传文件末尾多出\r\n问题。
+- 增加eventloopgroup。
+- 修正_atoll在vs2013版本重定义冲突，最新的VC集成了该函数。
 
 * Tue Aug 29 2017 Hu Jinya <hu_jinya@163.com> 1.0.5
 - http相关库更新。
@@ -12,7 +18,8 @@
 
 * Mon Oct 10 2016 Hu Jinya <hu_jinya@163.com> 1.0.3
 - cel_datetime_init_strtime_a把sscanf写成scanf时导致http在解析Date头部时卡死；
-- cel_socket_async_accept设置buffer_size大于ACCEPTEX_RECEIVEDATA_OFFSET时，如果客户端一直不发数据，会导致卡死；
+- cel_socket_async_accept设置buffer_size大于ACCEPTEX_RECEIVEDATA_OFFSET时，
+  如果客户端一直不发数据，会导致卡死；
 - 增加taskscheduler库。
 - cel_service_pidfile_exist服务异常自动重启时判断异常会导致服务自动退出。
 - 优化json库，支持value为"",解决json文件最后一行为数字解析出错BUG。

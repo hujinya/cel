@@ -1,3 +1,17 @@
+/**
+ * CEL(C Extension Library)
+ * Copyright (C)2008 - 2016 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
+ */
 #include "cel/net/wmiplistener.h"
 #include "cel/log.h"
 #include "cel/error.h"
@@ -74,18 +88,38 @@ void wmiplistener_do_accept(CelWmipListener *listener,
     new_client->user_data = NULL;
     cel_refcounted_init(&(new_client->ref_counted), 
         (CelFreeFunc)_cel_wmipclient_free_derefed);
-    if (cel_wmipclient_set_nonblock(new_client, 1) == -1
-        || cel_eventloop_add_channel(
-        listener->evt_loop, cel_wmipclient_get_channel(new_client), NULL) == -1)
+    if (cel_wmipclient_set_nonblock(new_client, 1) == 0)
     {
-        cel_wmipclient_free(new_client);
-        Err((_T("Wmip client %s init failed(%s)."), 
-            cel_wmipclient_get_remoteaddrs(new_client), cel_geterrstr(cel_sys_geterrno())));
-        return ;
+        if (listener->is_run_group)
+        {
+            if (cel_eventloopgroup_add_channel(
+                listener->evt_loop_group, -1, 
+                cel_wmipclient_get_channel(new_client), NULL) == 0)
+            {
+                Debug((_T("Wmip2 client %s connected."), 
+                    cel_wmipclient_get_remoteaddrs(new_client)));
+                cel_httpclient_async_handshake(&(new_client->http_client), 
+                    (CelHttpHandshakeCallbackFunc)wmiplistener_do_handshake);
+                return ;
+            }
+        }
+        else 
+        {
+            if (cel_eventloop_add_channel(
+                listener->evt_loop, 
+                cel_wmipclient_get_channel(new_client), NULL) == 0)
+            {
+                Debug((_T("Wmip2 client %s connected."), 
+                    cel_wmipclient_get_remoteaddrs(new_client)));
+                cel_httpclient_async_handshake(&(new_client->http_client), 
+                    (CelHttpHandshakeCallbackFunc)wmiplistener_do_handshake);
+                return ;
+            } 
+        }
     }
-    Debug((_T("Wmip2 client %s connected."), cel_wmipclient_get_remoteaddrs(new_client)));
-    cel_httpclient_async_handshake(&(new_client->http_client), 
-        (CelHttpHandshakeCallbackFunc)wmiplistener_do_handshake);
+    cel_wmipclient_free(new_client);
+    Err((_T("Wmip client %s init failed(%s)."), 
+        cel_wmipclient_get_remoteaddrs(new_client), cel_geterrstr(cel_sys_geterrno())));
 }
 
 int cel_wmiplistener_post_accept(CelWmipListener *listener)
@@ -108,7 +142,23 @@ int cel_wmiplistener_run(CelWmipListener *listener, CelEventLoop *evt_loop)
         cel_wmiplistener_get_channel(listener), NULL) != -1
         && cel_wmiplistener_post_accept(listener) != -1)
     {
+        listener->is_run_group = FALSE;
         listener->evt_loop = evt_loop;
+        return 0;
+    }
+    return -1;
+}
+
+int cel_wmiplistener_run_group(CelWmipListener *listener, 
+                               CelEventLoopGroup *evt_loop_grp)
+{
+    if (cel_httplistener_set_nonblock(listener, 1) != -1
+        && cel_eventloopgroup_add_channel(evt_loop_grp, -1,
+        cel_wmiplistener_get_channel(listener), NULL) != -1
+        && cel_wmiplistener_post_accept(listener) != -1)
+    {
+        listener->is_run_group = TRUE;
+        listener->evt_loop_group = evt_loop_grp;
         return 0;
     }
     return -1;

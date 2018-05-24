@@ -1,6 +1,16 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com)
+ * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
  */
 #ifndef __CEL_LOG_H__
 #define __CEL_LOG_H__
@@ -92,15 +102,6 @@ typedef struct _CelLogger
 }CelLogger;
 
 extern CelLogger g_logger;
-
-/* 
- * DATETIME [PID]: <LEVEL>[VERSION]
- *                 [MOUDLE:ACTION:CONDITION]
- *                 [CLIENT-IP:CLIENT-OS:CLIENT-VERSION:CLIENT-GPS]MESAGE 
- * Jul 03 11:45:55 [2195]: <Err>[1]
- *                         [conf:get:][system:::]
- *                         Mysqldb connect server "127.0.0.1:3306" failed.
- */
 
 void cel_logger_facility_set(CelLogFacility facility);
 void _cel_logger_level_set(CelLogFacility facility, CelLogLevel level);

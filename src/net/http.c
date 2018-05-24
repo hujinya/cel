@@ -1,3 +1,17 @@
+/**
+ * CEL(C Extension Library)
+ * Copyright (C)2008 - 2016 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
+ */
 #include "cel/net/http.h"
 #include "cel/error.h"
 #include "cel/log.h"
@@ -630,8 +644,9 @@ int cel_httpll_writing(const char *hdr_name, long long *ll, CelStream *s)
 int cel_httpconnection_reading(CelHttpConnection *connection, 
                                const char *value, size_t size)
 {
-    *connection = (memcmp(value, "Keep-Alive", size) == 0 
-        ? CEL_HTTPCON_KEEPALIVE : CEL_HTTPCON_CLOSE);
+    *connection = (memcmp(value, "close", size) == 0 
+        ? CEL_HTTPCON_CLOSE : CEL_HTTPCON_KEEPALIVE);
+    //_tprintf("*connection = %d\r\n", *connection);
     return 0;
 }
 
@@ -914,6 +929,7 @@ long cel_http_chunked_reading(CelStream *s)
         Err((_T("Http chunk decode error.")));
         return -2;
     }
+    //printf("chunk %ld %ld\r\n", (int)s->length, (BYTE *)ptr - s->buffer);
     _cel_stream_set_pointer(s, (BYTE *)ptr);
     /* Read chunk extension */
     while (TRUE)
@@ -932,17 +948,15 @@ long cel_http_chunked_reading(CelStream *s)
     /* Not last chunk */
     if (chunk_size > 0)
     {
-        //printf("chunk_size = %d %s\r\n", chunk_size, (char *)s->pointer);
         return chunk_size;
     }
     /* Last chunk */
     else if (chunk_size == 0)
     {
-        //puts("last chunk");
-        /* Read Footer */
+        /* Read trailer */
         while (TRUE)
         {
-            if (cel_stream_get_remaining_length(s) < 3)
+            if (cel_stream_get_remaining_length(s) < 1)
             {
                 cel_stream_set_position(s, position);
                 return -1;
@@ -951,7 +965,6 @@ long cel_http_chunked_reading(CelStream *s)
             cel_stream_read_u8(s, ch);
             if (ch == '\n' && ch1 == '\r')
             {
-                cel_stream_seek(s, 2);
                 return 0;
             }
         }
@@ -969,14 +982,14 @@ long cel_http_chunked_last(CelHttpChunked *chunked, CelStream *s)
     if (chunked->size > 0)
     {
         sprintf((char *)cel_stream_get_pointer(s), 
-            "%07x", (unsigned int)chunked->size);
+            "%07x", chunked->size);
         cel_stream_seek(s, 7);
         cel_stream_write(s, "\r\n", 2);
         cel_stream_seek(s, chunked->size);
         cel_stream_write(s, "\r\n", 2);
     }
     cel_stream_write_u8(s, '0');
-    cel_stream_write(s, "\r\n\r\n\r\n", 6);
+    cel_stream_write(s, "\r\n\r\n", 4);
     //puts((char *)s->buffer);
     return chunked->size;
 }
@@ -1053,11 +1066,11 @@ int cel_httpbodycache_reading(CelHttpBodyCache *cache,
                 "%s%s_%ld.bdy", 
                 cel_fullpath_a(CEL_HTTPBODY_CACHE_PATH), 
                 dt_filename, cel_getticks());
-            puts(cel_vstring_str_a(&(cache->file_path)));
+            //puts(cel_vstring_str_a(&(cache->file_path)));
             if ((cache->fp = fopen(
                 cel_vstring_str_a(&(cache->file_path)), "wb+")) == NULL
-                && (cel_mkdirs_a(
-                cel_vstring_str_a(&(cache->file_path)), S_IRUSR|S_IWUSR) == -1 
+                && (cel_mkdirs_a(cel_filedir_a(
+                cel_vstring_str_a(&(cache->file_path))), S_IRUSR|S_IWUSR) == -1 
                 || (cache->fp = fopen(
                 cel_vstring_str_a(&(cache->file_path)), "wb+")) == NULL))
             {
@@ -1150,7 +1163,7 @@ long long cel_httpbodycache_save_file(CelHttpBodyCache *cache,
         return -1;
     }
     if ((fp = fopen(file_path, "wb+")) == NULL 
-        && (cel_mkdirs_a(file_path, S_IRUSR|S_IWUSR) == -1
+        && (cel_mkdirs_a(cel_filedir_a(file_path), S_IRUSR|S_IWUSR) == -1
         || (fp = fopen(file_path, "wb+")) == NULL))
     {
         puts("cel_httprequest_save_body_data failed");
@@ -1179,8 +1192,7 @@ long long cel_httpbodycache_save_file(CelHttpBodyCache *cache,
     return size;
 }
 
-int cel_httpbodycache_move_file(CelHttpBodyCache *cache, 
-                                const char *file_path)
+int cel_httpbodycache_move_file(CelHttpBodyCache *cache, const char *file_path)
 {
     if (cache->fp == NULL)
     {

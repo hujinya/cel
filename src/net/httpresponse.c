@@ -1,3 +1,17 @@
+/**
+ * CEL(C Extension Library)
+ * Copyright (C)2008 - 2016 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
+ */
 #include "cel/net/httpresponse.h"
 #include "cel/error.h"
 #include "cel/log.h"
@@ -443,13 +457,14 @@ start:
             }
             else 
             {
-                //printf("chunk_size = %d %s\r\n", 
-                //    chunk_size, (char *)s->pointer);
+                /*printf("chunk_size = %d %s\r\n", 
+                    chunk_size, (char *)s->pointer);*/
                 rsp->content_length += chunk_size;
                 len1 = (long)(rsp->content_length - rsp->reading_body_offset);
             }
         }
     }
+    //printf("len2 = %d\r\n", cel_stream_get_remaining_length(s));
     if ((len2 = cel_stream_get_remaining_length(s)) >= len1)
     {
         if (cel_httpresponse_reading_body_content(rsp, s, len1) != len1)
@@ -488,6 +503,7 @@ int cel_httpresponse_reading(CelHttpResponse *rsp, CelStream *s)
     case CEL_HTTPRESPONSE_READING_INIT:
         rsp->reading_state = CEL_HTTPRESPONSE_READING_VERSION;
     case CEL_HTTPRESPONSE_READING_VERSION:
+        //puts("CEL_HTTPRESPONSE_READING_VERSION");
         start = cel_stream_get_position(s);
         do 
         {
@@ -516,6 +532,7 @@ int cel_httpresponse_reading(CelHttpResponse *rsp, CelStream *s)
             rsp->connection = CEL_HTTPCON_KEEPALIVE;
         rsp->reading_state = CEL_HTTPRESPONSE_READING_STATUS;
     case CEL_HTTPRESPONSE_READING_STATUS:
+        //puts("CEL_HTTPRESPONSE_READING_STATUS");
         start = cel_stream_get_position(s);
         do 
         {
@@ -539,7 +556,9 @@ int cel_httpresponse_reading(CelHttpResponse *rsp, CelStream *s)
             return -1;
         }
         rsp->reading_state = CEL_HTTPRESPONSE_READING_REASON;
+        //printf("statsu %s\r\n", rsp->status);
     case CEL_HTTPRESPONSE_READING_REASON:
+        //puts("CEL_HTTPRESPONSE_READING_REASON");
         start = cel_stream_get_position(s);
         do 
         {
@@ -571,6 +590,7 @@ int cel_httpresponse_reading(CelHttpResponse *rsp, CelStream *s)
             || CEL_CHECKFLAG(rsp->hdr_flags, 
             (ULL(1) << CEL_HTTPHDR_TRANSFER_ENCODING)))
         {
+            //puts((char *)s->pointer);
             if (cel_httpresponse_reading_body(rsp, s) == -1)
                 return -1;
         }
@@ -1120,7 +1140,7 @@ static int cel_httpresponse_body_write_file(CelHttpResponse *rsp,
     {
         if ((rsp->body_cache.fp = fopen(
             cel_vstring_str_a(file_path), "wb+")) == NULL 
-            && (cel_mkdirs_a(cel_vstring_str_a(file_path), 
+            && (cel_mkdirs_a(cel_filedir_a(cel_vstring_str_a(file_path)), 
             S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH) == -1 
             || (rsp->body_cache.fp = fopen(
             cel_vstring_str_a(file_path), "wb+")) == NULL))

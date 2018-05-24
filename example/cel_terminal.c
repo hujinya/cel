@@ -1,5 +1,5 @@
 #include "cel/types.h"
-#ifdef __UNIX__
+#ifdef _CEL_UNIX
 #include <termios.h>
 
 int terminal_test(int argc, TCHAR *argv[])

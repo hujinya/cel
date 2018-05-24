@@ -1,6 +1,16 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com)
+ * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
  */
 #ifndef __CEL_CONVERT_H__
 #define __CEL_CONVERT_H__
@@ -49,10 +59,10 @@ int cel_power2bits(int n, int min_bits, int max_bits);
  */
 TCHAR *cel_lltodda_r(long long ll, TCHAR *dda, size_t size);
 #define cel_lltodda(ll) cel_lltodda_r(ll, NULL, 0)
-int cel_hextobin(const TBYTE *input, size_t ilen, 
-                 TBYTE *output, size_t *olen);
-int cel_bintohex(const TBYTE *input, size_t ilen, 
-                 TBYTE *output, size_t *olen, int is_caps);
+int cel_hextobin(const BYTE *input, size_t ilen, 
+                 BYTE *output, size_t *olen);
+int cel_bintohex(const BYTE *input, size_t ilen, 
+                 BYTE *output, size_t *olen, int is_caps);
 int cel_hexdump(void *dest, size_t dest_size, 
                 const BYTE *src, size_t src_size);
 /*  

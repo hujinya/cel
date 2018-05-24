@@ -1,6 +1,16 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com)
+ * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
  */
 #ifndef __CEL_JSON_H__
 #define __CEL_JSON_H__
@@ -87,7 +97,7 @@ void cel_json_node_free(CelJsonNode *node);
 
 #define cel_json_null_new() cel_json_node_new(CEL_JSONT_NULL)
 CelJsonNode *cel_json_bool_new(BOOL bool_value);
-CelJsonNode *cel_json_int_new(long int_value);
+CelJsonNode *cel_json_long_new(long int_value);
 CelJsonNode *cel_json_double_new(double double_value);
 CelJsonNode *cel_json_string_new(const char *string_value);
 /* CelJsonNode *cel_json_array_new(void); */
@@ -151,7 +161,8 @@ static __inline void cel_json_clear(CelJson *json)
 #define cel_json_array_add_bool(_array, value) \
     cel_json_array_add(_array, cel_json_bool_new(value))
 #define cel_json_array_add_int(_array, value) \
-    cel_json_array_add(_array, cel_json_int_new(value))
+    cel_json_array_add(_array, cel_json_long_new(value))
+#define cel_json_array_add_long cel_json_array_add_int
 #define cel_json_array_add_double(_array, value) \
     cel_json_array_add(_array, cel_json_double_new(value))
 #define cel_json_array_add_string(_array, value) \
@@ -162,7 +173,8 @@ static __inline void cel_json_clear(CelJson *json)
 #define cel_json_object_add_bool(object, key, value) \
     cel_json_object_add(object, key, cel_json_bool_new(value))
 #define cel_json_object_add_int(object, key, value) \
-    cel_json_object_add(object, key, cel_json_int_new(value))
+    cel_json_object_add(object, key, cel_json_long_new(value))
+#define cel_json_object_add_long cel_json_object_add_int
 #define cel_json_object_add_double(object, key, value) \
     cel_json_object_add(object, key, cel_json_double_new(value))
 #define cel_json_object_add_string(object, key, value) \
@@ -170,6 +182,7 @@ static __inline void cel_json_clear(CelJson *json)
 
 int cel_json_array_get_bool(CelJsonNode *_array, int which, BOOL *value);
 int cel_json_array_get_int(CelJsonNode *_array, int which, int *value);
+int cel_json_array_get_long(CelJsonNode *_array, int which, long *value);
 int cel_json_array_get_double(CelJsonNode *_array, int which, double *value);
 int cel_json_array_get_string(CelJsonNode *_array, 
                               int which, char *value, size_t size);
@@ -179,6 +192,7 @@ int cel_json_array_get_string_alloc(CelJsonNode *_array,
 int cel_json_object_get_bool(CelJsonNode *object, 
                              const char *key, BOOL *value);
 int cel_json_object_get_int(CelJsonNode *object, const char *key, int *value);
+int cel_json_object_get_long(CelJsonNode *object, const char *key, long *value);
 int cel_json_object_get_double(CelJsonNode *object, 
                                const char *key, double *value);
 int cel_json_object_get_string(CelJsonNode *object,
