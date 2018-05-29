@@ -1,10 +1,11 @@
-* Mon May 09 2018 Hu Jinya <hu_jinya@163.com> 1.0.6.103
+* Thu May 24 2018 Hu Jinya <hu_jinya@163.com> 1.0.6.104
 - cel_long_equal类型转换问题导致windows下hashtable查找出错。
 - 修正http chunked编解码last chunk多出\r\n问题。
 - 增加http头部keep-alive小写兼容。
 - 修正httpmultipart上传文件末尾多出\r\n问题。
 - 增加eventloopgroup。
 - 修正_atoll在vs2013版本重定义冲突，最新的VC集成了该函数。
+- 增加CEL_MT_KEY_USERX。
 
 * Tue Aug 29 2017 Hu Jinya <hu_jinya@163.com> 1.0.5
 - http相关库更新。

@@ -30,6 +30,12 @@ typedef struct _OsServiceEntry
     CelVoidFunc on_stop;
 }OsServiceEntry;
 
+//BOOL os_service_get_starttype(TCHAR *name);
+//BOOL os_service_set_starttype(TCHAR *name, DWORD dwStartType);
+//
+//BOOL os_service_start(TCHAR *name,
+//                      DWORD dwNumServiceArgs = 0,
+//                      TCHAR *lpszServiceArgVectors = NULL);
 BOOL os_service_is_running(TCHAR *name);
 BOOL os_service_stop(TCHAR *name);
 BOOL os_service_reload(TCHAR *name);
