@@ -46,5 +46,5 @@ int _tmain(int argc, TCHAR *argv[])
 {
     //_tscanf(_T("%s", ))
 
-    return file_test(argc, argv);
+    return coroutine_test(argc, argv);
 }

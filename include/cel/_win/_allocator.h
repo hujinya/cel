@@ -12,8 +12,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
  * GNU General Public License for more details.
  */
-#ifndef __OS_ALLOCATOR_WIN_H__
-#define __OS_ALLOCATOR_WIN_H__
+#ifndef __CEL_ALLOCATOR_WIN_H__
+#define __CEL_ALLOCATOR_WIN_H__
 
 #include "cel/types.h"
 #include <sys/types.h>       /* for _off_t */

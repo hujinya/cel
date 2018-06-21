@@ -12,8 +12,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
  * GNU General Public License for more details.
  */
-#ifndef __OS_THREAD_WIN_H__
-#define __OS_THREAD_WIN_H__
+#ifndef __CEL_THREAD_WIN_H__
+#define __CEL_THREAD_WIN_H__
 
 #include "cel/types.h"
 #include <process.h> /* _beginthread, _endthread */

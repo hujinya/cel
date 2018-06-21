@@ -25,12 +25,14 @@ typedef struct _CelEventLoopThreadId
 typedef struct _CelEventLoopThread
 {
     int i;
-    CelEventLoop evt_loop;
+    CelEventLoop *evt_loop;
     CelThread thread;
 }CelEventLoopThread;
 
 typedef struct _CelEventLoopGroup
 {
+    BOOL is_shared;
+    CelEventLoop *evt_loop;
     int n_threads;
     CelEventLoopThread *evt_loop_threads;
 }CelEventLoopGroup;
@@ -41,10 +43,11 @@ extern "C" {
 
 CelEventLoopThreadId *_cel_eventloopthread_id();
 
-int cel_eventloopgroup_init(CelEventLoopGroup *group, int n_threads);
+int cel_eventloopgroup_init(CelEventLoopGroup *group, 
+                            int n_threads, BOOL is_shared);
 void cel_eventloopgroup_destroy(CelEventLoopGroup *group);
 
-CelEventLoopGroup *cel_eventloopgroup_new(int n_threads);
+CelEventLoopGroup *cel_eventloopgroup_new(int n_threads, BOOL is_shared);
 void cel_eventloopgroup_free(CelEventLoopGroup *group);
 
 static __inline void cel_eventloopgroup_exit(CelEventLoopGroup *group)
@@ -52,7 +55,7 @@ static __inline void cel_eventloopgroup_exit(CelEventLoopGroup *group)
     int i;
 
     for (i = 0; i < group->n_threads; i++)
-        cel_eventloop_exit(&(group->evt_loop_threads[i].evt_loop));
+        cel_eventloop_exit(group->evt_loop_threads[i].evt_loop);
 }
 
 static  __inline 
@@ -71,7 +74,7 @@ int cel_eventloopgroup_queued_event(CelEventLoopGroup *group,
                                     CelEventRoutine routine, void *evt_data)
 {
     return cel_eventloop_queued_event(
-        &(group->evt_loop_threads[_cel_eventloopthread_id()->i].evt_loop),
+        group->evt_loop_threads[_cel_eventloopthread_id()->i].evt_loop,
         routine, evt_data);
 }
 
@@ -82,7 +85,7 @@ CelTimerId cel_eventloopgroup_schedule_timer(CelEventLoopGroup *group,
                                              void *user_data)
 {
     return cel_eventloop_schedule_timer(
-        &(group->evt_loop_threads[_cel_eventloopthread_id()->i].evt_loop),
+        group->evt_loop_threads[_cel_eventloopthread_id()->i].evt_loop,
         milliseconds, repeat, call_back, user_data);
 }
 
@@ -92,7 +95,7 @@ int cel_eventloopgroup_add_channel(CelEventLoopGroup *group,  int id,
 {
     if (id < 0 || id >= group->n_threads)
         id = ((int)channel->handle) % group->n_threads;
-    return cel_eventloop_add_channel(&(group->evt_loop_threads[id].evt_loop),
+    return cel_eventloop_add_channel(group->evt_loop_threads[id].evt_loop,
         channel, key);
 }
 

@@ -12,8 +12,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
  * GNU General Public License for more details.
  */
-#ifndef __OS_DATETIME_UNIX_H__
-#define __OS_DATETIME_UNIX_H__
+#ifndef __CEL_DATETIME_UNIX_H__
+#define __CEL_DATETIME_UNIX_H__
 
 #include "cel/types.h"
 #include "cel/allocator.h"

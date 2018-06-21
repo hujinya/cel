@@ -1,0 +1,18 @@
+Java NIO 由以下几个核心部分组成：
+
+Channels
+FileChannel
+DatagramChannel
+SocketChannel
+ServerSocketChannel
+
+Buffers
+Selectors
+
+2016.11.29
+去掉CelOverLapped的result error，移到args参数里面，考虑不需要key参数
+socket AsyncArgs的CelAsyncBuffer结构不变，考虑底层API的兼容性
+socket AsyncArgs的accept_socket、 remote_addr换成指针结构
+
+2016.12.07
+非阻塞IO中，SSL_read 和SSL_write同时调用时，会覆盖ssl的rwstate

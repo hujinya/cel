@@ -1,3 +1,6 @@
+* Thu May 24 2018 Hu Jinya <hu_jinya@163.com> 1.0.7.105
+- 优化协程库。
+
 * Thu May 24 2018 Hu Jinya <hu_jinya@163.com> 1.0.6.104
 - cel_long_equal类型转换问题导致windows下hashtable查找出错。
 - 修正http chunked编解码last chunk多出\r\n问题。

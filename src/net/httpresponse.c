@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2016 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -788,7 +788,6 @@ void *cel_httpresponse_get_send_buffer(CelHttpResponse *rsp)
         cel_httpresponse_set_header(rsp, 
             CEL_HTTPHDR_TRANSFER_ENCODING, 
             &transfer_encoding, sizeof(transfer_encoding));
-        cel_httpresponse_writing(rsp, s);
     }
 
     return cel_http_chunked_get_buffer(&(rsp->chunked), s);
@@ -803,7 +802,6 @@ size_t cel_httpresponse_get_send_buffer_size(CelHttpResponse *rsp)
     {
         cel_httpresponse_set_header(rsp, CEL_HTTPHDR_TRANSFER_ENCODING, 
             &transfer_encoding, sizeof(transfer_encoding));
-        cel_httpresponse_writing(rsp, s);
     }
     return cel_http_chunked_get_buffer_size(&(rsp->chunked), s);
 }
@@ -826,7 +824,6 @@ int cel_httpresponse_resize_send_buffer(CelHttpResponse *rsp, size_t resize)
     {
         cel_httpresponse_set_header(rsp, CEL_HTTPHDR_TRANSFER_ENCODING, 
             &transfer_encoding, sizeof(transfer_encoding));
-        cel_httpresponse_writing(rsp, s);
     }
     return cel_http_chunked_resize_buffer(&(rsp->chunked), s, resize);
 }

@@ -12,8 +12,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
  * GNU General Public License for more details.
  */
-#ifndef __OS_NET_SOCKET_UNIX_H__
-#define __OS_NET_SOCKET_UNIX_H__
+#ifndef __CEL_NET_SOCKET_UNIX_H__
+#define __CEL_NET_SOCKET_UNIX_H__
 
 #include "cel/types.h"
 #include "cel/refcounted.h"

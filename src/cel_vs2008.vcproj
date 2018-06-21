@@ -191,6 +191,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\channel.c"
+				>
+			</File>
+			<File
 				RelativePath=".\commandline.c"
 				>
 			</File>
@@ -914,6 +918,10 @@
 			</File>
 			<File
 				RelativePath="..\include\cel\byteorder.h"
+				>
+			</File>
+			<File
+				RelativePath="..\include\cel\channel.h"
 				>
 			</File>
 			<File

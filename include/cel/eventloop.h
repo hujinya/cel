@@ -61,7 +61,7 @@ int cel_eventloop_init(CelEventLoop *evt_loop,
                        int max_threads, int max_fileds);
 void cel_eventloop_destroy(CelEventLoop *evt_loop);
 
-CelEventLoop *cel_eventloop_new( int max_threads, int max_fileds);
+CelEventLoop *cel_eventloop_new( int n_threads, int max_fileds);
 void cel_eventloop_free(CelEventLoop *evt_loop);
 
 #define cel_eventloop_is_running(evt_loop) (evt_loop)->is_running

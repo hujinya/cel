@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2016 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -16,40 +16,7 @@
 #include "cel/allocator.h"
 #ifdef _CEL_WIN
 
-void __stdcall _os_coroutine_main(OsCoroutineScheduler *schd)
-{
-    OsCoroutine *co = schd->co[schd->co_running];
-
-    (co->func)(co->user_data);
-
-    schd->co_running = -1;
-    --schd->co_num;
-    schd->co[schd->co_running] = NULL;
-    //_coroutine_free(co);
-    SwitchToFiber(schd->main_ctx);
-}
-
-OsCoroutine *_coroutine_new(OsCoroutineScheduler *schd, 
-                            OsCoroutineFunc func, void *user_data) 
-{
-    OsCoroutine *co;
-
-    if ((co = cel_malloc(sizeof(OsCoroutine))) != NULL)
-    {
-        co->schd = schd;
-        co->status = CEL_COROUTINE_READY;
-        co->func = func;
-        co->user_data = user_data;
-        co->ctx = CreateFiberEx(CEL_COROUTINE_STACK_SIZE, 0, 
-            FIBER_FLAG_FLOAT_SWITCH, _os_coroutine_main, schd);
-        co->id = -1;
-        co->status = CEL_COROUTINE_READY;
-        return co;
-    }
-    return NULL;
-}
-
-static void _coroutine_free(OsCoroutine *co)
+static void _coroutineentity_free(OsCoroutineEntity *co_entity)
 {
     // If the currently running fiber calls DeleteFiber, 
     // its thread calls ExitThread and terminates.  
@@ -57,8 +24,43 @@ static void _coroutine_free(OsCoroutine *co)
     // the thread running the   
     // deleted fiber is likely to terminate abnormally 
     // because the fiber stack has been freed.  
-    DeleteFiber(co->ctx);
-    free(co);
+    DeleteFiber(co_entity->ctx);
+    free(co_entity);
+}
+
+void __stdcall _os_coroutineentity_main(OsCoroutineScheduler *schd)
+{
+    OsCoroutineEntity *co_entity = schd->co_entitys[schd->co_running];
+
+    //_tprintf(_T("co %d enter.\r\n"), co_entity->id);
+    (co_entity->func)(co_entity->user_data);
+    //_tprintf(_T("co %d exit.\r\n"), co_entity->id);
+    schd->co_running = -1;
+    --schd->co_num;
+    schd->co_entitys[schd->co_running] = NULL;
+    //_coroutineentity_free(co_entity);
+    co_entity->status = CEL_COROUTINE_DEAD;
+    SwitchToFiber(schd->main_ctx);
+}
+
+OsCoroutineEntity *_coroutine_new(OsCoroutineScheduler *schd, 
+                            OsCoroutineFunc func, void *user_data) 
+{
+    OsCoroutineEntity *co_entity;
+
+    if ((co_entity = cel_malloc(sizeof(OsCoroutineEntity))) != NULL)
+    {
+        co_entity->schd = schd;
+        co_entity->status = CEL_COROUTINE_READY;
+        co_entity->func = func;
+        co_entity->user_data = user_data;
+        co_entity->ctx = CreateFiberEx(CEL_COROUTINE_STACK_SIZE, 0, 
+            FIBER_FLAG_FLOAT_SWITCH, _os_coroutineentity_main, schd);
+        co_entity->id = -1;
+        co_entity->status = CEL_COROUTINE_READY;
+        return co_entity;
+    }
+    return NULL;
 }
 
 OsCoroutineScheduler *os_coroutinescheduler_new()
@@ -70,10 +72,11 @@ OsCoroutineScheduler *os_coroutinescheduler_new()
         schd->co_capacity = CEL_COROUTINE_CAP;
         schd->co_num = 0;
         schd->co_running = -1;
-        if ((schd->co = cel_malloc(
-            sizeof(OsCoroutine *) * schd->co_capacity)) != NULL)
+        if ((schd->co_entitys = cel_malloc(
+            sizeof(OsCoroutineEntity *) * schd->co_capacity)) != NULL)
         {
-            memset(schd->co, 0, sizeof(OsCoroutine *) * schd->co_capacity);
+            memset(schd->co_entitys, 0, 
+                sizeof(OsCoroutineEntity *) * schd->co_capacity);
             schd->main_ctx = 
                 ConvertThreadToFiberEx(NULL, FIBER_FLAG_FLOAT_SWITCH);
             return schd;
@@ -89,31 +92,33 @@ void os_coroutinescheduler_free(OsCoroutineScheduler *schd)
 
     for (i = 0; i < schd->co_capacity; i++)
     {  
-        if (schd->co[i] != NULL) 
-            _coroutine_free(schd->co[i]);
+        if (schd->co_entitys[i] != NULL) 
+            _coroutineentity_free(schd->co_entitys[i]);
     }  
-    cel_free(schd->co);
-    schd->co = NULL;
+    cel_free(schd->co_entitys);
+    schd->co_entitys = NULL;
     cel_free(schd);
 }
 
-int os_coroutinescheduler_add(OsCoroutineScheduler *schd, OsCoroutine *co)
+int os_coroutinescheduler_add(OsCoroutineScheduler *schd, 
+                              OsCoroutineEntity *co_entity)
 {
     int i, co_id, new_cap;
 
     if (schd->co_num >= schd->co_capacity)
     {
         new_cap = schd->co_capacity * 2;
-        if ((schd->co = (OsCoroutine **)
-            realloc(schd->co, new_cap * sizeof(OsCoroutine *))) == NULL)
+        if ((schd->co_entitys = (OsCoroutineEntity **)
+            realloc(schd->co_entitys, 
+            new_cap * sizeof(OsCoroutineEntity *))) == NULL)
         {
             return -1;
         }
-        memset(schd->co + schd->co_capacity , 
-            0 , sizeof(OsCoroutine *) * schd->co_capacity);
+        memset(schd->co_entitys + schd->co_capacity , 
+            0 , sizeof(OsCoroutineEntity *) * schd->co_capacity);
         schd->co_capacity *= 2;
         co_id = schd->co_num;
-        schd->co[co_id] = co;
+        schd->co_entitys[co_id] = co_entity;
         ++schd->co_num;
          return co_id;
     } 
@@ -122,9 +127,9 @@ int os_coroutinescheduler_add(OsCoroutineScheduler *schd, OsCoroutine *co)
         for (i = 0;i < schd->co_capacity;i++)
         {
             co_id = ((i + schd->co_num) % schd->co_capacity);
-            if (schd->co[co_id] == NULL) 
+            if (schd->co_entitys[co_id] == NULL) 
             {
-                schd->co[co_id] = co;
+                schd->co_entitys[co_id] = co_entity;
                 ++schd->co_num;
                 return co_id;
             }
@@ -133,32 +138,34 @@ int os_coroutinescheduler_add(OsCoroutineScheduler *schd, OsCoroutine *co)
     return -1;
 }
 
-int os_coroutine_create(OsCoroutine *co, OsCoroutineScheduler *schd,
-                        OsCoroutineAttr *attr,
-                        OsCoroutineFunc func, void *user_data)
+int os_coroutineentity_create(OsCoroutineEntity **co_entity, 
+                              OsCoroutineScheduler *schd,
+                              OsCoroutineAttr *attr,
+                              OsCoroutineFunc func, void *user_data)
 {
-    if ((co = _coroutine_new(schd, func, user_data)) != NULL)
+    if ((*co_entity = _coroutine_new(schd, func, user_data)) != NULL)
     {
-        if ((co->id = os_coroutinescheduler_add(schd, co)) != -1)
-            return co->id;
-        _coroutine_free(co);
+        if (((*co_entity)->id = 
+            os_coroutinescheduler_add(schd, *co_entity)) != -1)
+            return (*co_entity)->id;
+        _coroutineentity_free(*co_entity);
     }
     return -1;
 }
 
-void os_coroutine_resume(OsCoroutine *co)
+void os_coroutineentity_resume(OsCoroutineEntity *co_entity)
 {
-    OsCoroutineScheduler *schd = co->schd;
+    OsCoroutineScheduler *schd = co_entity->schd;
 
-    switch (co->status)
+    switch (co_entity->status)
     {  
     case CEL_COROUTINE_READY:
     case CEL_COROUTINE_SUSPEND:
-        co->status = CEL_COROUTINE_RUNNING;
-        schd->co_running = co->id;
-        SwitchToFiber(co->ctx);
-        if (schd->co[co->id] != NULL) 
-            _coroutine_free(co);
+        co_entity->status = CEL_COROUTINE_RUNNING;
+        schd->co_running = co_entity->id;
+        SwitchToFiber(co_entity->ctx);
+        if (schd->co_entitys[co_entity->id] == NULL)
+            _coroutineentity_free(co_entity);
         break;
     default:
         //assert(0);
@@ -166,11 +173,11 @@ void os_coroutine_resume(OsCoroutine *co)
     }
 }
 
-void os_coroutine_yield(OsCoroutine *co)
+void os_coroutineentity_yield(OsCoroutineEntity *co_entity)
 {
-    OsCoroutineScheduler *schd = co->schd;
+    OsCoroutineScheduler *schd = co_entity->schd;
 
-    co->status = CEL_COROUTINE_SUSPEND;
+    co_entity->status = CEL_COROUTINE_SUSPEND;
     schd->co_running = -1;
     SwitchToFiber(schd->main_ctx);
 }

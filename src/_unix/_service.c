@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2016 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -241,7 +241,7 @@ int _os_service_entry_dispatch(OsServiceEntry *sc_entry, int argc, char **argv)
 
     setsid();       /**< Set session leader */
 
-    chdir("/");
+    //chdir("/");
     umask(0);
     if ((null_fd = open("/dev/null", 0)) == -1
         || dup2(null_fd, STDERR_FILENO) == -1

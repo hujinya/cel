@@ -12,8 +12,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
  * GNU General Public License for more details.
  */
-#ifndef __OS_ALLOCATOR_UNIX_H__
-#define __OS_ALLOCATOR_UNIX_H__
+#ifndef __CEL_ALLOCATOR_UNIX_H__
+#define __CEL_ALLOCATOR_UNIX_H__
 
 #include "cel/types.h"
 #include <sys/mman.h> /* mmap(),munmap()*/

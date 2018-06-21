@@ -253,7 +253,7 @@ static __inline int cel_httpresponse_move_body_data(CelHttpResponse *rsp,
 
 #define cel_httpresponse_get_stream(rsp) (&(rsp->s))
 void *cel_httpresponse_get_send_buffer(CelHttpResponse *rsp);
-size_t cel_httpresponse_get_send_buffer_size(CelHttpResponse *rspq);
+size_t cel_httpresponse_get_send_buffer_size(CelHttpResponse *rsp);
 void cel_httpresponse_seek_send_buffer(CelHttpResponse *rsp, int offset);
 int cel_httpresponse_resize_send_buffer(CelHttpResponse *rsp, size_t resize);
 

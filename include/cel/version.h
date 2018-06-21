@@ -27,8 +27,8 @@ extern "C" {
 
 #define CEL_MAJOR 1
 #define CEL_MINOR 0
-#define CEL_REVISION 6
-#define CEL_BUILD 104
+#define CEL_REVISION 7
+#define CEL_BUILD 105
 #define CEL_EXTRA _T("")
 #define CEL_UTS _T(__DATE__) _T(" ") _T(__TIME__)
 

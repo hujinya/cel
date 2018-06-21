@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2016 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -113,7 +113,6 @@ void cel_hashtable_destroy(CelHashTable *hash_table)
 {
     if (hash_table == NULL)
         return;
-
     cel_hashtable_clear(hash_table);
     if (hash_table->items != NULL)
         cel_free(hash_table->items);
@@ -276,6 +275,7 @@ int cel_hashtable_foreach(CelHashTable *hash_table,
         next_item = hash_table->items[i];
         while ((item =  next_item) != NULL)
         {
+            //printf("foreach %p\r\n", item->value);
             next_item = item->next;
             if ((ret = each_func(item->key, item->value, user_data)) != 0)
                 return ret;
@@ -294,6 +294,7 @@ void cel_hashtable_clear(CelHashTable *hash_table)
         item = hash_table->items[i];
         while (item != NULL)
         {
+            //printf("clear %p\r\n", item->value);
             if (hash_table->key_free_func != NULL)
                 hash_table->key_free_func(item->key);
             if (hash_table->value_free_func != NULL)

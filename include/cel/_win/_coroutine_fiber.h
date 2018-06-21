@@ -12,8 +12,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
  * GNU General Public License for more details.
  */
-#ifndef __OS_CEL_COROUTINE_FIBER_H__
-#define __OS_CEL_COROUTINE_FIBER_H__
+#ifndef __CEL_COROUTINE_FIBER_H__
+#define __CEL_COROUTINE_FIBER_H__
 
 #include "cel/types.h"
 
@@ -21,7 +21,7 @@
 extern "C" {
 #endif
 
-typedef struct _OsCoroutine OsCoroutine;
+typedef struct _OsCoroutineEntity OsCoroutineEntity;
 
 typedef struct _OsCoroutineScheduler
 {
@@ -29,17 +29,15 @@ typedef struct _OsCoroutineScheduler
     int co_num;
     int co_running;
     LPVOID main_ctx;
-    OsCoroutine **co;
+    OsCoroutineEntity **co_entitys;
 }OsCoroutineScheduler;
-
-typedef void (* OsCoroutineFunc)(void *user_data);
 
 typedef struct _OsCoroutineAttr
 {
     int stack_size;
 }OsCoroutineAttr;
 
-struct _OsCoroutine
+struct _OsCoroutineEntity
 {  
     int id;
     OsCoroutineScheduler *schd;
@@ -59,19 +57,21 @@ int os_coroutinescheduler_running_id(OsCoroutineScheduler *schd)
 }
 
 static __inline 
-OsCoroutine *os_coroutinescheduler_running(OsCoroutineScheduler *schd)
+OsCoroutineEntity *os_coroutinescheduler_running(OsCoroutineScheduler *schd)
 {
-    return schd->co[schd->co_running];
+    return schd->co_entitys[schd->co_running];
 }
 
-int os_coroutine_create(OsCoroutine *co, OsCoroutineScheduler *schd,
-                        OsCoroutineAttr *attr,
-                        OsCoroutineFunc func, void *user_data);
-void os_coroutine_resume(OsCoroutine *co);
-void os_coroutine_yield(OsCoroutine *co);
-static __inline CelCoroutineStatus os_coroutine_status(OsCoroutine *co) 
+int os_coroutineentity_create(OsCoroutineEntity **co_entity, 
+                              OsCoroutineScheduler *schd,
+                              OsCoroutineAttr *attr,
+                              OsCoroutineFunc func, void *user_data);
+void os_coroutineentity_resume(OsCoroutineEntity *co_entity);
+void os_coroutineentity_yield(OsCoroutineEntity *co_entity);
+static __inline 
+CelCoroutineStatus os_coroutineentity_status(OsCoroutineEntity *co_entity)
 {
-    return co->status;
+    return co_entity->status;
 }
 
 #ifdef __cplusplus

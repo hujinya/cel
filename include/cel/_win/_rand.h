@@ -12,8 +12,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
  * GNU General Public License for more details.
  */
-#ifndef __OS_RAND_WIN_H__
-#define __OS_RAND_WIN_H__
+#ifndef __CEL_RAND_WIN_H__
+#define __CEL_RAND_WIN_H__
 
 #include "cel/types.h"
 // #define needed to link in RtlGenRandom(), a.k.a. SystemFunction036.  See the

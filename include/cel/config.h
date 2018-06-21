@@ -12,8 +12,8 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
  * GNU General Public License for more details.
  */
-#ifndef __CONFIG_H__
-#define __CONFIG_H__
+#ifndef __CEL_CONFIG_H__
+#define __CEL_CONFIG_H__
 
 #ifdef _WIN32
 #undef _CEL_UNIX
