@@ -22,7 +22,6 @@
 #include "cel/_win/_service.h"
 #endif
 
-
 #ifdef __cplusplus
 extern "C" {
 #endif

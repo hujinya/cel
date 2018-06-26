@@ -32,8 +32,9 @@ extern "C" {
  */
 #define CEL_ERR_NO                 0x00000000
 #define CEL_ERR_FLAG               (0x1 << 28)
-#define CEL_ERR_OPENSSL            ((0x0001 << 24) | CEL_ERR_FLAG)
-#define CEL_ERR_MYSQL              ((0x0002 << 24) | CEL_ERR_FLAG)
+#define CEL_ERR_OPENSSL            ((0x1 << 24) | CEL_ERR_FLAG)
+#define CEL_ERR_MYSQL              ((0x2 << 24) | CEL_ERR_FLAG)
+#define CEL_ERR_USER               ((0xF << 24) | CEL_ERR_FLAG)
 
 #ifndef CEL_ERRSLEN
 #define CEL_ERRSLEN                512

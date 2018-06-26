@@ -26,7 +26,8 @@
 int cel_poll_init(CelPoll *poll, int max_threads, int max_fileds)
 {
     return (poll->CompletionPort = CreateIoCompletionPort(
-        INVALID_HANDLE_VALUE, NULL, 0, max_threads)) != INVALID_HANDLE_VALUE ? 0 : -1;
+        INVALID_HANDLE_VALUE, NULL, 0, max_threads)) 
+        != INVALID_HANDLE_VALUE ? 0 : -1;
 }
 
 void cel_poll_destroy(CelPoll *poll)

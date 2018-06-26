@@ -65,7 +65,8 @@ int os_service_pidfile_exist(const TCHAR *name)
     fclose(fp);
     //_tprintf(_T("ppid %d, getppid() = %d, pid %d \r\n"),
     //    ppid, getppid(), pid);
-    if ((ppid <= 0 || (ppid == getppid() || kill(ppid, 0) == -1)) 
+    if ((ppid <= 0 
+        || (ppid == getppid() || kill(ppid, 0) == -1)) 
         && (pid <= 0 || kill(pid, 0) == -1))
     {
         fprintf(stderr, "Remove a stale pid file %s\n", name);
@@ -145,7 +146,7 @@ static int singal_live = 0;
 static CelSignals sc_signals[] = 
 {
     { SIGHUP, "sighup", _os_service_signal_handler },   //1
-    { SIGQUIT, "sigquit", _os_service_signal_handler },  //3
+    { SIGQUIT, "sigquit", _os_service_signal_handler }, //3
     { SIGPIPE, "sigpipe", SIG_IGN },  //13
     { SIGTERM, "sigterm", _os_service_signal_handler }, //15
     { SIGCHLD, "sigchld", _os_service_signal_handler }, //17 

@@ -29,6 +29,8 @@ extern "C" {
 typedef int SOCKET;
 #define INVALID_SOCKET -1
 
+#define os_wsastartup
+#define os_wsacleanup
 /* void closesocket(int sockfd)*/
 #define closesocket(sockfd) close(sockfd)
 /* 

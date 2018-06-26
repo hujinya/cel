@@ -16,7 +16,6 @@
 #define __CEL_POLL_H__
 
 #include "cel/config.h"
-#include "cel/_asyncio.h"
 #if defined(_CEL_UNIX)
 #include "cel/_unix/_poll_epoll.h"
 #elif defined(_CEL_WIN)

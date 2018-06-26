@@ -155,19 +155,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\_tty.c"
-				>
-			</File>
-			<File
 				RelativePath=".\allocator.c"
 				>
 			</File>
 			<File
 				RelativePath=".\arraylist.c"
-				>
-			</File>
-			<File
-				RelativePath=".\asyncio.c"
 				>
 			</File>
 			<File
@@ -877,19 +869,11 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath="..\include\cel\_asyncio.h"
-				>
-			</File>
-			<File
 				RelativePath="..\include\cel\_command.h"
 				>
 			</File>
 			<File
 				RelativePath="..\include\cel\_readline.h"
-				>
-			</File>
-			<File
-				RelativePath="..\include\cel\_tty.h"
 				>
 			</File>
 			<File
@@ -1694,6 +1678,10 @@
 			Filter="rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav"
 			UniqueIdentifier="{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}"
 			>
+			<File
+				RelativePath="..\.gitignore"
+				>
+			</File>
 			<File
 				RelativePath="..\CHANGES"
 				>

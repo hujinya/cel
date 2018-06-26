@@ -1,5 +1,6 @@
 * Thu May 24 2018 Hu Jinya <hu_jinya@163.com> 1.0.7.105
-- 优化协程库。
+- 优化coroutinescheduler。
+- 增加eventloopgroup对eventloop共享模式的支持。
 
 * Thu May 24 2018 Hu Jinya <hu_jinya@163.com> 1.0.6.104
 - cel_long_equal类型转换问题导致windows下hashtable查找出错。

@@ -15,7 +15,6 @@
 #include "cel/eventloopgroup.h"
 #include "cel/allocator.h"
 #include "cel/error.h"
-#include "cel/sys/envinfo.h"
 #include "cel/multithread.h"
 
 CelEventLoopThreadId *_cel_eventloopthread_id()
@@ -56,19 +55,21 @@ static int cel_eventloopgroup_start(CelEventLoopThread *evt_loop_thread)
 }
 
 int cel_eventloopgroup_init(CelEventLoopGroup *group, 
+                            int max_fileds,
                             int n_threads, BOOL is_shared)
 {
-    int i;
+    int i, n_cpus;
     CelCpuMask mask;
     CelEventLoopThread *evt_loop_thread;
 
     if (is_shared
         && (group->evt_loop = 
-        cel_eventloop_new(n_threads, 1024 * 1024)) == NULL)
+        cel_eventloop_new(n_threads, max_fileds)) == NULL)
         return -1;
     group->is_shared = is_shared;
+    n_cpus = (int)cel_getnprocs();
     if (n_threads <= 0)
-        n_threads = (int)cel_getnprocs();
+        n_threads = n_cpus;
     if (n_threads > CEL_THDNUM)
         n_threads = n_threads / 2;
     else if (n_threads < 2)
@@ -87,10 +88,11 @@ int cel_eventloopgroup_init(CelEventLoopGroup *group,
                 evt_loop_thread->evt_loop = cel_eventloop_new(1, 1024 * 1024);
             cel_thread_create(&(evt_loop_thread->thread), NULL, 
                 cel_eventloopgroup_start, evt_loop_thread);
-            cel_setcpumask(&mask, i % group->n_threads);
+            cel_setcpumask(&mask, i % n_cpus);
             cel_thread_setaffinity(&(evt_loop_thread->thread), &mask);
         }
     }
+
     return 0;
 }
 
@@ -112,14 +114,16 @@ void cel_eventloopgroup_destroy(CelEventLoopGroup *group)
         cel_eventloop_free(group->evt_loop);
 }
 
-CelEventLoopGroup *cel_eventloopgroup_new(int n_threads, BOOL is_shared)
+CelEventLoopGroup *cel_eventloopgroup_new(int max_fileds,
+                                          int n_threads, BOOL is_shared)
 {
     CelEventLoopGroup *group;
 
     if ((group = (CelEventLoopGroup *)
         cel_malloc(sizeof(CelEventLoopGroup))) != NULL)
     {
-        if (cel_eventloopgroup_init(group, n_threads, is_shared) == 0)
+        if (cel_eventloopgroup_init(group, 
+            max_fileds, n_threads, is_shared) == 0)
             return group;
         cel_free(group);
     }

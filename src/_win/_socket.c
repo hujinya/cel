@@ -24,6 +24,7 @@
 #define Warning(args) /*CEL_SETERRSTR(args)*/ cel_log_warning args 
 #define Err(args)  /* CEL_SETERRSTR(args)*/ cel_log_err args
 
+
 /* https://msdn.microsoft.com/en-us/library/dd877220 */
 int os_socket_set_keepalive(CelSocket *sock, 
                             int on, int idle, int interval, int count)
@@ -92,7 +93,8 @@ int os_socket_do_async_connect(CelSocketAsyncConnectArgs *args)
     if (WSAIoctl(args->socket->fd, 
         SIO_GET_EXTENSION_FUNCTION_POINTER, 
         &GuidConnectEx, sizeof(GuidConnectEx), 
-        &ConnectEx, sizeof(LPFN_CONNECTEX), &dwBytes, NULL, NULL) == SOCKET_ERROR)
+        &ConnectEx, sizeof(LPFN_CONNECTEX), &dwBytes, NULL, NULL)
+        == SOCKET_ERROR)
     {
         //_tprintf(_T("WSAIoctl error %d\r\n"), WSAGetLastError());
         return -1;
@@ -101,7 +103,8 @@ int os_socket_do_async_connect(CelSocketAsyncConnectArgs *args)
     addr.sa_family = args->remote_addr.sa_family;
     if (cel_socket_bind(args->socket, &addr) != 0
         || !ConnectEx(args->socket->fd, 
-        (struct sockaddr *)(&args->remote_addr), cel_sockaddr_get_len(&args->remote_addr),
+        (struct sockaddr *)(&args->remote_addr), 
+        cel_sockaddr_get_len(&args->remote_addr),
         args->buffer, (DWORD)args->buffer_size, 
         &(args->ol.result), &(args->ol._ol))
         && WSAGetLastError() != WSA_IO_PENDING)
