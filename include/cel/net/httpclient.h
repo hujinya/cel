@@ -33,8 +33,7 @@ typedef void (* CelHttpHandshakeCallbackFunc)(
 typedef void (* CelHttpSendRequestCallbackFunc)(
     CelHttpClient *client, CelHttpRequest *req, CelAsyncResult *result);
 typedef void (* CelHttpSendResponseCallbackFunc) (
-    CelHttpClient *client, CelHttpResponse *rsp, 
-    CelAsyncResult *result);
+    CelHttpClient *client, CelHttpResponse *rsp, CelAsyncResult *result);
 typedef void (* CelHttpRecvRequestCallbackFunc)(
     CelHttpClient *client, CelHttpRequest *req, CelAsyncResult *result);
 typedef void (* CelHttpRecvResponseCallbackFunc) (

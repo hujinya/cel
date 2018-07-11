@@ -55,8 +55,8 @@ typedef union _CelSocketAsyncArgs
     (sizeof(CelSocket) \
     +  ACCEPTEX_LOCALADDRESS_LEN + ACCEPTEX_REMOTEADDRESS_LEN)
 
-#define cel_wsastartup os_wsastartup
-#define cel_wsacleanup os_wsacleanup
+#define cel_wsastartup() os_wsastartup()
+#define cel_wsacleanup() os_wsacleanup()
 
 int cel_socket_init(CelSocket *sock, int family, int socktype, int protocol);
 void cel_socket_destroy(CelSocket *sock);

@@ -22,7 +22,6 @@
 #define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
 #define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
 
-
 int cel_hrdaddr_pton(const TCHAR *hrdstr, CelHrdAddr *hrdaddr)
 {
     return (_stscanf(hrdstr, _T("%02x:%02x:%02x:%02x:%02x:%02x"), 

@@ -382,6 +382,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\net\httpcookie.c"
+					>
+				</File>
+				<File
 					RelativePath=".\net\httplistener.c"
 					>
 				</File>
@@ -398,23 +402,19 @@
 					>
 				</File>
 				<File
+					RelativePath=".\net\httproute.c"
+					>
+				</File>
+				<File
+					RelativePath=".\net\httpsession.c"
+					>
+				</File>
+				<File
 					RelativePath=".\net\httpwebclient.c"
 					>
 				</File>
 				<File
-					RelativePath=".\net\httpwebcookie.c"
-					>
-				</File>
-				<File
 					RelativePath=".\net\httpweblistener.c"
-					>
-				</File>
-				<File
-					RelativePath=".\net\httpwebroute.c"
-					>
-				</File>
-				<File
-					RelativePath=".\net\httpwebsession.c"
 					>
 				</File>
 				<File
@@ -1120,6 +1120,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\include\cel\net\httpcookie.h"
+					>
+				</File>
+				<File
 					RelativePath="..\include\cel\net\httplistener.h"
 					>
 				</File>
@@ -1136,23 +1140,19 @@
 					>
 				</File>
 				<File
+					RelativePath="..\include\cel\net\httproute.h"
+					>
+				</File>
+				<File
+					RelativePath="..\include\cel\net\httpsession.h"
+					>
+				</File>
+				<File
 					RelativePath="..\include\cel\net\httpwebclient.h"
 					>
 				</File>
 				<File
-					RelativePath="..\include\cel\net\httpwebcookie.h"
-					>
-				</File>
-				<File
 					RelativePath="..\include\cel\net\httpweblistener.h"
-					>
-				</File>
-				<File
-					RelativePath="..\include\cel\net\httpwebroute.h"
-					>
-				</File>
-				<File
-					RelativePath="..\include\cel\net\httpwebsession.h"
 					>
 				</File>
 				<File

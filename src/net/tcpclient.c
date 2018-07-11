@@ -389,6 +389,7 @@ void cel_tcpclient_do_recv(CelTcpClientAsyncArgs *args)
         cel_stream_seek(args->s, _result.ret);
         cel_stream_seal_length(args->s);
     }
+    //printf("ret = %d\r\n", _result.ret);
     args->recv_callback(args->client, args->s, &_result);
 }
 

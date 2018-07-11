@@ -107,8 +107,11 @@ static size_t s_httpreqhdr_offset[] =
     CEL_OFFSET(CelHttpRequest, via),
     CEL_OFFSET(CelHttpRequest, warning),
 
+    0, 0, 0, 0, 0,
+
     0, 0,
-    CEL_OFFSET(CelHttpRequest, x_requested_with)
+    CEL_OFFSET(CelHttpRequest, x_requested_with),
+
 };
 
 int cel_httpurl_init(CelHttpUrl *url)
@@ -192,7 +195,7 @@ int cel_httprequest_init(CelHttpRequest *req)
     {
         if (s_httpreqhdr_offset[i] != 0)
         {
-            handler = (CelHttpHeaderHandler *)g_httphdr[i].value;
+            handler = (CelHttpHeaderHandler *)g_case_httphdr[i].value2;
             if (handler->init_func == NULL)
                 memset((char *)req + s_httpreqhdr_offset[i], 0, handler->size);
             else
@@ -233,7 +236,7 @@ void cel_httprequest_clear(CelHttpRequest *req)
     {
         if (s_httpreqhdr_offset[i] != 0)
         {
-            handler = (CelHttpHeaderHandler *)g_httphdr[i].value;
+            handler = (CelHttpHeaderHandler *)g_case_httphdr[i].value2;
             if (handler->destroy_func == NULL)
                 memset((char *)req + s_httpreqhdr_offset[i], 0, handler->size);
             else
@@ -275,7 +278,7 @@ void cel_httprequest_destroy(CelHttpRequest *req)
     {
         if (s_httpreqhdr_offset[i] != 0)
         {
-            handler = (CelHttpHeaderHandler *)g_httphdr[i].value;
+            handler = (CelHttpHeaderHandler *)g_case_httphdr[i].value2;
             if (handler->destroy_func == NULL)
                 memset((char *)req + s_httpreqhdr_offset[i], 0, handler->size);
             else
@@ -388,7 +391,7 @@ static int cel_httprequest_reading_header(CelHttpRequest *req, CelStream *s)
                 if ((key_len = key_end - key_start) <= 0
                     || (value_len = value_end - value_start) <= 0
                     || (hdr_index = cel_keyword_case_search_a(
-                    g_httphdr_case, CEL_HTTPHDR_COUNT, 
+                    g_case_httphdr, CEL_HTTPHDR_COUNT, 
                     (char *)(cel_stream_get_buffer(s) + key_start),
                     key_len)) == -1)
                 {
@@ -411,7 +414,7 @@ static int cel_httprequest_reading_header(CelHttpRequest *req, CelStream *s)
                         (int)value_end - key_start,
                         (char *)(cel_stream_get_buffer(s) + key_start), req,
                         s_httpreqhdr_offset[hdr_index], (char *)req + s_httpreqhdr_offset[hdr_index]);*/
-                        handler = (CelHttpHeaderHandler *)g_httphdr[hdr_index].value;
+                        handler = (CelHttpHeaderHandler *)g_case_httphdr[hdr_index].value2;
                         if (handler->reading_func(
                             (char *)req + s_httpreqhdr_offset[hdr_index], 
                             (char *)(cel_stream_get_buffer(s) + value_start), 
@@ -691,9 +694,10 @@ static int cel_httprequest_writing_header(CelHttpRequest *req, CelStream *s)
             continue;
         }
         //printf("hdr flags 0x%x, i = %d\r\n", req->hdr_flags, i);
-        handler = (CelHttpHeaderHandler *)g_httphdr[i].value;
+        handler = (CelHttpHeaderHandler *)g_case_httphdr[i].value2;
         handler->writing_func(
-            g_httphdr[i].key_word, (char *)req + s_httpreqhdr_offset[i], s);
+            (char *)g_case_httphdr[i].value, 
+            (char *)req + s_httpreqhdr_offset[i], s);
         i++;
         //puts((char *)s->buffer);
     }
@@ -938,12 +942,12 @@ void *cel_httprequest_get_header(CelHttpRequest *req, CelHttpHeader hdr_index)
     if (s_httpreqhdr_offset[hdr_index] == 0)
     {
         Err((_T("Http request header(%s) unsupported."), 
-            g_httphdr[hdr_index].key_word));
+            g_case_httphdr[hdr_index].key_word));
         return NULL;
     }
     if (!CEL_CHECKFLAG(req->hdr_flags, (ULL(1) << hdr_index)))
         return NULL;
-    handler = (CelHttpHeaderHandler *)g_httphdr[hdr_index].value;
+    handler = (CelHttpHeaderHandler *)g_case_httphdr[hdr_index].value2;
     return handler->get_func == NULL
         ? ((char *)req + s_httpreqhdr_offset[hdr_index])
         : handler->get_func(((char *)req + s_httpreqhdr_offset[hdr_index]));
@@ -958,10 +962,10 @@ int cel_httprequest_set_header(CelHttpRequest *req,
     if (s_httpreqhdr_offset[hdr_index] == 0)
     {
          Err((_T("Http request header(%s) unsupported."), 
-            g_httphdr[hdr_index].key_word));
+            g_case_httphdr[hdr_index].key_word));
         return -1;
     }
-    handler = (CelHttpHeaderHandler *)g_httphdr[hdr_index].value;
+    handler = (CelHttpHeaderHandler *)g_case_httphdr[hdr_index].value2;
     handler->set_func(
         (char *)req + s_httpreqhdr_offset[hdr_index], value, value_len);
     CEL_SETFLAG(req->hdr_flags, (ULL(1) << hdr_index));

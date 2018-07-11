@@ -120,7 +120,13 @@ typedef enum _CelHttpHeader
     CEL_HTTPHDR_WARNING,                   /* RFC2616.14.46 */
 
     CEL_HTTPHDR_WWW_AUTHENTICATE,          /* RFC2616.14.47 */
+    CEL_HTTPHDR_X_FORWARDED_FOR,           /* RFC 7239 X-FORWARD-XXX */
+    CEL_HTTPHDR_X_FORWARDED_HOST,
+    CEL_HTTPHDR_X_FORWARDED_PROTO,
+    CEL_HTTPHDR_X_FORWARDED_SERVER,
+
     CEL_HTTPHDR_X_POWERED_BY,
+    CEL_HTTPHDR_X_REAL_IP,
     CEL_HTTPHDR_X_REQUESTED_WITH,
     
     CEL_HTTPHDR_COUNT
@@ -233,8 +239,7 @@ typedef struct _CelHttpHeaderHandler
 }CelHttpHeaderHandler;
 
 extern CelKeywordA g_httpversion[];
-extern CelKeywordA g_httphdr_case[];
-extern CelKeywordA g_httphdr[];
+extern CelKeywordA g_case_httphdr[];
 extern CelHttpHeaderHandler g_httpvstring_handler;
 extern CelHttpHeaderHandler g_httpvdatetime_handler;
 extern CelHttpHeaderHandler g_httpint_handler;

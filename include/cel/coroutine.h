@@ -50,9 +50,10 @@ CelCoroutineScheduler *_cel_coroutinescheduler_get();
 #define cel_coroutinescheduler_running_id os_coroutinescheduler_running_id
 #define cel_coroutinescheduler_running os_coroutinescheduler_running
 
-static __inline int cel_coroutine_create(CelCoroutine *co, 
-                                         CelCoroutineAttr *attr, 
-                                         CelCoroutineFunc func, void *user_data)
+static __inline 
+int cel_coroutine_create(CelCoroutine *co, 
+                         CelCoroutineAttr *attr, 
+                         CelCoroutineFunc func, void *user_data)
 {
     CelCoroutineEntity *co_entity;
     return ((*co = os_coroutineentity_create(&co_entity,

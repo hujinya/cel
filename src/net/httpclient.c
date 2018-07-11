@@ -17,21 +17,6 @@
 void _cel_httpclient_destroy_derefed(CelHttpClient *client)
 {
     //puts("_cel_httpclient_destroy_derefed");
-    //if (client->in != NULL)
-    //{
-    //    cel_free(client->in);
-    //    client->in = NULL;
-    //}
-    //if (client->out != NULL)
-    //{
-    //    cel_free(client->out);
-    //    client->out = NULL;
-    //}
-    //if (client->execute != NULL)
-    //{
-    //    cel_free(client->execute);
-    //    client->execute = NULL;
-    //}
     cel_tcpclient_destroy(&(client->tcp_client));
 }
 
@@ -43,8 +28,6 @@ void _cel_httpclient_free_derefed(CelHttpClient *client)
 
 int cel_httpclient_init(CelHttpClient *client)
 {
-    //client->in = client->out = NULL;
-    //client->execute = NULL;
     return cel_refcounted_init(
         &(client->ref_counted), (CelFreeFunc)_cel_httpclient_destroy_derefed);
 }
@@ -540,8 +523,7 @@ static void cel_httpclient_connect_callback(CelHttpClient *client,
 }
 
 int cel_httpclient_async_execute(CelHttpClient *client, 
-                                 CelHttpRequest *req, 
-                                 CelHttpResponse *rsp,
+                                 CelHttpRequest *req, CelHttpResponse *rsp,
                                  CelHttpExecuteCallbackFunc async_callback)
 {
     char *host;

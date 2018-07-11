@@ -1,3 +1,6 @@
+* Wed Jul 11 2018 Hu Jinya <hjy@gzsunrun.cn> 1.0.8.106
+- 增加httpwebclient,httpweblistener,httproute。
+
 * Thu May 24 2018 Hu Jinya <hu_jinya@163.com> 1.0.7.105
 - 优化coroutinescheduler。
 - 增加eventloopgroup对eventloop共享模式的支持。

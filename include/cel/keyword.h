@@ -26,6 +26,7 @@ typedef struct _CelKeywordA
     size_t key_len;
     const CHAR *key_word;
     const void *value;
+    const void *value2;
 }CelKeywordA;
 
 typedef struct _CelKeywordW
@@ -33,6 +34,7 @@ typedef struct _CelKeywordW
     size_t key_len;
     const WCHAR *key_word;
     const void *value;
+    const void *value2;
 }CelKeywordW;
 
 #ifdef _UNICODE

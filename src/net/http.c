@@ -126,296 +126,168 @@ CelHttpHeaderHandler g_httptransferencoding_handler = {
     (CelHttpHeaderWritingFunc)cel_httptransferencoding_writing
 };
 
-CelKeywordA g_httphdr_case[] = 
+CelKeywordA g_case_httphdr[] = 
 {
     { sizeof("accept") - 1, 
-    "accept", &g_httpvstring_handler },                     /* RFC2616.14.1 */
+    "accept", "Accept", &g_httpvstring_handler },                       /* rfc2616.14.1 */
     { sizeof("accept-charset") - 1, 
-    "accept-charset", &g_httpvstring_handler },             /* RFC2616.14.2 */
+    "accept-charset", "Accept-Charset", &g_httpvstring_handler },       /* rfc2616.14.2 */
     { sizeof("accept-encoding") - 1,
-    "accept-encoding", &g_httpvstring_handler },            /* RFC2616.14.3 */
+    "accept-encoding", "Accept-Encoding", &g_httpvstring_handler },     /* rfc2616.14.3 */
     { sizeof("accept-language") - 1,
-    "accept-language", &g_httpvstring_handler },            /* RFC2616.14.4 */
+    "accept-language", "Accept-Language", &g_httpvstring_handler },     /* rfc2616.14.4 */
     { sizeof("accept-ranges") - 1, 
-    "accept-ranges", &g_httpvstring_handler },              /* RFC2616.14.5 */
+    "accept-ranges", "Accept-Ranges", &g_httpvstring_handler },         /* rfc2616.14.5 */
 
     { sizeof("access-control-allow-credentials") - 1, 
-    "access-control-allow-credentials", &g_httpvstring_handler },
+    "access-control-allow-credentials", "Access-Control-Allow-Credentials", 
+    &g_httpvstring_handler },
     { sizeof("access-control-allow-headers") - 1,
-    "access-control-allow-headers", &g_httpvstring_handler },
+    "access-control-allow-headers", "Access-Control-Allow-Headers", 
+    &g_httpvstring_handler },
     { sizeof("access-control-allow-methods") - 1, 
-    "access-control-allow-methods", &g_httpvstring_handler },
+    "access-control-allow-methods", "Access-Control-Allow-Methods", 
+    &g_httpvstring_handler },
     { sizeof("access-control-allow-origin") - 1, 
-    "access-control-allow-origin", &g_httpvstring_handler },
+    "access-control-allow-origin", "Access-Control-Allow-Origin", 
+    &g_httpvstring_handler },
     { sizeof("access-control-expose-headers") - 1, 
-    "access-control-expose-headers", &g_httpvstring_handler },
+    "access-control-expose-headers", "Access-Control-Expose-Headers", 
+    &g_httpvstring_handler },
 
     { sizeof("access-control-max-age") - 1, 
-    "access-control-max-age", &g_httpl_handler },
+    "access-control-max-age", "Access-Control-Max-Age", &g_httpl_handler },
     { sizeof("access-control-request-headers") - 1, 
-    "access-control-request-headers", &g_httpvstring_handler },
+    "access-control-request-headers", "Access-Control-Request-Headers", 
+    &g_httpvstring_handler },
     { sizeof("access-control-request-method") - 1,
-    "access-control-request-method", &g_httpvstring_handler },
-    { sizeof("age") - 1, "age", &g_httpl_handler },         /* RFC2616.14.6 */
-    { sizeof("allow") - 1,"allow", &g_httpvstring_handler },/* RFC2616.14.7 */
+    "access-control-request-method", "Access-Control-Request-Method", 
+    &g_httpvstring_handler },
+    { sizeof("age") - 1, "Age", "Age", &g_httpl_handler },              /* rfc2616.14.6 */
+    { sizeof("allow") - 1,"Allow", "Allow", &g_httpvstring_handler },   /* rfc2616.14.7 */
 
     { sizeof("authorization") - 1, 
-    "authorization", &g_httpvstring_handler },              /* RFC2616.14.8 */
+    "authorization", "Authorization", &g_httpvstring_handler },         /* rfc2616.14.8 */
     { sizeof("cache-control") - 1, 
-    "cache-control", &g_httpvstring_handler },              /* RFC2616.14.9 */
+    "cache-control", "Cache-Control", &g_httpvstring_handler },         /* rfc2616.14.9 */
     { sizeof("connection") - 1, 
-    "connection", &g_httpconnection_handler },              /* RFC2616.14.10 */
+    "connection", "Connection", &g_httpconnection_handler },            /* rfc2616.14.10 */
     { sizeof("content-disposition") - 1, 
-    "content-disposition", &g_httpvstring_handler }, 
+    "content-disposition", "Content-Disposition", &g_httpvstring_handler }, 
     { sizeof("content-encoding") - 1, 
-    "content-encoding", &g_httpvstring_handler },           /* RFC2616.14.11 */
-    { sizeof("content-language") - 1, 
+    "content-encoding", "Content-Encoding", &g_httpvstring_handler },   /* rfc2616.14.11 */
 
-    "content-language", &g_httpvstring_handler },           /* RFC2616.14.12 */
+    { sizeof("content-language") - 1, 
+    "content-language", "Content-Language", &g_httpvstring_handler },   /* rfc2616.14.12 */
     { sizeof("content-length") - 1, 
-    "content-length", &g_httpll_handler },                  /* RFC2616.14.13 */
+    "content-length", "Content-Length", &g_httpll_handler },            /* rfc2616.14.13 */
     { sizeof("content-location") - 1, 
-    "content-location", &g_httpvstring_handler },           /* RFC2616.14.14 */
+    "content-location", "Content-Location", &g_httpvstring_handler },   /* rfc2616.14.14 */
     { sizeof("content-md5") - 1, 
-    "content-md5", &g_httpvstring_handler },                /* RFC2616.14.15 */
+    "content-md5", "Content-MD5", &g_httpvstring_handler },             /* rfc2616.14.15 */
     { sizeof("content-range") - 1, 
-    "content-range", &g_httpcontentrange_handler },         /* RFC2616.14.16 */
+    "content-range", "Content-Range", &g_httpcontentrange_handler },    /* rfc2616.14.16 */
 
     { sizeof("content-type") - 1, 
-    "content-type", &g_httpvstring_handler },               /* RFC2616.14.17 */
+    "content-type", "Content-Type", &g_httpvstring_handler },           /* rfc2616.14.17 */
     { sizeof("cookie") - 1, 
-    "cookie", &g_httpvstring_handler },                     /* RFC6265 */
+    "cookie", "Cookie", &g_httpvstring_handler },                       /* rfc6265 */
     { sizeof("date") - 1, 
-    "date", &g_httpvdatetime_handler },                     /* RFC2616.14.18 */
+    "date", "Date", &g_httpvdatetime_handler },                         /* rfc2616.14.18 */
     { sizeof("dnt") - 1, 
-    "dnt", &g_httpint_handler },                            /* do not track */
-                                                            /* mime */
+    "dnt", "DNT", &g_httpint_handler },                                 /* do not track */
+                                                                        /* mime */
     { sizeof("etag") - 1, 
-    "etag", &g_httpvstring_handler },                       /* RFC2616.14.19 */
+    "etag", "Etag", &g_httpvstring_handler },                           /* rfc2616.14.19 */
 
     { sizeof("expect") - 1, 
-    "expect", &g_httpvstring_handler },                     /* RFC2616.14.20 */
+    "expect", "Expect", &g_httpvstring_handler },                       /* rfc2616.14.20 */
     { sizeof("expires") - 1, 
-    "expires", &g_httpvdatetime_handler },                  /* RFC2616.14.21 */
+    "expires", "Expires", &g_httpvdatetime_handler },                   /* rfc2616.14.21 */
     { sizeof("from") - 1, 
-    "from", &g_httpvstring_handler },                       /* RFC2616.14.22 */
+    "from", "From", &g_httpvstring_handler },                           /* rfc2616.14.22 */
     { sizeof("host") - 1, 
-    "host", &g_httpvstring_handler },                       /* RFC2616.14.23 */
+    "host", "Host", &g_httpvstring_handler },                           /* rfc2616.14.23 */
     { sizeof("if-match") - 1, 
-    "if-match", &g_httpvstring_handler },                   /* RFC2616.14.24 */
+    "if-match", "If-Match", &g_httpvstring_handler },                   /* rfc2616.14.24 */
 
     { sizeof("if-modified-since") - 1, 
-    "if-modified-since", &g_httpvdatetime_handler }, 
-                                                            /* RFC2616.14.25 */
+    "if-modified-since", "If-Modified-Since", &g_httpvdatetime_handler }, 
+                                                                        /* rfc2616.14.25 */
     { sizeof("if-none-match") - 1, 
-    "if-none-match", &g_httpvstring_handler },              /* RFC2616.14.26 */
+    "if-none-match", "If-None-Match", &g_httpvstring_handler },         /* rfc2616.14.26 */
     { sizeof("if-range") - 1, 
-    "if-range", &g_httpvstring_handler },                   /* RFC2616.14.27 */
+    "if-range", "If-Range", &g_httpvstring_handler },                   /* rfc2616.14.27 */
     { sizeof("if-unmodified-since") - 1, 
-    "if-unmodified-since", &g_httpvdatetime_handler }, 
-                                                            /* RFC2616.14.28 */
+    "if-unmodified-since", "If-Unmodified-Since", &g_httpvdatetime_handler }, 
+                                                                        /* rfc2616.14.28 */
     { sizeof("last-modified") - 1,
-    "last-modified", &g_httpvdatetime_handler },            /* RFC2616.14.29 */
+    "last-modified", "Last-Modified", &g_httpvdatetime_handler },       /* rfc2616.14.29 */
 
     { sizeof("location") - 1, 
-    "location", &g_httpvstring_handler },                   /* RFC2616.14.30 */
+    "location", "Location", &g_httpvstring_handler },                   /* rfc2616.14.30 */
     { sizeof("max-forwards") - 1, 
-    "max-forwards", &g_httpint_handler },                   /* RFC2616.14.31 */
+    "max-forwards", "Max-Forwards", &g_httpint_handler },               /* rfc2616.14.31 */
     { sizeof("origin") - 1, 
-    "origin", &g_httpvstring_handler }, 
+    "origin", "Origin", &g_httpvstring_handler }, 
     { sizeof("pragma") - 1, 
-    "pragma", &g_httpvstring_handler },                     /* RFC2616.14.32 */
+    "pragma", "Pragma", &g_httpvstring_handler },                       /* rfc2616.14.32 */
     { sizeof("proxy-authenticate") - 1, 
-    "proxy-authenticate", &g_httpvstring_handler },
-                                                            /* RFC2616.14.33 */
+    "proxy-authenticate", "Proxy-Authenticate", &g_httpvstring_handler },
+                                                                        /* rfc2616.14.33 */
 
     { sizeof("proxy-authorization") - 1, 
-    "proxy-authorization", &g_httpvstring_handler }, 
-                                                            /* RFC2616.14.34 */
+    "proxy-authorization", "Proxy-Authorization", &g_httpvstring_handler }, 
+                                                                        /* rfc2616.14.34 */
     { sizeof("range") - 1, 
-    "range", &g_httprange_handler },                        /* RFC2616.14.35 */
+    "range", "Range", &g_httprange_handler },                           /* rfc2616.14.35 */
     { sizeof("referer") - 1, 
-    "referer", &g_httpvstring_handler },                    /* RFC2616.14.36 */
+    "referer", "Referer", &g_httpvstring_handler },                     /* rfc2616.14.36 */
     { sizeof("retry-after") - 1, 
-    "retry-after", &g_httpvstring_handler },                /* RFC2616.14.37 */
+    "retry-after", "Retry-After", &g_httpvstring_handler },             /* rfc2616.14.37 */
     { sizeof("server") - 1, 
-    "server", &g_httpvstring_handler },                     /* RFC2616.14.38 */
+    "server", "Server", &g_httpvstring_handler },                       /* rfc2616.14.38 */
 
     { sizeof("set-cookie") - 1, 
-    "set-cookie", &g_httpcookie_handler },
+    "set-cookie", "Set-Cookie", &g_httpcookie_handler },
     { sizeof("te") - 1, 
-    "te", &g_httpvstring_handler },                         /* RFC2616.14.39 */
+    "te", "TE", &g_httpvstring_handler },                              /* rfc2616.14.39 */
     { sizeof("trailer") - 1, 
-    "trailer", &g_httpvstring_handler },                    /* RFC2616.14.40 */
+    "trailer", "Trailer", &g_httpvstring_handler },                    /* rfc2616.14.40 */
     { sizeof("transfer-encoding") - 1,
-    "transfer-encoding", &g_httptransferencoding_handler }, 
-                                                            /* RFC2616.14.41 */
+    "transfer-encoding", "Transfer-Encoding", &g_httptransferencoding_handler }, 
+                                                                       /* rfc2616.14.41 */
     { sizeof("upgrade") - 1,
-    "upgrade", &g_httpvstring_handler },                    /* RFC2616.14.42 */
+    "upgrade", "Upgrade", &g_httpvstring_handler },                    /* rfc2616.14.42 */
 
     { sizeof("upgrade-insecure-requests") - 1, 
-    "upgrade-insecure-requests", &g_httpint_handler },
+    "upgrade-insecure-requests", "Upgrade-Insecure-Requests", &g_httpint_handler },
     { sizeof("user-agent") - 1, 
-    "user-agent", &g_httpvstring_handler  },                /* RFC2616.14.43 */
+    "user-agent", "User-Agent", &g_httpvstring_handler  },             /* rfc2616.14.43 */
     { sizeof("vary") - 1, 
-    "vary", &g_httpvstring_handler },                       /* RFC2616.14.44 */
+    "vary", "Vary", &g_httpvstring_handler },                          /* rfc2616.14.44 */
     { sizeof("via") - 1,
-    "via", &g_httpvstring_handler },                        /* RFC2616.14.45 */
+    "via", "Via", &g_httpvstring_handler },                            /* rfc2616.14.45 */
     { sizeof("warning") - 1, 
-    "warning", &g_httpvstring_handler },                    /* RFC2616.14.46 */
+    "warning", "Warning", &g_httpvstring_handler },                    /* rfc2616.14.46 */
 
     { sizeof("www-authenticate") - 1, 
-    "www-authenticate", &g_httpvstring_handler },           /* RFC2616.14.47 */
+    "www-authenticate", "WWW-Authenticate", &g_httpvstring_handler },  /* rfc2616.14.47 */
+    { sizeof("x-forwarded-for") - 1, 
+    "x-forwarded-for", "X-Forwarded-For", &g_httpvstring_handler },
+    { sizeof("x-forwarded-host") - 1, 
+    "x-forwarded-host", "X-Forwarded-Host", &g_httpvstring_handler },
+    { sizeof("x-forwarded-proto") - 1, 
+    "x-forwarded-proto", "X-Forwarded-Proto", &g_httpvstring_handler },
+    { sizeof("x-forwarded-server") - 1, 
+    "x-forwarded-server", "X-Forwarded-Server", &g_httpvstring_handler },
+
     { sizeof("x-powered-by") - 1, 
-    "x-powered-by", &g_httpvstring_handler },
+    "x-powered-by", "X-Powered-By", &g_httpvstring_handler },
+    { sizeof("x-real-ip") - 1, 
+    "x-real-ip", "X-Real-IP", &g_httpvstring_handler },
     { sizeof("x-requested-with") - 1, 
-    "x-requested-with", &g_httpvstring_handler }
-};
-
-CelKeywordA g_httphdr[] = 
-{
-    { sizeof("Accept") - 1, 
-    "Accept", &g_httpvstring_handler },                     /* RFC2616.14.1 */
-    { sizeof("Accept-Charset") - 1, 
-    "Accept-Charset", &g_httpvstring_handler },             /* RFC2616.14.2 */
-    { sizeof("Accept-Encoding") - 1,
-    "Accept-Encoding", &g_httpvstring_handler },            /* RFC2616.14.3 */
-    { sizeof("Accept-Language") - 1,
-    "Accept-Language", &g_httpvstring_handler },            /* RFC2616.14.4 */
-    { sizeof("Accept-Ranges") - 1, 
-    "Accept-Ranges", &g_httpvstring_handler },              /* RFC2616.14.5 */
-
-    { sizeof("Access-Control-Allow-Credentials") - 1, 
-    "Access-Control-Allow-Credentials", &g_httpvstring_handler },
-    { sizeof("Access-Control-Allow-Headers") - 1,
-    "Access-Control-Allow-Headers", &g_httpvstring_handler },
-    { sizeof("Access-Control-Allow-Methods") - 1, 
-    "Access-Control-Allow-Methods", &g_httpvstring_handler },
-    { sizeof("Access-Control-Allow-Origin") - 1, 
-    "Access-Control-Allow-Origin", &g_httpvstring_handler },
-    { sizeof("Access-Control-Expose-Headers") - 1, 
-    "Access-Control-Expose-Headers", &g_httpvstring_handler },
-
-    { sizeof("Access-Control-Max-Age") - 1, 
-    "Access-Control-Max-Age", &g_httpl_handler },
-    { sizeof("Access-Control-Request-Headers") - 1, 
-    "Access-Control-Request-Headers", &g_httpvstring_handler },
-    { sizeof("Access-Control-Request-Method") - 1,
-    "Access-Control-Request-Method", &g_httpvstring_handler },
-    { sizeof("Age") - 1, "Age", &g_httpl_handler },         /* RFC2616.14.6 */
-    { sizeof("Allow") - 1,"Allow", &g_httpvstring_handler },/* RFC2616.14.7 */
-
-    { sizeof("Authorization") - 1, 
-    "Authorization", &g_httpvstring_handler },              /* RFC2616.14.8 */
-    { sizeof("Cache-Control") - 1, 
-    "Cache-Control", &g_httpvstring_handler },              /* RFC2616.14.9 */
-    { sizeof("Connection") - 1, 
-    "Connection", &g_httpconnection_handler },              /* RFC2616.14.10 */
-    { sizeof("Content-Disposition") - 1, 
-    "Content-Disposition", &g_httpvstring_handler }, 
-    { sizeof("Content-Encoding") - 1, 
-    "Content-Encoding", &g_httpvstring_handler },           /* RFC2616.14.11 */
-    { sizeof("Content-Language") - 1, 
-
-    "Content-Language", &g_httpvstring_handler },           /* RFC2616.14.12 */
-    { sizeof("Content-Length") - 1, 
-    "Content-Length", &g_httpll_handler },                  /* RFC2616.14.13 */
-    { sizeof("Content-Location") - 1, 
-    "Content-Location", &g_httpvstring_handler },           /* RFC2616.14.14 */
-    { sizeof("Content-MD5") - 1, 
-    "Content-MD5", &g_httpvstring_handler },                /* RFC2616.14.15 */
-    { sizeof("Content-Range") - 1, 
-    "Content-Range", &g_httpcontentrange_handler },         /* RFC2616.14.16 */
-
-    { sizeof("Content-Type") - 1, 
-    "Content-Type", &g_httpvstring_handler },               /* RFC2616.14.17 */
-    { sizeof("Cookie") - 1, 
-    "Cookie", &g_httpvstring_handler },                     /* RFC6265 */
-    { sizeof("Date") - 1, 
-    "Date", &g_httpvdatetime_handler },                     /* RFC2616.14.18 */
-    { sizeof("DNT") - 1, 
-    "DNT", &g_httpint_handler },                            /* Do not track */
-                                                            /* MIME */
-    { sizeof("ETag") - 1, 
-    "ETag", &g_httpvstring_handler },                       /* RFC2616.14.19 */
-
-    { sizeof("Expect") - 1, 
-    "Expect", &g_httpvstring_handler },                     /* RFC2616.14.20 */
-    { sizeof("Expires") - 1, 
-    "Expires", &g_httpvdatetime_handler },                  /* RFC2616.14.21 */
-    { sizeof("From") - 1, 
-    "From", &g_httpvstring_handler },                       /* RFC2616.14.22 */
-    { sizeof("Host") - 1, 
-    "Host", &g_httpvstring_handler },                       /* RFC2616.14.23 */
-    { sizeof("If-Match") - 1, 
-    "If-Match", &g_httpvstring_handler },                   /* RFC2616.14.24 */
-
-    { sizeof("If-Modified-Since") - 1, 
-    "If-Modified-Since", &g_httpvdatetime_handler }, 
-                                                            /* RFC2616.14.25 */
-    { sizeof("If-None-Match") - 1, 
-    "If-None-Match", &g_httpvstring_handler },              /* RFC2616.14.26 */
-    { sizeof("If-Range") - 1, 
-    "If-Range", &g_httpvstring_handler },                   /* RFC2616.14.27 */
-    { sizeof("If-Unmodified-Since") - 1, 
-    "If-Unmodified-Since", &g_httpvdatetime_handler }, 
-                                                            /* RFC2616.14.28 */
-    { sizeof("Last-Modified") - 1,
-    "Last-Modified", &g_httpvdatetime_handler },            /* RFC2616.14.29 */
-
-    { sizeof("Location") - 1, 
-    "Location", &g_httpvstring_handler },                   /* RFC2616.14.30 */
-    { sizeof("Max-Forwards") - 1, 
-    "Max-Forwards", &g_httpint_handler },                   /* RFC2616.14.31 */
-    { sizeof("Origin") - 1, 
-    "Origin", &g_httpvstring_handler }, 
-    { sizeof("Pragma") - 1, 
-    "Pragma", &g_httpvstring_handler },                     /* RFC2616.14.32 */
-    { sizeof("Proxy-Authenticate") - 1, 
-    "Proxy-Authenticate", &g_httpvstring_handler },
-                                                            /* RFC2616.14.33 */
-
-    { sizeof("Proxy-Authorization") - 1, 
-    "Proxy-Authorization", &g_httpvstring_handler }, 
-                                                            /* RFC2616.14.34 */
-    { sizeof("Range") - 1, 
-    "Range", &g_httprange_handler },                        /* RFC2616.14.35 */
-    { sizeof("Referer") - 1, 
-    "Referer", &g_httpvstring_handler },                    /* RFC2616.14.36 */
-    { sizeof("Retry-After") - 1, 
-    "Retry-After", &g_httpvstring_handler },                /* RFC2616.14.37 */
-    { sizeof("Server") - 1, 
-    "Server", &g_httpvstring_handler },                     /* RFC2616.14.38 */
-
-    { sizeof("Set-Cookie") - 1, 
-    "Set-Cookie", &g_httpcookie_handler },
-    { sizeof("TE") - 1, 
-    "TE", &g_httpvstring_handler },                         /* RFC2616.14.39 */
-    { sizeof("Trailer") - 1, 
-    "Trailer", &g_httpvstring_handler },                    /* RFC2616.14.40 */
-    { sizeof("Transfer-Encoding") - 1,
-    "Transfer-Encoding", &g_httptransferencoding_handler }, 
-                                                            /* RFC2616.14.41 */
-    { sizeof("Upgrade") - 1,
-    "Upgrade", &g_httpvstring_handler },                    /* RFC2616.14.42 */
-
-    { sizeof("Upgrade-Insecure-Requests") - 1, 
-    "Upgrade-Insecure-Requests", &g_httpint_handler },
-    { sizeof("User-Agent") - 1, 
-    "User-Agent", &g_httpvstring_handler  },                /* RFC2616.14.43 */
-    { sizeof("Vary") - 1, 
-    "Vary", &g_httpvstring_handler },                       /* RFC2616.14.44 */
-    { sizeof("Via") - 1,
-    "Via", &g_httpvstring_handler },                        /* RFC2616.14.45 */
-    { sizeof("Warning") - 1, 
-    "Warning", &g_httpvstring_handler },                    /* RFC2616.14.46 */
-
-    { sizeof("WWW-Authenticate") - 1, 
-    "WWW-Authenticate", &g_httpvstring_handler },           /* RFC2616.14.47 */
-    { sizeof("X-Powered-By") - 1, 
-    "X-Powered-By", &g_httpvstring_handler },
-    { sizeof("X-Requested-With") - 1, 
-    "X-Requested-With", &g_httpvstring_handler }
+    "x-requested-with", "X-Requested-With", &g_httpvstring_handler }
 };
 
 static unsigned char hexchars[] = "0123456789ABCDEF";

@@ -162,8 +162,9 @@ static size_t s_httprsphdr_offset[] =
     CEL_OFFSET(CelHttpResponse, warning),
 
     CEL_OFFSET(CelHttpResponse, www_authenticate),
-    CEL_OFFSET(CelHttpResponse, x_powered_by),
-    0
+    0, 0, 0, 0,
+
+    CEL_OFFSET(CelHttpResponse, x_powered_by), 0, 0, 
 };
 
 static __inline const char *cel_http_get_statuscode(CelHttpStatusCode status)
@@ -192,7 +193,7 @@ int cel_httpresponse_init(CelHttpResponse *rsp)
         if (s_httprsphdr_offset[i] != 0)
         {
             //printf("cel_httpresponse_init i= %d\r\n", i);
-            handler = (CelHttpHeaderHandler *)g_httphdr[i].value;
+            handler = (CelHttpHeaderHandler *)g_case_httphdr[i].value2;
             if (handler->init_func == NULL)
                 memset((char *)rsp + s_httprsphdr_offset[i], 0, handler->size);
             else
@@ -233,7 +234,7 @@ void cel_httpresponse_clear(CelHttpResponse *rsp)
     {
         if (s_httprsphdr_offset[i] != 0)
         {
-            handler = (CelHttpHeaderHandler *)g_httphdr[i].value;
+            handler = (CelHttpHeaderHandler *)g_case_httphdr[i].value2;
             if (handler->destroy_func == NULL)
                 memset((char *)rsp + s_httprsphdr_offset[i],
                 0, handler->size);
@@ -273,7 +274,7 @@ void cel_httpresponse_destroy(CelHttpResponse *rsp)
     {
         if (s_httprsphdr_offset[i] != 0)
         {
-            handler = (CelHttpHeaderHandler *)g_httphdr[i].value;
+            handler = (CelHttpHeaderHandler *)g_case_httphdr[i].value2;
             if (handler->destroy_func == NULL)
                 memset((char *)rsp + s_httprsphdr_offset[i],
                 0, handler->size);
@@ -362,7 +363,7 @@ static int cel_httpresponse_reading_header(CelHttpResponse *rsp, CelStream *s)
                 if ((key_len = key_end - key_start) <= 0
                     || (value_len = value_end - value_start) <= 0
                     || (hdr_index = cel_keyword_case_search_a(
-                    g_httphdr_case, CEL_HTTPHDR_COUNT, 
+                    g_case_httphdr, CEL_HTTPHDR_COUNT, 
                     (char *)(cel_stream_get_buffer(s) + key_start),
                     key_len)) == -1)
                 {
@@ -381,7 +382,7 @@ static int cel_httpresponse_reading_header(CelHttpResponse *rsp, CelStream *s)
                     }
                     else
                     {
-                        handler = (CelHttpHeaderHandler *)g_httphdr[hdr_index].value;
+                        handler = (CelHttpHeaderHandler *)g_case_httphdr[hdr_index].value2;
                         if (handler->reading_func(
                             (char *)rsp + s_httprsphdr_offset[hdr_index], 
                             (char *)(cel_stream_get_buffer(s) + value_start), 
@@ -622,8 +623,8 @@ static int cel_httpresponse_writing_header(CelHttpResponse *rsp, CelStream *s)
             continue;
         }
         //printf("hdr flags 0x%x, i = %d\r\n", rsp->hdr_flags, i);
-        handler = (CelHttpHeaderHandler *)g_httphdr[i].value;
-        handler->writing_func(g_httphdr[i].key_word, 
+        handler = (CelHttpHeaderHandler *)g_case_httphdr[i].value2;
+        handler->writing_func((char *)g_case_httphdr[i].value, 
             (char *)rsp + s_httprsphdr_offset[i], s);
         i++;
         //puts((char *)buf);
@@ -743,12 +744,12 @@ void *cel_httpresponse_get_header(CelHttpResponse *rsp,
     if (s_httprsphdr_offset[hdr_index] == 0)
     {
         Err((_T("Http response header(%s) unsupported."), 
-            g_httphdr[hdr_index].key_word));
+            g_case_httphdr[hdr_index].key_word));
         return NULL;
     }
     if (!CEL_CHECKFLAG(rsp->hdr_flags, (ULL(1) << hdr_index)))
         return NULL;
-    handler = (CelHttpHeaderHandler *)g_httphdr[hdr_index].value;
+    handler = (CelHttpHeaderHandler *)g_case_httphdr[hdr_index].value2;
     return handler->get_func == NULL
         ? ((char *)rsp + s_httprsphdr_offset[hdr_index])
         : handler->get_func(
@@ -765,10 +766,10 @@ int cel_httpresponse_set_header(CelHttpResponse *rsp,
     {
         rsp->writing_error = CEL_HTTP_ERROR;
         Err((_T("Http response header(%s) unsupported."), 
-            g_httphdr[hdr_index].key_word));
+            g_case_httphdr[hdr_index].key_word));
         return -1;
     }
-    handler = (CelHttpHeaderHandler *)g_httphdr[hdr_index].value;
+    handler = (CelHttpHeaderHandler *)g_case_httphdr[hdr_index].value2;
     handler->set_func(
         (char *)rsp + s_httprsphdr_offset[hdr_index], value, value_len);
     //printf("xxhdr flags 0x%x\r\n", rsp->hdr_flags);

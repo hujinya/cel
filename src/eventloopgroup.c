@@ -106,7 +106,7 @@ void cel_eventloopgroup_destroy(CelEventLoopGroup *group)
     {
         evt_loop_threads = &(group->evt_loop_threads[i]);
         cel_thread_join(evt_loop_threads->thread, &ret_val);
-        if (group->is_shared)
+        if (!(group->is_shared))
             cel_eventloop_free(evt_loop_threads->evt_loop);
     }
     cel_free(group->evt_loop_threads);
