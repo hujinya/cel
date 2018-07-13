@@ -217,6 +217,7 @@ int cel_httprequest_writing(CelHttpRequest *req, CelStream *s);
 
 int cel_httprequest_set_url_str(CelHttpRequest *req, const char *url_str);
 
+/* Get and set httprequest query */
 static __inline char *cel_httprequest_get_query(CelHttpRequest *req, 
                                                 const char *key, 
                                                 char *value, size_t *size)
@@ -224,13 +225,7 @@ static __inline char *cel_httprequest_get_query(CelHttpRequest *req,
     return cel_strgetkeyvalue_a(
         cel_vstring_str_a(&(req->url.query)), '&', '=', key, value, size);
 }
-static __inline char *cel_httprequest_get_query_(CelHttpRequest *req, 
-                                                 const char *key,
-                                                 char *value, size_t size)
-{
-    size_t _size = size;
-    return cel_httprequest_get_query(req, key, value, &_size);
-}
+
 static __inline 
 int cel_httprequest_set_query(CelHttpRequest *req, 
                               const char *key, const char *value, size_t size)
@@ -238,6 +233,14 @@ int cel_httprequest_set_query(CelHttpRequest *req,
     return cel_httpvstring_set_value(
         &(req->url.query), '&', '=', key, value, size);
 }
+int cel_httprequest_get_query_string(CelHttpRequest *req, 
+                                     const char *key,
+                                     char *value, size_t size);
+int cel_httprequest_get_query_int(CelHttpRequest *req, 
+                                  const char *key, int *ivalue);
+int cel_httprequest_get_query_long(CelHttpRequest *req, 
+                                   const char *key, long *lvalue);
+/* Get and set httprequest form */
 static __inline 
 char *cel_httprequest_get_form(CelHttpRequest *req, const char *key, 
                                char *value, size_t *size)
@@ -246,22 +249,23 @@ char *cel_httprequest_get_form(CelHttpRequest *req, const char *key,
         (char *)cel_stream_get_buffer(&(req->body_cache.buf)),
         '&', '=', key, value, size);
 }
-static __inline char *cel_httprequest_get_form_(CelHttpRequest *req, 
-                                                const char *key,
-                                                char *value, size_t size)
-{
-    size_t _size = size;
-    return cel_httprequest_get_form(req, key, value, &_size);
-}
+int cel_httprequest_get_form_string(CelHttpRequest *req, 
+                                    const char *key,
+                                    char *value, size_t size);
+int cel_httprequest_get_form_int(CelHttpRequest *req, 
+                                 const char *key, int *ivalue);
+int cel_httprequest_get_form_long(CelHttpRequest *req, 
+                                  const char *key, long *lvalue);
+/* Get httprequest params */
 char *cel_httprequest_get_params(CelHttpRequest *req, const char *key, 
                                  char *value, size_t *size);
-static __inline 
-char *cel_httprequest_get_params_(CelHttpRequest *req, const char *key,
-                                  char *value, size_t size)
-{
-    size_t _size = size;
-    return cel_httprequest_get_params(req, key, value, &_size);
-}
+int cel_httprequest_get_params_string(CelHttpRequest *req, 
+                                      const char *key,
+                                      char *value, size_t size);
+int cel_httprequest_get_params_int(CelHttpRequest *req, 
+                                   const char *key, int *ivalue);
+int cel_httprequest_get_params_long(CelHttpRequest *req, 
+                                    const char *key, long *lvalue);
 
 /* CelHttpVersion cel_httprequest_get_version(CelHttpRequest *req); */
 #define cel_httprequest_get_version(req) (req)->ver

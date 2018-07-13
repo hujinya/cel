@@ -935,6 +935,96 @@ end:
     return -1;
 }
 
+int cel_httprequest_get_query_string(CelHttpRequest *req, 
+                                     const char *key,
+                                     char *value, size_t size)
+{
+    size_t _size = size;
+    return (cel_httprequest_get_query(req, key, value, &_size) == NULL ? -1 : 0);
+}
+
+int cel_httprequest_get_query_int(CelHttpRequest *req, 
+                                  const char *key, int *ivalue)
+{
+    char istr[16];
+    size_t _size = 16;
+    if (cel_httprequest_get_query(req, key, istr, &_size) == NULL)
+        return -1;
+    *ivalue = atoi(istr);
+    return 0;
+}
+
+int cel_httprequest_get_query_long(CelHttpRequest *req, 
+                                   const char *key, long *lvalue)
+{
+    char lstr[32];
+    size_t _size = 32;
+    if (cel_httprequest_get_query(req, key, lstr, &_size) == NULL)
+        return -1;
+    *lvalue = atol(lstr);
+    return 0;
+}
+
+int cel_httprequest_get_form_string(CelHttpRequest *req, 
+                                    const char *key,
+                                    char *value, size_t size)
+{
+    size_t _size = size;
+    return (cel_httprequest_get_form(req, key, value, &_size) == NULL ? -1 : 0);
+}
+
+int cel_httprequest_get_form_int(CelHttpRequest *req, 
+                                 const char *key, int *ivalue)
+{
+    char istr[16];
+    size_t _size = 16;
+    if (cel_httprequest_get_form(req, key, istr, &_size) == NULL)
+        return -1;
+    *ivalue = atoi(istr);
+    return 0;
+}
+
+int cel_httprequest_get_form_long(CelHttpRequest *req, 
+                                  const char *key, long *lvalue)
+{
+    char lstr[32];
+    size_t _size = 32;
+    if (cel_httprequest_get_form(req, key, lstr, &_size) == NULL)
+        return -1;
+    *lvalue = atol(lstr);
+    return 0;
+}
+
+int cel_httprequest_get_params_string(CelHttpRequest *req, 
+                                      const char *key,
+                                      char *value, size_t size)
+{
+    size_t _size = size;
+    return (cel_httprequest_get_params(req, key, value, &_size) == NULL ? -1 : 0);
+}
+
+int cel_httprequest_get_params_int(CelHttpRequest *req, 
+                                   const char *key, int *ivalue)
+{
+    char istr[16];
+    size_t _size = 16;
+    if (cel_httprequest_get_params(req, key, istr, &_size) == NULL)
+        return -1;
+    *ivalue = atoi(istr);
+    return 0;
+}
+
+int cel_httprequest_get_params_long(CelHttpRequest *req, 
+                                    const char *key, long *lvalue)
+{
+    char lstr[32];
+    size_t _size = 32;
+    if (cel_httprequest_get_params(req, key, lstr, &_size) == NULL)
+        return -1;
+    *lvalue = atol(lstr);
+    return 0;
+}
+
 void *cel_httprequest_get_header(CelHttpRequest *req, CelHttpHeader hdr_index)
 {
     CelHttpHeaderHandler *handler;

@@ -27,6 +27,7 @@ void _cel_httpwebclient_destroy_derefed(CelHttpWebClient *client)
 {
     cel_httprequest_destroy(&(client->req));
     cel_httpresponse_destroy(&(client->rsp));
+    cel_httproutedata_destroy(&(client->rt_data));
     client->execute_callback = NULL;
     //puts("_cel_httpwebclient_destroy_derefed");
     cel_httpclient_destroy(&(client->http_client));
@@ -64,6 +65,7 @@ CelHttpWebClient *cel_httpwebclient_new_httpclient(CelHttpClient *http_client,
     new_client->web_ctx = web_ctx;
     cel_httprequest_init(&(new_client->req));
     cel_httpresponse_init(&(new_client->rsp));
+    cel_httproutedata_init(&(new_client->rt_data));
     new_client->execute_callback = NULL;
     cel_refcounted_init(&(new_client->ref_counted),
         (CelFreeFunc)_cel_httpwebclient_free_derefed);
@@ -217,6 +219,7 @@ void cel_httpwebclient_do_send_response(CelHttpWebClient *client,
         //puts("CEL_HTTPCON_KEEPALIVE");
         cel_httprequest_clear(&(client->req));
         cel_httpresponse_clear(&(client->rsp));
+        cel_httproutedata_clear(&(client->rt_data));
         client->execute_callback = NULL;
         client->file_len = 0;
         cel_httpclient_async_recv_request(&(client->http_client), 

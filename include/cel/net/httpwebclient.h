@@ -41,7 +41,6 @@ extern "C" {
 typedef struct _CelHttpWebClient CelHttpWebClient;
 typedef void (* CelHttpWebCallbackFunc)(CelHttpWebClient *client, 
                                         CelAsyncResult *result);
-//typedef int (* CelHttpWebHandlerFunc) (CelHttpWebClient *client);
 
 typedef CelHttpWebClient *(*CelHttpWebClientNewFunc)(size_t size, int fd);
 typedef void (*CelHttpWebClientFreeFunc)(CelHttpWebClient *client);
@@ -106,7 +105,7 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
                                        CelHttpRequest *req,
                                        CelAsyncResult *result);
 void _cel_httpwebclient_execute_callback(CelHttpWebClient *client,
-                                         CelHttpRequest *req,
+                                         CelHttpRequest *req, 
                                          CelHttpResponse *rsp,
                                          CelAsyncResult *result);
 static __inline 

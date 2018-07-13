@@ -13,6 +13,8 @@
  * GNU General Public License for more details.
  */
 #include "cel/net/httpclient.h"
+#include "cel/log.h"
+#include "cel/error.h"
 
 void _cel_httpclient_destroy_derefed(CelHttpClient *client)
 {
@@ -327,6 +329,7 @@ int cel_httpclient_async_send_request(CelHttpClient *client,
     CelStream *s = cel_httprequest_get_stream(req);
     CelAsyncResult _result;
 
+    CEL_ASSERT(callback == NULL);
     req->_async_callback = callback;
     while (cel_stream_seal_length(s) == 0)
     {
@@ -374,6 +377,7 @@ int cel_httpclient_async_send_response(CelHttpClient *client,
     CelStream *s = cel_httpresponse_get_stream(rsp);
     CelAsyncResult _result;
 
+    CEL_ASSERT(callback == NULL);
     rsp->_async_callback = callback;
     while (cel_stream_seal_length(s) == 0)
     {
@@ -529,6 +533,7 @@ int cel_httpclient_async_execute(CelHttpClient *client,
     char *host;
     unsigned short port;
 
+    CEL_ASSERT(async_callback == NULL);
     client->execute_req = req;
     client->execute_rsp = rsp;
     client->execute_callback = async_callback;

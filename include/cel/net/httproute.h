@@ -62,8 +62,17 @@ extern "C" {
 
 int cel_httproutedata_init(CelHttpRouteData *rt_data);
 void cel_httproutedata_destroy(CelHttpRouteData *rt_data);
+
+void cel_httproutedata_clear(CelHttpRouteData *rt_data);
+
 char *cel_httproutedata_get(CelHttpRouteData *rt_data,
                             const char *key, char *value, size_t *size);
+int cel_httproutedata_get_string(CelHttpRouteData *rt_data,
+                                 const char *key, char *value, size_t size);
+int cel_httproutedata_get_int(CelHttpRouteData *rt_data,
+                              const char *key, int *ivalue);
+int cel_httproutedata_get_long(CelHttpRouteData *rt_data,
+                               const char *key, long *lvalue);
 
 int cel_httproute_init(CelHttpRoute *route);
 void cel_httproute_destroy(CelHttpRoute *route);

@@ -26,6 +26,11 @@ void cel_httproutedata_destroy(CelHttpRouteData *rt_data)
     rt_data->n_params = 0;
 }
 
+void cel_httproutedata_clear(CelHttpRouteData *rt_data)
+{
+    rt_data->n_params = 0;
+}
+
 char *cel_httproutedata_get(CelHttpRouteData *rt_data,
                             const char *key, char *value, size_t *size)
 {
@@ -44,6 +49,36 @@ char *cel_httproutedata_get(CelHttpRouteData *rt_data,
     }
     *size = 0;
     return NULL;
+}
+
+int cel_httproutedata_get_string(CelHttpRouteData *rt_data,
+                                 const char *key, 
+                                 char *value, size_t size)
+{
+    size_t _size = size;
+    return (cel_httproutedata_get(rt_data, key, value, &_size) == NULL ? -1 : 0);
+}
+
+int cel_httproutedata_get_int(CelHttpRouteData *rt_data,
+                              const char *key, int *ivalue)
+{
+    char istr[16];
+    size_t _size = 16;
+    if (cel_httproutedata_get(rt_data, key, istr, &_size) == NULL)
+        return -1;
+    *ivalue = atoi(istr);
+    return 0;
+}
+
+int cel_httproutedata_get_long(CelHttpRouteData *rt_data,
+                               const char *key, long *lvalue)
+{
+    char lstr[32];
+    size_t _size = 32;
+    if (cel_httproutedata_get(rt_data, key, lstr, &_size) == NULL)
+        return -1;
+    *lvalue = atoi(lstr);
+    return 0;
 }
 
 static CelHttpRouteEntity *cel_httprouteentity_new(const char *key, 

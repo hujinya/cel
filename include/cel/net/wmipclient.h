@@ -71,6 +71,29 @@ struct _CelWmipClient
     CelRefCounted ref_counted;
 };
 
+static __inline char *cel_httprequest_get_query_(CelHttpRequest *req, 
+                                                 const char *key,
+                                                 char *value, size_t size)
+{
+    size_t _size = size;
+    return cel_httprequest_get_query(req, key, value, &_size);
+}
+
+static __inline char *cel_httprequest_get_form_(CelHttpRequest *req, 
+                                                const char *key,
+                                                char *value, size_t size)
+{
+    size_t _size = size;
+    return cel_httprequest_get_form(req, key, value, &_size);
+}
+static __inline 
+char *cel_httprequest_get_params_(CelHttpRequest *req, const char *key,
+                                  char *value, size_t size)
+{
+    size_t _size = size;
+    return cel_httprequest_get_params(req, key, value, &_size);
+}
+
 static __inline CelWmipMessage *cel_wmipmessage_new(void)
 {
     CelWmipMessage *message;
