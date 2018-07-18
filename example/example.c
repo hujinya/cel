@@ -23,6 +23,7 @@ extern int minheap_test(int argc, TCHAR *argv[]);
 extern int monitor_test(int argc, TCHAR *argv[]);
 extern int readline_test(int argc, TCHAR *argv[]);
 extern int rbtree_test(int argc ,const char *argv[]);
+extern int pattrie_test(int argc, TCHAR *argv[]);
 extern int perf_test(int argc, TCHAR *argv[]);
 extern int poll_test(int argc, TCHAR *argv[]);
 extern int process_test(int argc, TCHAR *argv[]);
@@ -46,5 +47,5 @@ int _tmain(int argc, TCHAR *argv[])
 {
     //_tscanf(_T("%s", ))
 
-    return coroutine_test(argc, argv);
+    return pattrie_test(argc, argv);
 }

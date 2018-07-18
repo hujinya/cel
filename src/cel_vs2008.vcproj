@@ -263,6 +263,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\pattrie.c"
+				>
+			</File>
+			<File
 				RelativePath=".\poll.c"
 				>
 			</File>
@@ -986,6 +990,10 @@
 			</File>
 			<File
 				RelativePath="..\include\cel\objectpool.h"
+				>
+			</File>
+			<File
+				RelativePath="..\include\cel\pattrie.h"
 				>
 			</File>
 			<File

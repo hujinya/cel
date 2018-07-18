@@ -256,6 +256,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\cel_pattrie.c"
+				>
+			</File>
+			<File
 				RelativePath=".\cel_perf.c"
 				>
 			</File>

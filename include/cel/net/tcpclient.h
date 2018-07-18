@@ -89,7 +89,8 @@ CelTcpClient *cel_tcpclient_new_socket(CelSocket *socket,
 void _cel_tcpclient_free_derefed(CelTcpClient *client);
 void cel_tcpclient_free(CelTcpClient *client);
 
-#define cel_tcpclient_ref(client) cel_refcounted_ref(&(client->ref_counted), client)
+#define cel_tcpclient_ref(client) \
+    cel_refcounted_ref(&(client->ref_counted), client)
 #define cel_tcpclient_deref(client) \
     cel_refcounted_deref(&(client->ref_counted), client)
 

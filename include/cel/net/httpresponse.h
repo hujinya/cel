@@ -220,7 +220,7 @@ int cel_httpresponse_writing(CelHttpResponse *rsp, CelStream *s);
 
 void *cel_httpresponse_get_header(CelHttpResponse *rsp, 
                                   CelHttpHeader hdr_index);
-int cel_httpresponse_set_header(CelHttpResponse *rsp, 
+int cel_httpresponse_set_header(CelHttpResponse *rsp,
                                 CelHttpHeader hdr_index,
                                 const void *value, size_t value_len);
 /* 

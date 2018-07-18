@@ -382,7 +382,8 @@ static int cel_httpresponse_reading_header(CelHttpResponse *rsp, CelStream *s)
                     }
                     else
                     {
-                        handler = (CelHttpHeaderHandler *)g_case_httphdr[hdr_index].value2;
+                        handler = (CelHttpHeaderHandler *)
+                            g_case_httphdr[hdr_index].value2;
                         if (handler->reading_func(
                             (char *)rsp + s_httprsphdr_offset[hdr_index], 
                             (char *)(cel_stream_get_buffer(s) + value_start), 

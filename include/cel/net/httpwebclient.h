@@ -22,21 +22,21 @@
 extern "C" {
 #endif
 
-#define CEL_HTTPWEB_OK                              200
-#define CEL_HTTPWEB_CREATED                         201
-#define CEL_HTTPWEB_ACCEPTED                        202
-#define CEL_HTTPWEB_NO_CONTENT                      204
+#define CEL_HTTPAPI_OK                              200
+#define CEL_HTTPAPI_CREATED                         201
+#define CEL_HTTPAPI_ACCEPTED                        202
+#define CEL_HTTPAPI_NO_CONTENT                      204
 
-#define CEL_HTTPWEB_UNSUPPORTED_OPERATION_EXCEPTION 400
-#define CEL_HTTPWEB_SECURITY_EXCEPTION              401
-#define CEL_HTTPWEB_IO_EXCEPTION                    402
-#define CEL_HTTPWEB_NOT_FOUND_EXCEPTION             403 
-#define CEL_HTTPWEB_RUMTIME_EXCEPTION               500
+#define CEL_HTTPAPI_UNSUPPORTED_OPERATION_EXCEPTION 400
+#define CEL_HTTPAPI_SECURITY_EXCEPTION              401
+#define CEL_HTTPAPI_IO_EXCEPTION                    402
+#define CEL_HTTPAPI_NOT_FOUND_EXCEPTION             403 
+#define CEL_HTTPAPI_RUMTIME_EXCEPTION               500
 
-#define CEL_HTTPWEB_CONTENT_TYPE     "application/json; charset=utf-8"
-#define CEL_HTTPWEB_CONTENT_TYPE_LEN (sizeof(CEL_HTTPWEB_CONTENT_TYPE) - 1)
-#define CEL_HTTPWEB_SUCCESSED        "{\"error\":0, \"message\":\"Successed\"}"
-#define CEL_HTTPWEB_SUCCESSED_LEN    (sizeof(CEL_HTTPWEB_SUCCESSED) - 1)
+#define CEL_HTTPAPI_CONTENT_TYPE         "application/json; charset=utf-8"
+#define CEL_HTTPAPI_CONTENT_TYPE_LEN     (sizeof(CEL_HTTPAPI_CONTENT_TYPE) - 1)
+#define CEL_HTTPAPI_SUCCESSED_MSG        "{\"error\":0, \"message\":\"Successed\"}"
+#define CEL_HTTPAPI_SUCCESSED_MSG_LEN    (sizeof(CEL_HTTPAPI_SUCCESSED_MSG) - 1)
 
 typedef struct _CelHttpWebClient CelHttpWebClient;
 typedef void (* CelHttpWebCallbackFunc)(CelHttpWebClient *client, 
@@ -105,7 +105,7 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
                                        CelHttpRequest *req,
                                        CelAsyncResult *result);
 void _cel_httpwebclient_execute_callback(CelHttpWebClient *client,
-                                         CelHttpRequest *req, 
+                                         CelHttpRequest *req,
                                          CelHttpResponse *rsp,
                                          CelAsyncResult *result);
 static __inline 
