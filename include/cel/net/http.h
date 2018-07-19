@@ -347,6 +347,8 @@ int cel_httptransferencoding_writing(const char *hdr_name,
                                      CelHttpTransferEncoding *encoding,
                                      CelStream *s);
 
+int cel_httpextheader_writing(char *hdr_name, char *value, CelStream *s);
+
 typedef struct _CelHttpChunked
 {
     BOOL last;

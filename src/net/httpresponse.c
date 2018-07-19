@@ -201,6 +201,8 @@ int cel_httpresponse_init(CelHttpResponse *rsp)
         }
         i++;
     }
+    cel_rbtree_init(
+        &(rsp->ext_hdrs), (CelCompareFunc)strcmp, cel_free, cel_free);
     rsp->body_save_in = CEL_HTTPBODY_SAVE_IN_CACHE;
     cel_httpbodycache_init(&(rsp->body_cache), CEL_HTTPBODY_BUF_LEN_MAX);
 
@@ -244,6 +246,7 @@ void cel_httpresponse_clear(CelHttpResponse *rsp)
         }
         i++;
     }
+    cel_rbtree_clear(&(rsp->ext_hdrs));
     rsp->body_save_in = CEL_HTTPBODY_SAVE_IN_CACHE;
     cel_httpbodycache_clear(&(rsp->body_cache));
 
@@ -284,6 +287,7 @@ void cel_httpresponse_destroy(CelHttpResponse *rsp)
         }
         i++;
     }
+    cel_rbtree_destroy(&(rsp->ext_hdrs));
     rsp->body_save_in = CEL_HTTPBODY_SAVE_IN_CACHE;
     cel_httpbodycache_destroy(&(rsp->body_cache));
 
@@ -324,6 +328,7 @@ static int cel_httpresponse_reading_header(CelHttpResponse *rsp, CelStream *s)
 {
     int key_start, key_end, value_start, value_end;
     BYTE ch;
+    char *key, *value;
     size_t key_len, value_len;
     int hdr_index;
     CelHttpHeaderHandler *handler;
@@ -367,9 +372,14 @@ static int cel_httpresponse_reading_header(CelHttpResponse *rsp, CelStream *s)
                     (char *)(cel_stream_get_buffer(s) + key_start),
                     key_len)) == -1)
                 {
-                    printf("Http response header '%.*s' undefined.\r\n", 
-                        (int)value_end - key_start, 
-                        (char *)(cel_stream_get_buffer(s) + key_start));
+                    key = cel_strdup_full(
+                        (char *)(cel_stream_get_buffer(s) + key_start), 0, key_len);
+                    value = cel_strdup_full(
+                        (char *)(cel_stream_get_buffer(s) + value_start), 0, value_len);
+                    cel_rbtree_insert(&(rsp->ext_hdrs), key, value);
+                    /*printf("Http response header '%.*s' undefined.\r\n", 
+                    (int)value_end - key_start, 
+                    (char *)(cel_stream_get_buffer(s) + key_start));*/
                 }
                 else 
                 {
@@ -630,6 +640,8 @@ static int cel_httpresponse_writing_header(CelHttpResponse *rsp, CelStream *s)
         i++;
         //puts((char *)buf);
     }
+    cel_rbtree_foreach(
+        &(rsp->ext_hdrs), (CelKeyValuePairEachFunc)cel_httpextheader_writing, s);
     cel_stream_write(s, "\r\n", 2);
     //puts((char *)s->buffer);
     return 0;

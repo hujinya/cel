@@ -11,7 +11,13 @@ void pattrie_print(int level, CelPatTrieNode *node)
     printf("|");
     for (i = 0; i < level; i++) 
         printf("-");
-    printf("%s[%s]#"CEL_CRLF, node->key, (char *)(node->value));
+    if (node->type == CEL_PATTRIE_NODE_PARAM)
+        printf("%s[%s]--[%s][%s]#"CEL_CRLF, 
+        node->key, (char *)(node->value),
+        node->param_name, node->regexp);
+    else
+        printf("%s[%s]#"CEL_CRLF, 
+        node->key, (char *)(node->value));
 
     if ((list = node->static_children) != NULL)
     {
@@ -36,6 +42,7 @@ void pattrie_print(int level, CelPatTrieNode *node)
 int pattrie_test(int argc, TCHAR *argv[])
 {
     CelPatTrie pat_trie;
+    char *value;
 
     cel_pattrie_init(&pat_trie, NULL);
 
@@ -57,6 +64,15 @@ int pattrie_test(int argc, TCHAR *argv[])
     cel_pattrie_insert(&pat_trie, "/all/<:.*>", "16");
 
     pattrie_print(0, pat_trie.root);
+
+    if ((value = (char *)cel_pattrie_lookup(&pat_trie, "/users/<id>/age", NULL)) != NULL)
+    {
+        printf("ok %s\r\n", value);
+    }
+    else
+    {
+        puts("failed");
+    }
 
     cel_pattrie_destroy(&pat_trie);
 

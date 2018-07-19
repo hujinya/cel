@@ -15,8 +15,9 @@
 #ifndef __CEL_NET_HTTPRESPONSE_H__
 #define __CEL_NET_HTTPRESPONSE_H__
 
-#include "cel/net/http.h"
 #include "cel/file.h"
+#include "cel/rbtree.h"
+#include "cel/net/http.h"
 
 #define CEL_HTTPSTATUS_LEN               3
 #define CEL_HTTPREASON_LEN_MAX         256
@@ -177,6 +178,7 @@ struct _CelHttpResponse
     CelVStringA warning;
     CelVStringA www_authenticate;
     CelVStringA x_powered_by;
+    CelRbTree ext_hdrs;
 
     CelHttpChunked chunked;
     CelHttpBodySaveType body_save_in;
@@ -223,6 +225,18 @@ void *cel_httpresponse_get_header(CelHttpResponse *rsp,
 int cel_httpresponse_set_header(CelHttpResponse *rsp,
                                 CelHttpHeader hdr_index,
                                 const void *value, size_t value_len);
+static __inline 
+char *cel_httpresponse_get_ext_header(CelHttpResponse *rsp, char *hdr_name)
+{
+    return (char *)cel_rbtree_lookup(&(rsp->ext_hdrs), hdr_name);
+}
+static __inline 
+void cel_httpresponse_set_ext_header(CelHttpResponse *rsp, 
+                                     char *hdr_name, char *hdr_value)
+{
+    cel_rbtree_insert(&(rsp->ext_hdrs), 
+        cel_strdup(hdr_name), cel_strdup(hdr_value));
+}
 /* 
  * bytes=1000-2000  first = 1000, last = 2000
  * bytes=1000-      first = 1000, last = 0

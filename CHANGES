@@ -1,5 +1,7 @@
 * Wed Jul 11 2018 Hu Jinya <hjy@gzsunrun.cn> 1.0.8.106
 - 增加httpwebclient,httpweblistener,httproute。
+- 增加pattrie,httproute采用pattrie存储。
+- httpreuqest,httpresponse支持自定义头部。
 
 * Thu May 24 2018 Hu Jinya <hu_jinya@163.com> 1.0.7.105
 - 优化coroutinescheduler。

@@ -76,6 +76,57 @@ CHAR *cel_strgetkeyvalue_a(const CHAR *str,
                            CHAR key_delimiter, CHAR value_delimiter,
                            const CHAR *key, CHAR *value, size_t *size);
 
+typedef char* (*CelKeyGetFunc) 
+(void *user_data, const char *key, char *str, size_t *size);
+static __inline int cel_keystr(CelKeyGetFunc func, void *user_data, 
+                               const char *key, char *str, size_t size)
+{
+    size_t _size = size;
+    return (func(user_data, key, str, &_size) == NULL ? -1 : 0);
+}
+static __inline int cel_keybool(CelKeyGetFunc func, void *user_data, 
+                                const char *key, BOOL *b)
+{
+    char bstr[6];
+    size_t _size = 6;
+
+    if (func(user_data, key, bstr, &_size) == NULL
+        || _size < 4)
+        return -1;
+    *b = (strcasecmp(bstr, "true") == 0 ? TRUE : FALSE);
+    return 0;
+}
+static __inline int cel_keyint(CelKeyGetFunc func, void *user_data, 
+                               const char *key, int *i)
+{
+    char istr[16];
+    size_t _size = 16;
+    if (func(user_data, key, istr, &_size) == NULL)
+        return -1;
+    *i = atoi(istr);
+    return 0;
+}
+static __inline int cel_keylong(CelKeyGetFunc func, void *user_data, 
+                                const char *key, long *l)
+{
+    char lstr[32];
+    size_t _size = 32;
+    if (func(user_data, key, lstr, &_size) == NULL)
+        return -1;
+    *l = atol(lstr);
+    return 0;
+}
+static __inline int cel_keydouble(CelKeyGetFunc func, void *user_data, 
+                                  const char *key, double *d)
+{
+    char dstr[64];
+    size_t _size = 64;
+    if (func(user_data, key, dstr, &_size) == NULL)
+        return -1;
+    *d = atof(dstr);
+    return 0;
+}
+
 int cel_strindexof(const TCHAR *str, const TCHAR *sub_str);
 /* lastindexof */
 int cel_strlindexof(const TCHAR *str, const TCHAR *sub_str);

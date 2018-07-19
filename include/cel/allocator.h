@@ -65,13 +65,39 @@ static __inline void *cel_calloc(int num_elems, int elem_size)
     return mem;
 }
 
+static __inline CHAR *cel_strdup_full(const CHAR *str, 
+                                      size_t start, size_t end)
+{
+    size_t len = end -start;
+    CHAR *newstr;
+
+    if ((newstr = (CHAR *)cel_malloc((len + 1) * sizeof(CHAR))) != NULL){
+        memcpy(newstr, &str[start], len  * sizeof(CHAR));
+        newstr[len] = '\0';
+    }
+    return newstr;
+}
+
 static __inline CHAR *cel_strdup(const CHAR *str)
 {
     size_t len = strlen(str);
     CHAR *newstr;
     if ((newstr = (CHAR *)cel_malloc((len + 1) * sizeof(CHAR))) != NULL){
         memcpy(newstr, str, len * sizeof(CHAR));
-        newstr[len] = _T('\0');
+        newstr[len] = '\0';
+    }
+    return newstr;
+}
+
+static __inline WCHAR *cel_wcsdup_full(const WCHAR *str, 
+                                       size_t start, size_t end)
+{
+    size_t len = end -start;
+    WCHAR *newstr;
+
+    if ((newstr = (WCHAR *)cel_malloc((len + 1) * sizeof(WCHAR))) != NULL){
+        memcpy(newstr, &str[start], len  * sizeof(WCHAR));
+        newstr[len] = L'\0';
     }
     return newstr;
 }
@@ -82,13 +108,15 @@ static __inline WCHAR *cel_wcsdup(const WCHAR *str)
     WCHAR *newstr;
     if ((newstr = (WCHAR *)cel_malloc((len + 1) * sizeof(WCHAR))) != NULL){
         memcpy(newstr, str, len * sizeof(WCHAR));
-        newstr[len] = _T('\0');
+        newstr[len] = L('\0');
     }
     return newstr;
 }
 #ifndef _UNICODE
+#define cel_tcsdup_full cel_strdup_full
 #define cel_tcsdup cel_strdup
 #else
+#define cel_tcsdup_full cel_wcsdup_full
 #define cel_tcsdup cel_wcsdup
 #endif
 

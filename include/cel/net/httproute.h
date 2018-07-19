@@ -15,64 +15,50 @@
 #ifndef __CEL_NET_HTTPROUTE_H__
 #define __CEL_NET_HTTPROUTE_H__
 
+#include "cel/convert.h"
+#include "cel/pattrie.h"
 #include "cel/net/httpclient.h"
-#include "cel/rbtree.h"
 
-typedef struct _CelHttpRouteData CelHttpRouteData;
+typedef CelPatTrieParams CelHttpRouteData;
 
 typedef int (* CelHttpHandleFunc)(CelHttpClient *client,
                                   CelHttpRequest *req, CelHttpResponse *rsp, 
                                   CelHttpRouteData *rt_dt);
 
-typedef enum _CelHttpRouteEntityType
-{
-    CEL_HTTPROUTEENTITY_ROOT,
-    CEL_HTTPROUTEENTITY_KEY,
-    CEL_HTTPROUTEENTITY_PARAM,
-    CEL_HTTPROUTEENTITY_REGEXP
-}CelHttpRouteEntityType;
-
-typedef struct _CelHttpRouteEntity
-{
-    char *key;
-    CelHttpRouteEntityType type;
-    CelRbTree *next_key_entity;
-    struct _CelHttpRouteEntity *next_param_entity;
-    CelHttpHandleFunc handle_func;
-}CelHttpRouteEntity;
-
-struct _CelHttpRouteData
-{
-    int n_params;
-    struct {
-        const char *key;
-        const char *value;
-        size_t value_size;
-    }params[64];
-};
-
 typedef struct _CelHttpRoute
 {
-    CelHttpRouteEntity root_entities[CEL_HTTPM_CONUT];
+    CelPatTrie root_tries[CEL_HTTPM_CONUT];
 }CelHttpRoute;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int cel_httproutedata_init(CelHttpRouteData *rt_data);
-void cel_httproutedata_destroy(CelHttpRouteData *rt_data);
+#define cel_httproutedata_init(rt_data) \
+    cel_rbtree_init(rt_data, (CelCompareFunc)strcmp, NULL, cel_free)
+#define cel_httproutedata_destroy(rt_data) cel_rbtree_destroy(rt_data)
 
-void cel_httproutedata_clear(CelHttpRouteData *rt_data);
+#define cel_httproutedata_clear(rt_data) cel_rbtree_clear(rt_data)
 
+static __inline 
 char *cel_httproutedata_get(CelHttpRouteData *rt_data,
-                            const char *key, char *value, size_t *size);
-int cel_httproutedata_get_string(CelHttpRouteData *rt_data,
-                                 const char *key, char *value, size_t size);
-int cel_httproutedata_get_int(CelHttpRouteData *rt_data,
-                              const char *key, int *ivalue);
-int cel_httproutedata_get_long(CelHttpRouteData *rt_data,
-                               const char *key, long *lvalue);
+                            const char *key, char *value, size_t *size)
+{
+    char *_value;
+    if ((_value = (char*)cel_rbtree_lookup(rt_data, key)) != NULL)
+        return cel_strncpy(value, size, _value, strlen(_value));
+    return NULL;
+}
+#define cel_httproutedata_get_string(rt_data, key, str, size) \
+    cel_keystr((CelKeyGetFunc)cel_httproutedata_get, req, key, str, size)
+#define cel_httproutedata_get_bool(rt_data, key, b)\
+    cel_keybool((CelKeyGetFunc)cel_httproutedata_get, req, key, b)
+#define cel_httproutedata_get_int(rt_data, key, i)\
+    cel_keyint((CelKeyGetFunc)cel_httproutedata_get, req, key, i)
+#define cel_httproutedata_get_long(rt_data, key, l)\
+    cel_keylong((CelKeyGetFunc)cel_httproutedata_get, req, key, l)
+#define cel_httproutedata_get_double(rt_data, key, d)\
+    cel_keydouble((CelKeyGetFunc)cel_httproutedata_get, req, key, d)
 
 int cel_httproute_init(CelHttpRoute *route);
 void cel_httproute_destroy(CelHttpRoute *route);

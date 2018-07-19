@@ -617,7 +617,6 @@ int os_userdel(char *username)
     cel_fclose(fp_);
     /* Remove home dir */
     len = snprintf(buf, CEL_PATHLEN, HOMEDIR"/%s", username);
-    buf[len] = '\0';
     cel_rmdirs(buf);
 
     return 0;

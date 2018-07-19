@@ -764,6 +764,12 @@ int cel_httptransferencoding_writing(const char *hdr_name,
     return 0;
 }
 
+int cel_httpextheader_writing(char *hdr_name, char *value, CelStream *s)
+{
+    cel_stream_printf(s, "%s: %s\r\n", hdr_name, value);
+    return 0;
+}
+
 /*
        Chunked-Body   = *chunk
                         last-chunk

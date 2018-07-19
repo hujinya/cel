@@ -21,6 +21,8 @@
 extern "C" {
 #endif
 
+#define stricmp strcasecmp
+
 char *itoa(int num, char *str, int radix);
 unsigned _rotl(unsigned val,int shift);
 unsigned _rotr (unsigned val,int shift);

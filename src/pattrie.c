@@ -50,7 +50,8 @@ void cel_pattrie_free(CelPatTrie *pat_trie)
 }
 
 CelPatTrieNode *cel_pattrie_node_new(CelPatTrieNodeType type, 
-                                     char *key, size_t key_len, void *value)
+                                     const char *key, size_t key_len,
+                                     void *value)
 {
     CelPatTrieNode *new_node;
 
@@ -59,9 +60,7 @@ CelPatTrieNode *cel_pattrie_node_new(CelPatTrieNodeType type,
 
     if (key != NULL)
     {
-        new_node->key = cel_malloc(key_len + 1);
-        memcpy(new_node->key, key, key_len);
-        new_node->key[key_len] = '\0';
+        new_node->key = cel_strdup_full(key, 0, key_len);
         new_node->key_len = key_len;
     }
     else
@@ -73,12 +72,13 @@ CelPatTrieNode *cel_pattrie_node_new(CelPatTrieNodeType type,
 
     new_node->type = type;
     new_node->value = value;
+    new_node->param_name = NULL;
+    new_node->regexp = NULL;
     new_node->static_children = NULL;
     new_node->param_children = NULL;
-    new_node->terminal = FALSE;
 
-    printf("new key %s, len %d\r\n", 
-        new_node->key, (int)new_node->key_len);
+   /* printf("new key %s, len %d\r\n", 
+        new_node->key, (int)new_node->key_len);*/
 
     return new_node;
 }
@@ -110,30 +110,41 @@ void cel_pattrie_node_free(CelPatTrieNode *node, CelFreeFunc value_free_func)
             child = next;
         }
     }
-    printf("free key %s\r\n", node->key);
+    /*printf("free key %s\r\n", node->key);*/
     if (node->key != NULL)
         cel_free(node->key);
     if (node->value != NULL && value_free_func != NULL)
         value_free_func(node->value);
+    if (node->param_name != NULL)
+        cel_free(node->param_name);
+    if (node->regexp != NULL)
+        cel_free(node->regexp);
     cel_free(node);
 }
 
 int _cel_pattrie_child_node_insert(CelPatTrieNode *node, 
-                                   char *key, size_t key_len, void *value)
+                                   const char *key, size_t key_len, void *value)
 {
-    int i, p0 = -1, p1 = -1;
+    int i, p0 = -1, p1 = -1, p2 = -1;
+    int param_name_len, regexp_len;
+    char *param_name, *regexp;
     CelPatTrieNode *new_node;
 
-    printf("child node %s %d, key %s %d\r\n", 
-        node->key, (int)node->key_len, key, (int)key_len);
+    /*printf("child node %s %d, key %s %d\r\n", 
+        node->key, (int)node->key_len, key, (int)key_len);*/
     for (i = 0; i < (int)key_len; i++)
     {
         if (p0 < 0 && key[i] == '<')
             p0 = i;
-        if (p0 >= 0 && key[i] == '>')
+        if (p0 >= 0)
         {
-            p1 = i;
-            break;
+            if (key[i] == ':')
+                p2 = i;
+            else if (key[i] == '>')
+            {
+                p1 = i;
+                break;
+            }
         }
     }
     if ((p0 > 0 && p1 > 0) || p1 < 0)
@@ -158,10 +169,28 @@ int _cel_pattrie_child_node_insert(CelPatTrieNode *node,
         }
     }
     /* Add param node */
+    if (p2 == -1)
+    {
+        param_name_len = p1 - p0 - 1;
+        param_name = cel_strdup_full(key, p0 + 1, p1);
+        regexp = NULL;
+        regexp_len = 0;
+    }
+    else
+    {
+        param_name_len = p2 - p0 - 1;
+        param_name = cel_strdup_full(key, p0 + 1, p2);
+        regexp_len = p1 - p2  - 1;
+        regexp = cel_strdup_full(key, p2 + 1, p1);
+    }
     if (p1 == key_len - 1)
     {
         new_node = cel_pattrie_node_new(
             CEL_PATTRIE_NODE_PARAM, &key[p0], key_len - p0, value);
+        new_node->param_name = param_name;
+        new_node->param_name_len = param_name_len;
+        new_node->regexp = regexp;
+        new_node->regexp_len = regexp_len;
         if (node->param_children == NULL)
             node->param_children = cel_list_new(NULL);
         cel_list_push_back(node->param_children, (CelListItem *)new_node);
@@ -171,23 +200,28 @@ int _cel_pattrie_child_node_insert(CelPatTrieNode *node,
     {
         new_node = cel_pattrie_node_new(
             CEL_PATTRIE_NODE_PARAM, &key[p0], p1 - p0 + 1, NULL);
+        new_node->param_name = param_name;
+        new_node->param_name_len = param_name_len;
+        new_node->regexp = regexp;
+        new_node->regexp_len = regexp_len;
         if (node->param_children == NULL)
             node->param_children = cel_list_new(NULL);
         cel_list_push_back(node->param_children, (CelListItem *)new_node);
         return _cel_pattrie_child_node_insert(
-            new_node, &key[p1 + 1], key_len - p1, value);
+            new_node, &key[p1 + 1], key_len - p1 - 1, value);
     }
 }
 
 int _cel_pattrie_node_insert(CelPatTrieNode *node, 
-                             char *key, size_t key_len, void *value)
+                             const char *key, size_t key_len, void *value,
+                             CelFreeFunc value_free_func)
 {
     size_t matched, node_key_len, sub_key_len;
-    char *sub_key;
+    const char *sub_key;
     CelPatTrieNode *child, *tail, *new_node;
 
-    printf("node %s %d, key %s %d\r\n", 
-        node->key, (int)node->key_len, key, (int)key_len);
+    /*printf("node %s %d, key %s %d\r\n", 
+        node->key, (int)node->key_len, key, (int)key_len);*/
     node_key_len = (node->key_len < key_len ? node->key_len : key_len);
     for (matched = 0 ;matched < node_key_len; matched++)
     {
@@ -198,16 +232,15 @@ int _cel_pattrie_node_insert(CelPatTrieNode *node,
     {
         if (matched == key_len)
         {
-            if (!(node->terminal))
-            {
-                node->terminal = TRUE;
-                node->value = value;
-            }
+            if (node->value != NULL
+                && value_free_func != NULL)
+                value_free_func(node->value);
+            node->value = value;
             return 0;
         }
         sub_key = &key[matched];
         sub_key_len = key_len - matched;
-        /* Trying adding to a static child */
+        /* Try adding to a static child */
         if (node->static_children != NULL)
         {
             child = (CelPatTrieNode *)cel_list_get_head(node->static_children);
@@ -215,11 +248,11 @@ int _cel_pattrie_node_insert(CelPatTrieNode *node,
             while ((child = (CelPatTrieNode *)child->item.next) != tail)
             {
                 if (_cel_pattrie_node_insert(
-                    child, sub_key, sub_key_len, value) == 0)
+                    child, sub_key, sub_key_len, value, value_free_func) == 0)
                     return 0;
             }
         }
-        /* Trying adding to a param child */
+        /* Try adding to a param child */
         if (node->param_children != NULL)
         {
             child = (CelPatTrieNode *)cel_list_get_head(node->param_children);
@@ -227,7 +260,7 @@ int _cel_pattrie_node_insert(CelPatTrieNode *node,
             while ((child = (CelPatTrieNode *)child->item.next) != tail)
             {
                 if (_cel_pattrie_node_insert(
-                    child, sub_key, sub_key_len, value) == 0)
+                    child, sub_key, sub_key_len, value, value_free_func) == 0)
                     return 0;
             }
         }
@@ -244,336 +277,117 @@ int _cel_pattrie_node_insert(CelPatTrieNode *node,
         return -1;
     }
     /* The node key shares a partial prefix with the key: split the node key */
-    new_node = cel_pattrie_node_new(CEL_PATTRIE_NODE_STATIC, 
+    new_node = cel_pattrie_node_new(node->type, 
         &(node->key[matched]), node->key_len - matched, node->value);
     new_node->static_children = node->static_children;
     new_node->param_children = node->param_children;
-    new_node->terminal = node->terminal;
 
     node->key[matched] = '\0';
-    sub_key = cel_strdup(node->key);
-    if (node->key != NULL)
-        cel_free(node->key);
-    node->key = sub_key;
     node->key_len = matched;
     node->value = NULL;
     node->static_children = cel_list_new(NULL);
     node->param_children = NULL;
-    node->terminal = FALSE;
     cel_list_push_back(node->static_children, (CelListItem *)new_node);
 
-    return _cel_pattrie_node_insert(node, key, key_len, value);
+    return _cel_pattrie_node_insert(
+        node, key, key_len, value, value_free_func);
 }
 
-//void _cel_pattrie_node_insert(CelPatTrieNode *node, 
-//                              char *key, size_t key_len, void *value)
-//{
-//    size_t i, child_key_len;
-//    char *sub_key, *child_sub_key;
-//    CelList *list;
-//    CelPatTrieNode *child, *new_node, *new_node1;
-//
-//    if ((list = node->static_children) == NULL)
-//        list = node->static_children = cel_list_new(NULL);
-//    child = (CelPatTrieNode *)&(list->head);
-//    while ((child = (CelPatTrieNode *)child->item.next) 
-//        != (CelPatTrieNode *)cel_list_get_tail(list))
-//    {
-//        /* Use min(child.key.length, key.length) */
-//        child_key_len = (child->key_len < key_len ? child->key_len : key_len);
-//       /* printf("child %s %s, child len %d, %d\r\n", 
-//            child->key, key, child->key_len, key_len);*/
-//        for (i = 0 ;i < child_key_len; i++)
-//        {
-//            if (child->key[i] != key[i])
-//                break;
-//        }
-//        if (i == 0)
-//        {
-//            if (key[0] < child->key[0])
-//            {
-//                new_node = cel_pattrie_node_new(key, key_len, value);
-//                new_node->terminal = TRUE;
-//
-//                new_node->item.prev = (CelListItem *)child;
-//                new_node->item.next = child->item.next;
-//                child->item.next->prev = (CelListItem *)new_node;
-//                child->item.next = (CelListItem *)new_node;
-//                return ;
-//            }
-//            else
-//                continue;
-//        }
-//        else
-//        {
-//            //printf("i %d child_key_len %d\r\n", i, child_key_len);
-//            if (i == child_key_len)
-//            {
-//                if (key_len == child->key_len)
-//                {
-//                    if (child->terminal)
-//                    {
-//                        puts("Duplicate Key is found when insertion!");
-//                        return ;
-//                    }
-//                    else
-//                    {
-//                        child->terminal = TRUE;
-//                        child->value = value;
-//                        return;
-//                    }
-//                }
-//                else if (key_len > child->key_len)
-//                {
-//                    sub_key = &key[i];
-//                    _cel_pattrie_node_insert(
-//                        child, sub_key, key_len - i, value);
-//                    return ;
-//                }
-//                else
-//                {
-//                    child_sub_key = &(child->key[i]);
-//                    new_node = cel_pattrie_node_new(
-//                        child_sub_key, child->key_len - i, child->value);
-//                    new_node->static_children = child->static_children;
-//                    new_node->terminal = child->terminal;
-//                    if (child->key != NULL)
-//                        cel_free(child->key);
-//                    child->key = cel_strdup(key);
-//                    child->key_len = key_len;
-//                    child->value = value;
-//                    child->static_children = cel_list_new(NULL);
-//                    child->terminal = TRUE;
-//                    cel_list_push_back(
-//                        child->static_children, (CelListItem *)new_node);
-//                    return ;
-//                }
-//            }
-//            else //0 < j < child_key_len
-//            {
-//                child_sub_key = &(child->key[i]);
-//                sub_key = &key[i];
-//
-//                new_node = cel_pattrie_node_new(
-//                    child_sub_key, child->key_len - i, child->value);
-//                new_node->static_children = child->static_children;
-//                new_node->terminal = child->terminal;
-//
-//                new_node1 = cel_pattrie_node_new(
-//                    sub_key, key_len - i, value);
-//                new_node1->terminal = TRUE;
-//
-//                child->key[i] = '\0';
-//                child_sub_key = cel_strdup(child->key);
-//                if (child->key != NULL)
-//                    cel_free(child->key);
-//                child->key = child_sub_key;
-//                child->key_len = i;
-//                child->value = NULL;
-//                child->static_children = cel_list_new(NULL);
-//                child->terminal = FALSE;
-//                if (new_node->key[0] < new_node1->key[0])
-//                {
-//                    cel_list_push_back(
-//                        child->static_children, (CelListItem *)new_node);
-//                    cel_list_push_back(
-//                        child->static_children, (CelListItem *)new_node1);
-//                }
-//                else
-//                {
-//                    cel_list_push_back(
-//                        child->static_children, (CelListItem *)new_node1);
-//                    cel_list_push_back(
-//                        child->static_children, (CelListItem *)new_node);
-//                }
-//                return ;
-//            }
-//        }
-//    }
-//    new_node = cel_pattrie_node_new(key, key_len, value);
-//    new_node->terminal = TRUE;
-//    cel_list_push_back(node->static_children, (CelListItem *)new_node);
-//
-//    return ;
-//}
-
-void *_cel_pattrie_node_lookup(CelPatTrieNode *node, char *key, size_t key_len)
+int _cel_pattrie_node_lookup(CelPatTrieNode *node, 
+                             const char *key, size_t key_len,
+                             void **value, CelPatTrieParams *params)
 {
-    size_t child_key_len, i;
-    char *sub_key;
-    CelList *list;
-    CelPatTrieNode *child;
+    int i;
+    size_t node_key_len, sub_key_len;
+    const char *sub_key;
+    char *param_value;
+    CelPatTrieNode *child, *tail;
 
-    list = node->static_children;
-    child = (CelPatTrieNode *)&(list->head);
-    while ((child = (CelPatTrieNode *)child->item.next)
-        != (CelPatTrieNode *)&(list->tail))
+    /*printf("node %s %d, key %s %d\r\n", 
+        node->key, (int)node->key_len, key, (int)key_len);*/
+    if (node->type != CEL_PATTRIE_NODE_PARAM)
     {
-        /* Use min(child.key.length, key.length) */
-        child_key_len = child->key_len;
-        if (child_key_len >= key_len)
-            child_key_len = key_len;
-        for (i = 0 ;i < child_key_len; i++)
+        node_key_len = node->key_len;
+        if (node_key_len > key_len)
+            return -1;
+        for (i = (int)(node_key_len - 1); i >= 0; i--)
         {
-            if (child->key[i] != key[i])
-                break;
+            if (node->key[i] != key[i])
+                return -1;
         }
-        if(i == 0)
+        if (key_len == node_key_len)
         {
-            /*
-             * This child doesn't match any character with the new key
-             * order keys by lexi-order
-             */
-            if(key[0] < child->key[i])
-                return NULL;
-            else
-                continue;
+            *value = node->value;
+            return 0;
         }
-        else if (i == child_key_len)
-        {  
-            if (key_len == child_key_len)
+        sub_key = &key[node_key_len];
+        sub_key_len = key_len - node_key_len;
+    }
+    //else if (node->regexp != NULL)
+    //{
+    //    // if n.regex.String() == "^.*" {
+    //    // pvalues[n.pindex] = key
+    //    //	key = ""
+    //    //} else if match := n.regex.FindStringIndex(key); match != nil {
+    //    //	pvalues[n.pindex] = key[0:match[1]]
+    //    //	key = key[match[1]:]
+    //    //} else {
+    //    //	return
+    //    //}
+    //    return 0;
+    //}
+    else
+    {
+        for(i = 0; i < (int)key_len; i++)
+        {
+            if (key[i] == '/')
             {
-                if (child->terminal)
-                    return child->value;
-                else
-                    return NULL;
-            }
-            else if(key_len > child_key_len)
-            {
+                /*pvalues[n.pindex] = key[0:i]*/
+                if (params != NULL)
+                {
+                    param_value = cel_strdup_full(key, 0, i);
+                    cel_rbtree_insert(params, node->param_name, param_value);
+                }
+                //printf("param %s= %s\r\n", node->param_name, key);
                 sub_key = &key[i];
-                return _cel_pattrie_node_lookup(
-                    child, sub_key, key_len - i);
-            }
-            return NULL;
-        }
-        else
-        {
-            return NULL;
-        }
-    }
-    return NULL;
-}
-
-void _cel_pattrie_node_remove(CelPatTrieNode *node, 
-                              char *key, size_t key_len, 
-                              CelFreeFunc value_free_func)
-{
-    size_t child_key_len, i;
-    char *sub_key;
-    CelList *list;
-    CelPatTrieNode *child, *single_node;
-
-    list = node->static_children;
-    child = (CelPatTrieNode *)&(list->head);
-    while ((child = (CelPatTrieNode *)child->item.next) 
-        != (CelPatTrieNode *)cel_list_get_tail(list))
-    {
-        /* Use min(child.key.length, key.length) */
-        child_key_len = child->key_len;
-        if (child_key_len >= key_len)
-            child_key_len = key_len;
-        for (i = 0 ;i < child_key_len; i++)
-        {
-            if (child->key[i] != key[i])
+                sub_key_len = key_len - i;
                 break;
+            }
         }
-        if (i == 0)
+        if (i == key_len)
         {
-            if (key[0] < child->key[0])
-            {
-                puts("No such key is found for removal!");
-                return ;
-            }
-            else
-                continue;
-        }
-        else
-        {
-            if (i == child_key_len)
-            {
-                if (key_len == child_key_len)
-                {
-                    if (child->terminal)
-                    {
-                        if (child->static_children == NULL
-                            || cel_list_get_size(child->static_children) == 0)
-                        {
-                            cel_list_remove(list, (CelListItem *)child);
-                            if (node->static_children == NULL
-                                || cel_list_get_size(node->static_children) == 1)
-                            {
-                                single_node = (CelPatTrieNode *)
-                                    cel_list_get_front(node->static_children);
-                                node->key = cel_realloc(node->key, 
-                                    node->key_len + single_node->key_len + 1);
-                                memcpy(node->key + node->key_len, 
-                                    single_node->key, single_node->key_len);
-                                node->key_len += single_node->key_len;
-                                node->key[node->key_len] = '\0';
-                                node->value = single_node->value;
-                                if (node->static_children != NULL)
-                                    cel_list_free(node->static_children);
-                                node->static_children = single_node->static_children;
-                                node->terminal = single_node->terminal;
-                                single_node->static_children = NULL;
-                                single_node->value = NULL;
-                                cel_pattrie_node_free(single_node, value_free_func);
-                            }
-                        }
-                        else
-                        {
-                            child->terminal = FALSE;
-                            if(child->static_children != NULL
-                                && cel_list_get_size(child->static_children) == 1)
-                            {  
-                                single_node = (CelPatTrieNode *)
-                                    cel_list_get_front(node->static_children);
-                                 node->key = cel_realloc(node->key, 
-                                    node->key_len + single_node->key_len + 1);
-                                memcpy(node->key + node->key_len, 
-                                    single_node->key, single_node->key_len);
-                                node->key_len += single_node->key_len;
-                                node->key[node->key_len] = '\0';
-                                node->value = single_node->value;
-                                if (node->static_children != NULL)
-                                    cel_list_free(node->static_children);
-                                node->static_children = single_node->static_children;
-                                node->terminal = single_node->terminal;
-                                single_node->static_children = NULL;
-                                single_node->value = NULL;
-                                cel_pattrie_node_free(single_node, value_free_func);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        puts("No such key is found for removal!");
-                        return ;
-                    }
-                }
-                else if (key_len > child_key_len)
-                {
-                    sub_key = &key[i];
-                    _cel_pattrie_node_remove(
-                        child, sub_key, key_len - i, value_free_func);
-                    return ;
-                }
-                else
-                {
-                    puts("No such key is found for removal!");
-                    return ;
-                }
-            }
-            else //0 < j < child_key_len
-            {
-                puts("No such key is found for removal!");
-                return ;
-            }
-            break;
+            /*pvalues[n.pindex] = key */
+            if (params != NULL)
+                cel_rbtree_insert(params, node->param_name, cel_strdup(key));
+            //printf("param %s= %s\r\n", node->param_name, key);
+            return 0;
         }
     }
-    puts("No such key is found for removal!");
-    return ;
+    /*  Find a static child that can match the rest of the key */
+    if (node->static_children != NULL)
+    {
+        child = (CelPatTrieNode *)cel_list_get_head(node->static_children);
+        tail = (CelPatTrieNode *)cel_list_get_tail(node->static_children);
+        while ((child = (CelPatTrieNode *)child->item.next) != tail)
+        {
+            if (_cel_pattrie_node_lookup(
+                child, sub_key, sub_key_len, value, params) == 0)
+                return 0;
+        }
+    }
+    /* Try matching param children */
+    if (node->param_children != NULL)
+    {
+        child = (CelPatTrieNode *)cel_list_get_head(node->param_children);
+        tail = (CelPatTrieNode *)cel_list_get_tail(node->param_children);
+        while ((child = (CelPatTrieNode *)child->item.next) != tail)
+        {
+            if (_cel_pattrie_node_lookup(
+                child, sub_key, sub_key_len, value, params) == 0)
+                return 0;
+        }
+    }
+    return -1;
 }
 
 void cel_pattrie_clear(CelPatTrie *pat_trie)

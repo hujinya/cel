@@ -203,6 +203,9 @@ int cel_httprequest_init(CelHttpRequest *req)
         }
         i++;
     }
+    cel_rbtree_init(
+        &(req->ext_hdrs), (CelCompareFunc)strcmp, cel_free, cel_free);
+
     req->body_save_in = CEL_HTTPBODY_SAVE_IN_CACHE;
     cel_httpbodycache_init(&(req->body_cache), CEL_HTTPBODY_BUF_LEN_MAX);
     cel_httpmultipart_init(&(req->multipart));
@@ -244,6 +247,7 @@ void cel_httprequest_clear(CelHttpRequest *req)
         }
         i++;
     }
+    cel_rbtree_clear(&(req->ext_hdrs));
     //cel_stream_clear(&(req->body_data));
     req->body_save_in = CEL_HTTPBODY_SAVE_IN_CACHE;
     if (req->body_save_in == CEL_HTTPBODY_SAVE_IN_CACHE)
@@ -286,6 +290,8 @@ void cel_httprequest_destroy(CelHttpRequest *req)
         }
         i++;
     }
+    cel_rbtree_destroy(&(req->ext_hdrs));
+
     req->body_save_in = CEL_HTTPBODY_SAVE_IN_CACHE;
     if (req->body_save_in == CEL_HTTPBODY_SAVE_IN_CACHE)
         cel_httpbodycache_destroy(&(req->body_cache));
@@ -352,6 +358,7 @@ static int cel_httprequest_reading_header(CelHttpRequest *req, CelStream *s)
 {
     int key_start, key_end, value_start, value_end;
     BYTE ch;
+    char *key, *value;
     size_t key_len, value_len;
     int hdr_index;
     CelHttpHeaderHandler *handler;
@@ -395,9 +402,14 @@ static int cel_httprequest_reading_header(CelHttpRequest *req, CelStream *s)
                     (char *)(cel_stream_get_buffer(s) + key_start),
                     key_len)) == -1)
                 {
-                    printf("Http request header '%.*s' undefined.\r\n", 
+                    key = cel_strdup_full(
+                        (char *)(cel_stream_get_buffer(s) + key_start), 0, key_len);
+                    value = cel_strdup_full(
+                        (char *)(cel_stream_get_buffer(s) + value_start), 0, value_len);
+                    cel_rbtree_insert(&(req->ext_hdrs), key, value);
+                    /*printf("Http request header '%.*s' undefined.\r\n", 
                         (int)value_end - key_start,
-                        (char *)(cel_stream_get_buffer(s) + key_start));
+                        (char *)(cel_stream_get_buffer(s) + key_start));*/
                 }
                 else 
                 {
@@ -701,6 +713,8 @@ static int cel_httprequest_writing_header(CelHttpRequest *req, CelStream *s)
         i++;
         //puts((char *)s->buffer);
     }
+    cel_rbtree_foreach(
+        &(req->ext_hdrs), (CelKeyValuePairEachFunc)cel_httpextheader_writing, s);
     cel_stream_write(s, "\r\n", 2);
     //puts((char *)s->buffer);
 
@@ -933,96 +947,6 @@ end:
     }
 
     return -1;
-}
-
-int cel_httprequest_get_query_string(CelHttpRequest *req, 
-                                     const char *key,
-                                     char *value, size_t size)
-{
-    size_t _size = size;
-    return (cel_httprequest_get_query(req, key, value, &_size) == NULL ? -1 : 0);
-}
-
-int cel_httprequest_get_query_int(CelHttpRequest *req, 
-                                  const char *key, int *ivalue)
-{
-    char istr[16];
-    size_t _size = 16;
-    if (cel_httprequest_get_query(req, key, istr, &_size) == NULL)
-        return -1;
-    *ivalue = atoi(istr);
-    return 0;
-}
-
-int cel_httprequest_get_query_long(CelHttpRequest *req, 
-                                   const char *key, long *lvalue)
-{
-    char lstr[32];
-    size_t _size = 32;
-    if (cel_httprequest_get_query(req, key, lstr, &_size) == NULL)
-        return -1;
-    *lvalue = atol(lstr);
-    return 0;
-}
-
-int cel_httprequest_get_form_string(CelHttpRequest *req, 
-                                    const char *key,
-                                    char *value, size_t size)
-{
-    size_t _size = size;
-    return (cel_httprequest_get_form(req, key, value, &_size) == NULL ? -1 : 0);
-}
-
-int cel_httprequest_get_form_int(CelHttpRequest *req, 
-                                 const char *key, int *ivalue)
-{
-    char istr[16];
-    size_t _size = 16;
-    if (cel_httprequest_get_form(req, key, istr, &_size) == NULL)
-        return -1;
-    *ivalue = atoi(istr);
-    return 0;
-}
-
-int cel_httprequest_get_form_long(CelHttpRequest *req, 
-                                  const char *key, long *lvalue)
-{
-    char lstr[32];
-    size_t _size = 32;
-    if (cel_httprequest_get_form(req, key, lstr, &_size) == NULL)
-        return -1;
-    *lvalue = atol(lstr);
-    return 0;
-}
-
-int cel_httprequest_get_params_string(CelHttpRequest *req, 
-                                      const char *key,
-                                      char *value, size_t size)
-{
-    size_t _size = size;
-    return (cel_httprequest_get_params(req, key, value, &_size) == NULL ? -1 : 0);
-}
-
-int cel_httprequest_get_params_int(CelHttpRequest *req, 
-                                   const char *key, int *ivalue)
-{
-    char istr[16];
-    size_t _size = 16;
-    if (cel_httprequest_get_params(req, key, istr, &_size) == NULL)
-        return -1;
-    *ivalue = atoi(istr);
-    return 0;
-}
-
-int cel_httprequest_get_params_long(CelHttpRequest *req, 
-                                    const char *key, long *lvalue)
-{
-    char lstr[32];
-    size_t _size = 32;
-    if (cel_httprequest_get_params(req, key, lstr, &_size) == NULL)
-        return -1;
-    *lvalue = atol(lstr);
-    return 0;
 }
 
 void *cel_httprequest_get_header(CelHttpRequest *req, CelHttpHeader hdr_index)

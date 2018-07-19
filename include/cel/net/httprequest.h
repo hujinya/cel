@@ -15,8 +15,9 @@
 #ifndef __CEL_NET_HTTPREQUEST_H__
 #define __CEL_NET_HTTPREQUEST_H__
 
-#include "cel/net/http.h"
 #include "cel/file.h"
+#include "cel/rbtree.h"
+#include "cel/net/http.h"
 #include "cel/net/httpmultipart.h"
 
 #define CEL_HTTPMETHOD_LEN_MAX           7
@@ -161,6 +162,7 @@ struct _CelHttpRequest
     CelVStringA via;
     CelVStringA warning;
     CelVStringA x_requested_with;
+    CelRbTree ext_hdrs;
 
     CelHttpContentType body_content_type;
     CelHttpChunked chunked;
@@ -233,13 +235,16 @@ int cel_httprequest_set_query(CelHttpRequest *req,
     return cel_httpvstring_set_value(
         &(req->url.query), '&', '=', key, value, size);
 }
-int cel_httprequest_get_query_string(CelHttpRequest *req, 
-                                     const char *key,
-                                     char *value, size_t size);
-int cel_httprequest_get_query_int(CelHttpRequest *req, 
-                                  const char *key, int *ivalue);
-int cel_httprequest_get_query_long(CelHttpRequest *req, 
-                                   const char *key, long *lvalue);
+#define cel_httprequest_get_query_string(req, key, str, size) \
+    cel_keystr((CelKeyGetFunc)cel_httprequest_get_query, req, key, str, size)
+#define cel_httprequest_get_query_bool(req, key, b) \
+    cel_keybool((CelKeyGetFunc)cel_httprequest_get_query, req, key, b)
+#define cel_httprequest_get_query_int(req, key, i) \
+    cel_keyint((CelKeyGetFunc)cel_httprequest_get_query, req, key, i)
+#define cel_httprequest_get_query_long(req, key, l)\
+    cel_keylong((CelKeyGetFunc)cel_httprequest_get_query, req, key, l)
+#define cel_httprequest_get_query_double(req, key, d) \
+    cel_keydouble((CelKeyGetFunc)cel_httprequest_get_query, req, key, d)
 /* Get and set httprequest form */
 static __inline 
 char *cel_httprequest_get_form(CelHttpRequest *req, const char *key, 
@@ -249,23 +254,29 @@ char *cel_httprequest_get_form(CelHttpRequest *req, const char *key,
         (char *)cel_stream_get_buffer(&(req->body_cache.buf)),
         '&', '=', key, value, size);
 }
-int cel_httprequest_get_form_string(CelHttpRequest *req, 
-                                    const char *key,
-                                    char *value, size_t size);
-int cel_httprequest_get_form_int(CelHttpRequest *req, 
-                                 const char *key, int *ivalue);
-int cel_httprequest_get_form_long(CelHttpRequest *req, 
-                                  const char *key, long *lvalue);
+#define cel_httprequest_get_form_string(req, key, str, size) \
+    cel_keystr((CelKeyGetFunc)cel_httprequest_get_form, req, key, str, size)
+#define cel_httprequest_get_form_bool(req, key, b) \
+    cel_keybool((CelKeyGetFunc)cel_httprequest_get_form, req, key, b)
+#define cel_httprequest_get_form_int(req, key, i) \
+    cel_keyint((CelKeyGetFunc)cel_httprequest_get_form, req, key, i)
+#define cel_httprequest_get_form_long(req, key, l)\
+    cel_keylong((CelKeyGetFunc)cel_httprequest_get_form, req, key, l)
+#define cel_httprequest_get_form_double(req, key, d) \
+    cel_keydouble((CelKeyGetFunc)cel_httprequest_get_form, req, key, d)
 /* Get httprequest params */
 char *cel_httprequest_get_params(CelHttpRequest *req, const char *key, 
                                  char *value, size_t *size);
-int cel_httprequest_get_params_string(CelHttpRequest *req, 
-                                      const char *key,
-                                      char *value, size_t size);
-int cel_httprequest_get_params_int(CelHttpRequest *req, 
-                                   const char *key, int *ivalue);
-int cel_httprequest_get_params_long(CelHttpRequest *req, 
-                                    const char *key, long *lvalue);
+#define cel_httprequest_get_params_string(req, key, str, size) \
+    cel_keystr((CelKeyGetFunc)cel_httprequest_get_params, req, key, str, size)
+#define cel_httprequest_get_params_bool(req, key, b) \
+    cel_keybool((CelKeyGetFunc)cel_httprequest_get_params, req, key, b)
+#define cel_httprequest_get_params_int(req, key, i) \
+    cel_keyint((CelKeyGetFunc)cel_httprequest_get_params, req, key, i)
+#define cel_httprequest_get_params_long(req, key, l)\
+    cel_keylong((CelKeyGetFunc)cel_httprequest_get_params, req, key, l)
+#define cel_httprequest_get_params_double(req, key, d) \
+    cel_keydouble((CelKeyGetFunc)cel_httprequest_get_params, req, key, d)
 
 /* CelHttpVersion cel_httprequest_get_version(CelHttpRequest *req); */
 #define cel_httprequest_get_version(req) (req)->ver
@@ -274,6 +285,18 @@ int cel_httprequest_get_params_long(CelHttpRequest *req,
 void *cel_httprequest_get_header(CelHttpRequest *req, CelHttpHeader hdr_index);
 int cel_httprequest_set_header(CelHttpRequest *req, CelHttpHeader hdr_index,
                                const void *value, size_t value_len);
+static __inline 
+char *cel_httprequest_get_ext_header(CelHttpRequest *req, char *hdr_name)
+{
+    return (char *)cel_rbtree_lookup(&(req->ext_hdrs), hdr_name);
+}
+static __inline 
+void cel_httprequest_set_ext_header(CelHttpRequest *req, 
+                                    char *hdr_name, char *hdr_value)
+{
+    cel_rbtree_insert(&(req->ext_hdrs), 
+        cel_strdup(hdr_name), cel_strdup(hdr_value));
+}
 
 #define cel_httprequest_get_body_size(req) (req)->reading_body_offset
 /* 
