@@ -50,15 +50,15 @@ char *cel_httproutedata_get(CelHttpRouteData *rt_data,
     return NULL;
 }
 #define cel_httproutedata_get_string(rt_data, key, str, size) \
-    cel_keystr((CelKeyGetFunc)cel_httproutedata_get, req, key, str, size)
+    cel_keystr((CelKeyGetFunc)cel_httproutedata_get, rt_data, key, str, size)
 #define cel_httproutedata_get_bool(rt_data, key, b)\
-    cel_keybool((CelKeyGetFunc)cel_httproutedata_get, req, key, b)
+    cel_keybool((CelKeyGetFunc)cel_httproutedata_get, rt_data, key, b)
 #define cel_httproutedata_get_int(rt_data, key, i)\
-    cel_keyint((CelKeyGetFunc)cel_httproutedata_get, req, key, i)
+    cel_keyint((CelKeyGetFunc)cel_httproutedata_get, rt_data, key, i)
 #define cel_httproutedata_get_long(rt_data, key, l)\
-    cel_keylong((CelKeyGetFunc)cel_httproutedata_get, req, key, l)
+    cel_keylong((CelKeyGetFunc)cel_httproutedata_get, rt_data, key, l)
 #define cel_httproutedata_get_double(rt_data, key, d)\
-    cel_keydouble((CelKeyGetFunc)cel_httproutedata_get, req, key, d)
+    cel_keydouble((CelKeyGetFunc)cel_httproutedata_get, rt_data, key, d)
 
 int cel_httproute_init(CelHttpRoute *route);
 void cel_httproute_destroy(CelHttpRoute *route);

@@ -28,7 +28,7 @@ MINOR =
 REVISION = 
 BUILD = 
 EXTRA = ""
-VERSION_FILE=
+VERSION_FILE= "../include/cel/_version.h"
 
 SUB_DIRS = 
 SRC_DIRS = _unix sys crypto net sql

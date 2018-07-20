@@ -12,6 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
  * GNU General Public License for more details.
  */
+#include "cel/_version.h"
 #include "cel/version.h"
 #include "cel/allocator.h"
 
@@ -20,8 +21,8 @@
 #define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
 #define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
 
-CelVersion cel_ver = { 
-    CEL_MAJOR, CEL_MINOR, CEL_REVISION, CEL_BUILD, (TCHAR *)CEL_EXTRA };
+CelVersion cel_lib_ver = { 
+    CEL_LIB_MAJOR, CEL_LIB_MINOR, CEL_LIB_REVISION, CEL_LIB_BUILD, (TCHAR *)CEL_LIB_EXTRA };
 
 #ifdef _CEL_WIN
 int cel_version_init(CelVersion *ver, const TCHAR *file)

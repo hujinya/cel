@@ -76,13 +76,13 @@ $(VERSION_FILE):
 	echo \#endif >>.ver; \
 	mv -f .ver $@
 
-$(A_TARGET): $(OBJS)
+$(A_TARGET): $(VERSION_FILE) $(OBJS) 
 	$(AR) cr $@ $^
 
-$(SO_TARGET): $(OBJS)
+$(SO_TARGET): $(VERSION_FILE) $(OBJS) 
 	$(CXX) -shared -fPIC -o $@ $^ $(LDFLAGS) $(LIBS)
 
-$(BIN_TARGET): $(OBJS) $(VERSION_FILE)
+$(BIN_TARGET): $(VERSION_FILE) $(OBJS) 
 	$(CXX) -o $@ $^ $(LDFLAGS) $(LIBS)
 
 $(OBJ_DIR)/%.o: %.c

@@ -1,13 +1,14 @@
-* Wed Jul 11 2018 Hu Jinya <hjy@gzsunrun.cn> 1.0.8.106
+* Wed Jul 11 2018 Hu Jinya <hjy@gzsunrun.cn> 1.0.8.9
 - 增加httpwebclient,httpweblistener,httproute。
 - 增加pattrie,httproute采用pattrie存储。
 - httpreuqest,httpresponse支持自定义头部。
+- cel_realse()改为cel_lib_realse()。
 
-* Thu May 24 2018 Hu Jinya <hu_jinya@163.com> 1.0.7.105
+* Thu May 24 2018 Hu Jinya <hu_jinya@163.com> 1.0.7.8
 - 优化coroutinescheduler。
 - 增加eventloopgroup对eventloop共享模式的支持。
 
-* Thu May 24 2018 Hu Jinya <hu_jinya@163.com> 1.0.6.104
+* Thu May 24 2018 Hu Jinya <hu_jinya@163.com> 1.0.6.7
 - cel_long_equal类型转换问题导致windows下hashtable查找出错。
 - 修正http chunked编解码last chunk多出\r\n问题。
 - 增加http头部keep-alive小写兼容。

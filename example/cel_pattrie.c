@@ -18,7 +18,6 @@ void pattrie_print(int level, CelPatTrieNode *node)
     else
         printf("%s[%s]#"CEL_CRLF, 
         node->key, (char *)(node->value));
-
     if ((list = node->static_children) != NULL)
     {
         child = (CelPatTrieNode *)&(list->head);

@@ -298,81 +298,36 @@ int _cel_pattrie_node_lookup(CelPatTrieNode *node,
                              void **value, CelPatTrieParams *params)
 {
     int i;
-    size_t node_key_len, sub_key_len;
+    size_t child_key_len, sub_key_len;
     const char *sub_key;
     char *param_value;
     CelPatTrieNode *child, *tail;
 
-    /*printf("node %s %d, key %s %d\r\n", 
+   /* printf("node %s %d, key %s %d\r\n", 
         node->key, (int)node->key_len, key, (int)key_len);*/
-    if (node->type != CEL_PATTRIE_NODE_PARAM)
-    {
-        node_key_len = node->key_len;
-        if (node_key_len > key_len)
-            return -1;
-        for (i = (int)(node_key_len - 1); i >= 0; i--)
-        {
-            if (node->key[i] != key[i])
-                return -1;
-        }
-        if (key_len == node_key_len)
-        {
-            *value = node->value;
-            return 0;
-        }
-        sub_key = &key[node_key_len];
-        sub_key_len = key_len - node_key_len;
-    }
-    //else if (node->regexp != NULL)
-    //{
-    //    // if n.regex.String() == "^.*" {
-    //    // pvalues[n.pindex] = key
-    //    //	key = ""
-    //    //} else if match := n.regex.FindStringIndex(key); match != nil {
-    //    //	pvalues[n.pindex] = key[0:match[1]]
-    //    //	key = key[match[1]:]
-    //    //} else {
-    //    //	return
-    //    //}
-    //    return 0;
-    //}
-    else
-    {
-        for(i = 0; i < (int)key_len; i++)
-        {
-            if (key[i] == '/')
-            {
-                /*pvalues[n.pindex] = key[0:i]*/
-                if (params != NULL)
-                {
-                    param_value = cel_strdup_full(key, 0, i);
-                    cel_rbtree_insert(params, node->param_name, param_value);
-                }
-                //printf("param %s= %s\r\n", node->param_name, key);
-                sub_key = &key[i];
-                sub_key_len = key_len - i;
-                break;
-            }
-        }
-        if (i == key_len)
-        {
-            /*pvalues[n.pindex] = key */
-            if (params != NULL)
-                cel_rbtree_insert(params, node->param_name, cel_strdup(key));
-            //printf("param %s= %s\r\n", node->param_name, key);
-            return 0;
-        }
-    }
     /*  Find a static child that can match the rest of the key */
     if (node->static_children != NULL)
     {
         child = (CelPatTrieNode *)cel_list_get_head(node->static_children);
         tail = (CelPatTrieNode *)cel_list_get_tail(node->static_children);
+next_static_children:
         while ((child = (CelPatTrieNode *)child->item.next) != tail)
         {
-            if (_cel_pattrie_node_lookup(
-                child, sub_key, sub_key_len, value, params) == 0)
+            if ((child_key_len = child->key_len) > key_len)
+                continue;
+            for (i = (int)(child_key_len - 1); i >= 0; i--)
+            {
+                if (child->key[i] != key[i])
+                    goto next_static_children;
+            }
+            if ((sub_key_len = key_len - child_key_len) == 0)
+            {
+                *value = child->value;
                 return 0;
+            }
+            sub_key = &key[child_key_len];
+            return _cel_pattrie_node_lookup(
+                child, sub_key, sub_key_len, value, params);
         }
     }
     /* Try matching param children */
@@ -382,9 +337,46 @@ int _cel_pattrie_node_lookup(CelPatTrieNode *node,
         tail = (CelPatTrieNode *)cel_list_get_tail(node->param_children);
         while ((child = (CelPatTrieNode *)child->item.next) != tail)
         {
-            if (_cel_pattrie_node_lookup(
-                child, sub_key, sub_key_len, value, params) == 0)
-                return 0;
+            //if (child->regexp != NULL)
+            //{
+            //    // if n.regex.String() == "^.*" {
+            //    // pvalues[n.pindex] = key
+            //    //	key = ""
+            //    //} else if match := n.regex.FindStringIndex(key); match != nil {
+            //    //	pvalues[n.pindex] = key[0:match[1]]
+            //    //	key = key[match[1]:]
+            //    //} else {
+            //    //	return
+            //    //}
+            //    return 0;
+            //}
+            //else
+            {
+                for(i = 0; i < (int)key_len; i++)
+                {
+                    if (key[i] == '/')
+                    {
+                        if (params != NULL)
+                        {
+                            param_value = cel_strdup_full(key, 0, i);
+                            cel_rbtree_insert(params, child->param_name, param_value);
+                        }
+                        //printf("param %s= %s\r\n", node->param_name, key);
+                        sub_key = &key[i];
+                        sub_key_len = key_len - i;
+                        return _cel_pattrie_node_lookup(
+                            child, sub_key, sub_key_len, value, params);
+                    }
+                }
+                if (i == key_len)
+                {
+                    if (params != NULL)
+                        cel_rbtree_insert(params, child->param_name, cel_strdup(key));
+                    //printf("param %s= %s\r\n", node->param_name, key);
+                    *value = child->value;
+                    return 0;
+                }
+            }
         }
     }
     return -1;

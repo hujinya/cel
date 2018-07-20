@@ -148,7 +148,7 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
             printf("method %d, %s\r\n", 
                 cel_httprequest_get_method(req), url);
             cel_httpwebclient_async_send_response_result(client, 
-                CEL_HTTPAPI_UNSUPPORTED_OPERATION_EXCEPTION, 0,
+                CEL_HTTPWEB_UNSUPPORTED_OPERATION_EXCEPTION, 0,
                 "Http web request prefix not supported.");
             return ;
         }
@@ -162,7 +162,7 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
             printf("method %d, %s\r\n", 
                 cel_httprequest_get_method(req), url + ver_end);
             cel_httpwebclient_async_send_response_result(client, 
-                CEL_HTTPAPI_UNSUPPORTED_OPERATION_EXCEPTION, 0,
+                CEL_HTTPWEB_UNSUPPORTED_OPERATION_EXCEPTION, 0,
                 "Http web request not supported.");
             return ;
         }
@@ -170,13 +170,13 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
             req, &(client->rsp), &(client->rt_data)) == -1)
         {
             cel_httpwebclient_async_send_response_result(client, 
-                CEL_HTTPAPI_IO_EXCEPTION, 0,
+                CEL_HTTPWEB_IO_EXCEPTION, 0,
                 "Http web request handler failed.");
         }
         break;
     default:
         cel_httpwebclient_async_send_response_result(client, 
-            CEL_HTTPAPI_UNSUPPORTED_OPERATION_EXCEPTION, 0,
+            CEL_HTTPWEB_UNSUPPORTED_OPERATION_EXCEPTION, 0,
             "Http web request(http) reuqest state invaild .");
     }
 }
@@ -247,13 +247,13 @@ int cel_httpwebclient_async_send_response_result(CelHttpWebClient *client,
         {
             cel_httpresponse_set_header(&(client->rsp), 
                 CEL_HTTPHDR_CONTENT_TYPE,
-                CEL_HTTPAPI_CONTENT_TYPE, CEL_HTTPAPI_CONTENT_TYPE_LEN);
+                CEL_HTTPWEB_CONTENT_TYPE, CEL_HTTPWEB_CONTENT_TYPE_LEN);
             if (msg != NULL)
                 cel_httpresponse_printf(&(client->rsp), 
                 "{\"error\":0,\"message\":\"%s\"}", err_no, msg);
             else
                 cel_httpresponse_write(&(client->rsp), 
-                CEL_HTTPAPI_SUCCESSED_MSG, CEL_HTTPAPI_SUCCESSED_MSG_LEN);
+                CEL_HTTPWEB_SUCCESSED_MSG, CEL_HTTPWEB_SUCCESSED_MSG_LEN);
         }
         cel_httpresponse_end(&(client->rsp));
         break;
@@ -267,7 +267,7 @@ int cel_httpwebclient_async_send_response_result(CelHttpWebClient *client,
         {
             cel_httpresponse_set_header(&(client->rsp), 
                 CEL_HTTPHDR_CONTENT_TYPE,
-                CEL_HTTPAPI_CONTENT_TYPE, CEL_HTTPAPI_CONTENT_TYPE_LEN);
+                CEL_HTTPWEB_CONTENT_TYPE, CEL_HTTPWEB_CONTENT_TYPE_LEN);
         }
         cel_httpresponse_printf(&(client->rsp), 
             "{\"error\":%d,\"message\":\"%s\"}", err_no, msg);

@@ -25,11 +25,12 @@
 extern "C" {
 #endif
 
-#define CEL_MAJOR 1
-#define CEL_MINOR 0
-#define CEL_REVISION 8
-#define CEL_BUILD 106
-#define CEL_EXTRA _T("")
+#define CEL_LIB_MAJOR 1
+#define CEL_LIB_MINOR 0
+#define CEL_LIB_REVISION 8
+#define CEL_LIB_BUILD 9
+#define CEL_LIB_EXTRA ""
+
 #define CEL_UTS _T(__DATE__) _T(" ") _T(__TIME__)
 
 typedef struct _CelVersion
@@ -41,7 +42,7 @@ typedef struct _CelVersion
     TCHAR *extra;
 }CelVersion;
 
-extern CelVersion cel_ver;
+extern CelVersion cel_lib_ver;
 
 #ifdef _CEL_UNIX
 #define cel_version_init(ver, file) \
@@ -56,7 +57,7 @@ int cel_version_init(CelVersion *ver, const TCHAR *file);
 #endif
 TCHAR *_cel_version_release(CelVersion *ver, const TCHAR *uts);
 #define cel_version_release(ver) _cel_version_release(ver, CEL_UTS)
-#define cel_realse() _cel_version_release(&cel_ver, NULL)
+#define cel_lib_realse() _cel_version_release(&cel_lib_ver, NULL)
 
 #ifdef __cplusplus
 }   /*  ... extern "C" */
