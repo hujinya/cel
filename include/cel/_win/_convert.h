@@ -25,7 +25,6 @@ extern "C" {
 long long os_atoll(const char *p);
 #define atoll os_atoll
 #endif
-#define strcasecmp stricmp
 TCHAR *strsep(TCHAR **stringp, const TCHAR *delim);
 
 /* 

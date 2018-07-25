@@ -295,6 +295,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ringlist.c"
+				>
+			</File>
+			<File
 				RelativePath=".\stream.c"
 				>
 			</File>
@@ -1025,6 +1029,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\include\cel\ringlist.h"
+				>
+			</File>
+			<File
 				RelativePath="..\include\cel\stream.h"
 				>
 			</File>
@@ -1452,7 +1460,19 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\include\cel\_unix\_atomic.h"
+					RelativePath="..\include\cel\_unix\_atomic_sync.h"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\include\cel\_unix\_atomic_x86.h"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"

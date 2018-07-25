@@ -101,4 +101,5 @@ void cel_pattrie_clear(CelPatTrie *pat_trie);
 #ifdef __cplusplus
 }
 #endif
+
 #endif

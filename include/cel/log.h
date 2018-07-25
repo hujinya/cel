@@ -21,6 +21,7 @@
 #include "cel/atomic.h"
 #include "cel/datetime.h"
 #include "cel/list.h"
+#include "cel/ringlist.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -96,9 +97,8 @@ typedef struct _CelLogger
     int styles;
     CelList *hook_list;
     BOOL is_flush;
-    unsigned int read_pos;
-    unsigned int write_pos;
     CelLogMsg *msg_buf;
+    CelRingList *ring_list;
 }CelLogger;
 
 extern CelLogger g_logger;

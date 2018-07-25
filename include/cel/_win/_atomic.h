@@ -18,10 +18,20 @@
 #include "cel/types.h"
 #include <intrin.h>
 
+#if defined(_WIN64)
+typedef volatile S64 OsAtomic;
+#else
+typedef volatile S32 OsAtomic;
+#endif
+
+#define os_atomic_cmp_and_swap(ptr, oldval, newval, mem_order) \
+    _InterlockedCompareExchange(ptr, newval, oldval)
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-    
+
+
 #ifdef __cplusplus
 }
 #endif

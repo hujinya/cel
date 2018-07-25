@@ -242,6 +242,9 @@ int cel_httpwebclient_async_send_response_result(CelHttpWebClient *client,
     switch (status)
     {
     case CEL_HTTPSC_REQUEST_OK:
+    case CEL_HTTPSC_CREATED:
+    case CEL_HTTPSC_ACCEPTED:
+    case CEL_HTTPSC_NO_CONTENT:
         cel_httpresponse_set_statuscode(&(client->rsp), status);
         if (client->rsp.writing_body_offset == 0)
         {
@@ -250,7 +253,7 @@ int cel_httpwebclient_async_send_response_result(CelHttpWebClient *client,
                 CEL_HTTPWEB_CONTENT_TYPE, CEL_HTTPWEB_CONTENT_TYPE_LEN);
             if (msg != NULL)
                 cel_httpresponse_printf(&(client->rsp), 
-                "{\"error\":0,\"message\":\"%s\"}", err_no, msg);
+                "{\"error\":%d,\"message\":\"%s\"}", err_no, msg);
             else
                 cel_httpresponse_write(&(client->rsp), 
                 CEL_HTTPWEB_SUCCESSED_MSG, CEL_HTTPWEB_SUCCESSED_MSG_LEN);

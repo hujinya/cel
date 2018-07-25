@@ -123,7 +123,8 @@ void cel_pattrie_node_free(CelPatTrieNode *node, CelFreeFunc value_free_func)
 }
 
 int _cel_pattrie_child_node_insert(CelPatTrieNode *node, 
-                                   const char *key, size_t key_len, void *value)
+                                   const char *key, size_t key_len,
+                                   void *value)
 {
     int i, p0 = -1, p1 = -1, p2 = -1;
     int param_name_len, regexp_len;

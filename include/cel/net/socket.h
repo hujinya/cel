@@ -107,7 +107,7 @@ int cel_socket_accept(CelSocket *sock,
     sendto((sock)->fd, buf, size, 0, \
     (struct sockaddr *)to, cel_sockaddr_get_len(to))
 static __inline 
-int cel_socket_recvfrom(CelSocket *sock, void *buf, int size, 
+int cel_socket_recvfrom(CelSocket *sock, char *buf, int size, 
                         CelSockAddr *from)
 {
     socklen_t len = sizeof(CelSockAddr);
@@ -156,7 +156,8 @@ static __inline int cel_socket_set_nodelay(CelSocket *sock, int on)
     return setsockopt((sock)->fd, IPPROTO_TCP, TCP_NODELAY, 
         (char *)&on, sizeof(on));
 }
-static __inline int cel_socket_set_nonblock(CelSocket *sock, int nonblock)
+static __inline int cel_socket_set_nonblock(CelSocket *sock, 
+                                            unsigned long nonblock)
 {
     return ioctlsocket((sock)->fd, FIONBIO, &nonblock);
 }

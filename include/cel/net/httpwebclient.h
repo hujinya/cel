@@ -22,16 +22,16 @@
 extern "C" {
 #endif
 
-#define CEL_HTTPWEB_OK                              200
-#define CEL_HTTPWEB_CREATED                         201
-#define CEL_HTTPWEB_ACCEPTED                        202
-#define CEL_HTTPWEB_NO_CONTENT                      204
+#define CEL_HTTPWEB_OK                              CEL_HTTPSC_REQUEST_OK
+#define CEL_HTTPWEB_CREATED                         CEL_HTTPSC_CREATED
+#define CEL_HTTPWEB_ACCEPTED                        CEL_HTTPSC_ACCEPTED
+#define CEL_HTTPWEB_NO_CONTENT                      CEL_HTTPSC_NO_CONTENT
 
-#define CEL_HTTPWEB_UNSUPPORTED_OPERATION_EXCEPTION 400
-#define CEL_HTTPWEB_SECURITY_EXCEPTION              401
-#define CEL_HTTPWEB_IO_EXCEPTION                    402
-#define CEL_HTTPWEB_NOT_FOUND_EXCEPTION             403 
-#define CEL_HTTPWEB_RUMTIME_EXCEPTION               500
+#define CEL_HTTPWEB_UNSUPPORTED_OPERATION_EXCEPTION CEL_HTTPSC_BAD_REQUEST
+#define CEL_HTTPWEB_SECURITY_EXCEPTION              CEL_HTTPSC_UNAUTHORIZED
+#define CEL_HTTPWEB_IO_EXCEPTION                    CEL_HTTPSC_FORBIDDEN
+#define CEL_HTTPWEB_NOT_FOUND_EXCEPTION             CEL_HTTPSC_NOT_FOUND 
+#define CEL_HTTPWEB_RUMTIME_EXCEPTION               CEL_HTTPSC_ERROR
 
 #define CEL_HTTPWEB_CONTENT_TYPE         "application/json; charset=utf-8"
 #define CEL_HTTPWEB_CONTENT_TYPE_LEN     (sizeof(CEL_HTTPWEB_CONTENT_TYPE) - 1)

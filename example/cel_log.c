@@ -5,16 +5,15 @@
 int cel_log_write(void *user_data)
 {
     int i = 0;
-
     while (TRUE)
     {
-        while (i++ < 20000)
+        while (i++ < 200000)
         {
             //if (i == 5)
                 //usleep(10 * 1000);
-            cel_log_debug(_T("Thread %ld log msg %d."), cel_thread_getid(), i);
+            cel_log_debug(_T("Thread %ld log msg %d"), cel_thread_getid(), i);
         }
-        usleep(20 * 1000);
+        usleep(100 * 1000);
     }
     return 0;
 }
@@ -32,6 +31,7 @@ int log_test(int argc, TCHAR *argv[])
     {
         usleep(10 * 1000);
         cel_log_flush();
+        //printf("drop = %d\r\n", g_logger.n_drop);
     }
     return 0;
 }

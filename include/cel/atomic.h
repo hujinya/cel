@@ -16,14 +16,21 @@
 #define __CEL_ATOMIC_H__
 
 #include "cel/types.h"
-#ifdef _CEL_WIN
-#include <intrin.h>
+#if defined(_CEL_UNIX)
+#include "cel/_unix/_atomic_sync.h"
+#elif defined(_CEL_WIN)
+#include "cel/_win/_atomic.h"
 #endif
-
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define cel_atomic_exchange os_atomic_exchange
+#define cel_atomic_cmp_and_swap os_atomic_cmp_and_swap
+#define cel_atomic_store os_atomic_store
+#define cel_atomic_load os_atomic_load
+#define cel_atomic_clear os_atomic_clear
 
 #ifdef _CEL_WIN
 #define CEL_ARCH_ATOMIC_INC
@@ -35,7 +42,7 @@ extern "C" {
 #define CEL_ARCH_ATOMIC_XOR
 #endif
 
-typedef volatile long CelAtomic;
+typedef OsAtomic CelAtomic;
 
 
 static __inline long cel_atomic_get(CelAtomic *v){ return *v; }

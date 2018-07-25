@@ -1,0 +1,236 @@
+/**
+ * CEL(C Extension Library)
+ * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ *
+ * This program is free software; you can redistribute it and/or 
+ * modify it under the terms of the GNU General Public License 
+ * as published by the Free Software Foundation; either version 2 
+ * of the License, or (at your option) any later version. 
+ * 
+ * This program is distributed in the hope that it will be useful, 
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
+ */
+#include "cel/ringlist.h"
+#include "cel/error.h"
+#include "cel/allocator.h"
+
+int cel_ringlist_init(CelRingList *ring_list, size_t size)
+{
+    if ((ring_list->ring[0] = cel_malloc(sizeof(void *) * size)) == NULL)
+        return -1;
+    ring_list->p_size = size;
+    ring_list->p_mask = size -1;
+    ring_list->p_head = 0;
+    ring_list->p_tail = 0;
+    ring_list->c_size = size;
+    ring_list->c_mask = size -1;
+    ring_list->c_head = 0;
+    ring_list->c_tail = 0;
+
+    return 0;
+}
+
+void cel_ringlist_destroy(CelRingList *ring_list)
+{
+    cel_free(ring_list->ring);
+}
+
+CelRingList *cel_ringlist_new(size_t size)
+{
+    CelRingList *ring_list;
+
+    if ((ring_list = (CelRingList *)cel_malloc(
+        sizeof(CelRingList))) != NULL)
+    {
+        if (cel_ringlist_init(ring_list, size) == 0)
+            return ring_list;
+        cel_free(ring_list);
+    }
+
+    return NULL;
+}
+
+void cel_ringlist_free(CelRingList *ring_list)
+{
+    cel_ringlist_destroy(ring_list);
+    cel_free(ring_list);
+}
+
+void cel_ringlist_push_values(CelRingList *ring_list, 
+                              unsigned long prod_head, size_t n, void **values)
+{ 
+    unsigned int i, idx;
+    U32 size;
+    U32 mask = ring_list->p_mask;
+
+    size = ring_list->p_size;
+    idx = prod_head & mask;
+    if (idx + n < size)
+    { 
+        for (i = 0; i < (n & ((~(unsigned)0x3))); i += 4, idx += 4)
+        { 
+            ring_list->ring[idx] = values[i];
+            ring_list->ring[idx + 1] = values[i + 1];
+            ring_list->ring[idx + 2] = values[i + 2];
+            ring_list->ring[idx + 3] = values[i + 3];
+        } 
+        switch (n & 0x3) 
+        { 
+        case 3: ring_list->ring[idx++] = values[i++];
+        case 2: ring_list->ring[idx++] = values[i++];
+        case 1: ring_list->ring[idx++] = values[i++];
+        } 
+    }
+    else 
+    { 
+        for (i = 0; idx < size; i++, idx++)
+            ring_list->ring[idx] = values[i]; 
+        for (idx = 0; i < n; i++, idx++) 
+            ring_list->ring[idx] = values[i]; 
+    } 
+}
+
+int _cel_ringlist_push_do_mp(CelRingList *ring_list, size_t n,
+                             CelRingListConsFunc handle, void *user_data)
+{
+    U32 prod_head, prod_next;
+    U32 cons_tail, free_entries;
+    U32 mask = ring_list->p_mask;
+
+    /* 
+    * Avoid the unnecessary cmpset operation below, which is also
+    * potentially harmful when n equals 0. 
+    */
+    if (n == 0)
+        return 0;
+    /* move p_head atomically */
+    do 
+    {
+        /* Reset n to the initial burst count */
+        prod_head = ring_list->p_head;
+        cons_tail = ring_list->c_tail;
+        free_entries = (mask + cons_tail - prod_head);
+        /* check that we have enough room in ring */
+        if (n > free_entries)
+        {
+            if (free_entries == 0)
+                return 0;
+            n = free_entries;
+        }
+        prod_next = prod_head + n;
+    }while (cel_atomic_cmp_and_swap(
+        &(ring_list->p_head), prod_head, prod_next, 0) == prod_next);
+    /* write entries in ring */
+    handle(ring_list, prod_head, n, user_data);
+    /* if we exceed the watermark */
+    //if (((mask + 1) - free_entries + n) > ring_list->p_watermark) 
+    //    ;
+    //else
+    //    ;
+    /*
+    * If there are other enqueues in progress that preceded us,
+    * we need to wait for them to complete
+    */
+    while (ring_list->p_tail != prod_head) 
+    {
+        usleep(1);
+    }
+    ring_list->p_tail = prod_next;
+    return n;
+}
+
+int cel_ringlist_push_do_sp(CelRingList *ring_list, void *values, size_t n)
+{
+    return 0;
+}
+
+void cel_ringlist_pop_values(CelRingList *ring_list, 
+                             unsigned long cons_head, size_t n, void **values)
+{
+    unsigned int i, idx;
+    U32 size;
+    U32 mask = ring_list->p_mask;
+
+    size = ring_list->c_size; 
+    idx = cons_head & mask; 
+    if (idx + n < size) 
+    { 
+        for (i = 0; i < (n & ((~(unsigned)0x3))); i+=4, idx+=4) 
+        { 
+            values[i] = ring_list->ring[idx]; 
+            values[i + 1] = ring_list->ring[idx + 1]; 
+            values[i + 2] = ring_list->ring[idx + 2]; 
+            values[i + 3] = ring_list->ring[idx + 3]; 
+        }
+        switch (n & 0x3) 
+        {
+        case 3: values[i++] = ring_list->ring[idx++];
+        case 2: values[i++] = ring_list->ring[idx++];
+        case 1: values[i++] = ring_list->ring[idx++];
+        }
+    } 
+    else 
+    {
+        for (i = 0; idx < size; i++, idx++)
+            values[i] = ring_list->ring[idx];
+        for (idx = 0; i < n; i++, idx++)
+            values[i] = ring_list->ring[idx];
+    }
+}
+
+int _cel_ringlist_pop_do_mp(CelRingList *ring_list, size_t n, 
+                            CelRingListProdFunc handle, void *user_data)
+{
+    U32 cons_head, prod_tail;
+    U32 cons_next, entries;
+
+    /* 
+    * Avoid the unnecessary cmpset operation below, which is also
+    * potentially harmful when n equals 0.
+    */
+    if (n == 0)
+        return 0;
+    /* move c_head atomically */
+    do 
+    {
+        /* Restore n as it may change every loop */
+        cons_head = ring_list->c_head;
+        prod_tail = ring_list->p_tail;
+        /* 
+        * The subtraction is done between two unsigned 32bits value
+        * (the result is always modulo 32 bits even if we have
+        * cons_head > prod_tail). So 'entries' is always between 0
+        * and size(ring)-1. 
+        */
+        entries = (prod_tail - cons_head);
+        /* Set the actual entries for dequeue */
+        if (n > entries) 
+        {
+            if (entries == 0)
+                return 0;
+            n = entries;
+        }
+        cons_next = cons_head + n;
+    }while(cel_atomic_cmp_and_swap(
+        &(ring_list->c_head), cons_head, cons_next, 0) == cons_next);
+    /* copy in table */
+    handle(ring_list, cons_head, n, user_data);
+    /*
+    * If there are other dequeues in progress that preceded us,
+    * we need to wait for them to complete
+    */
+    while (ring_list->c_tail != cons_head) 
+    {
+        usleep(1);
+    }
+    ring_list->c_tail = cons_next;
+
+    return n;
+}
+
+int cel_ringlist_pop_do_sp(CelRingList *ring_list, void **values, size_t n)
+{
+    return 0;
+}

@@ -76,6 +76,11 @@ typedef unsigned __int64   U64;
 typedef float              F32;
 typedef double             D64;
 
+#define __asm__ _asm
+#define __volatile__ volatile
+
+#define va_copy(dest, src) (dest) = src
+
 #ifdef __cplusplus
 }
 #endif

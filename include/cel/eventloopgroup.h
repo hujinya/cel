@@ -118,4 +118,8 @@ int cel_eventloopgroup_add_channel(CelEventLoopGroup *group,  int id,
         channel, key);
 }
 
+#ifdef __cplusplus
+}
+#endif
+
 #endif

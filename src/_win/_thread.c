@@ -273,7 +273,7 @@ void os_spinlock_lock(CelSpinLock *spinlock)
 
     for (k = 0; cel_spinlock_trylock(spinlock) != 0; ++k)
     {           
-        yield(k);        
+        yield(k);
     }
 }
 

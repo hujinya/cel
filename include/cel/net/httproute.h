@@ -94,8 +94,6 @@ CelHttpHandleFunc cel_httproute_handler(CelHttpRoute *route,
                                         const char *path, 
                                         CelHttpRouteData *rt_data);
 
-
-
 #ifdef __cplusplus
 }
 #endif

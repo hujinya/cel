@@ -52,7 +52,8 @@ int cel_json_init_buffer(CelJson *json, char *buf, size_t size)
         cel_json_deserialize_finish(json);
         cel_json_destroy(json);
     }
-    Err((_T("Json init by buffer error.(%s)"), cel_geterrstr(cel_sys_geterrno())));
+    Err((_T("Json init by buffer error.(%s)"), 
+        cel_geterrstr(cel_sys_geterrno())));
 
     return -1;
 }
@@ -65,7 +66,8 @@ int cel_json_init_file(CelJson *json, const char *file)
             return 0;
         cel_json_destroy(json);
     }
-    Err((_T("Json init by file error.(%s)"), cel_geterrstr(cel_sys_geterrno())));
+    Err((_T("Json init by file error.(%s)"),
+        cel_geterrstr(cel_sys_geterrno())));
 
     return -1;
 }
@@ -468,8 +470,8 @@ static int cel_json_deserialize_next(CelJson *json, char *buf, size_t size,
         new_node->parent = cur_node->parent;
         cur_node->parent->child_size++;
         json->cur_node = new_node;
-        json->state = 
-            (parent_node->type == CEL_JSONT_ARRAY ? CEL_JSONDS_VALUE : CEL_JSONDS_KEY);
+        json->state = (parent_node->type == CEL_JSONT_ARRAY 
+            ? CEL_JSONDS_VALUE : CEL_JSONDS_KEY);
         return 0;
     }
 
@@ -968,7 +970,8 @@ void cel_json_array_add(CelJsonNode *_array, CelJsonNode *item)
     }
 }
 
-void cel_json_object_add(CelJsonNode *object, const char *key, CelJsonNode *item)
+void cel_json_object_add(CelJsonNode *object,
+                         const char *key, CelJsonNode *item)
 {
     CelJsonNode *current;
 

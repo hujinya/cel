@@ -61,6 +61,8 @@ int pattrie_test(int argc, TCHAR *argv[])
     cel_pattrie_insert(&pat_trie, "/users/abc/<id>/<name>", "14");
     cel_pattrie_insert(&pat_trie, "", "15");
     cel_pattrie_insert(&pat_trie, "/all/<:.*>", "16");
+    cel_pattrie_insert(&pat_trie, "/users/<id>/test2/<name>", "17");
+
 
     pattrie_print(0, pat_trie.root);
 

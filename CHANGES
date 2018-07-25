@@ -3,6 +3,8 @@
 - 增加pattrie,httproute采用pattrie存储。
 - httpreuqest,httpresponse支持自定义头部。
 - cel_realse()改为cel_lib_realse()。
+- 修改eventloopgroup头文件extern c错误。
+- 增加ringlist库，log使用ringlist作为缓存，支持多线程。
 
 * Thu May 24 2018 Hu Jinya <hu_jinya@163.com> 1.0.7.8
 - 优化coroutinescheduler。
