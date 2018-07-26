@@ -20,19 +20,13 @@
 
 typedef struct _CelRingList
 {
-    struct {
-        U32 p_size;
-        U32 p_mask;
-        U32 p_watermark;
-        CelAtomic p_head;
-        CelAtomic p_tail;
-    };
-    struct {
-        U32 c_size;
-        U32 c_mask;
-        CelAtomic c_head;
-        CelAtomic c_tail;
-    };
+    U32 size;
+    U32 mask;
+    U32 watermark;
+    CelAtomic p_head;
+    CelAtomic p_tail;
+    CelAtomic c_head;
+    CelAtomic c_tail;
     void *ring[0];
 }CelRingList;
 
@@ -47,10 +41,10 @@ typedef void (*CelRingListConsFunc)(CelRingList *ring_list,
 extern "C" {
 #endif
 
-int cel_ringlist_init(CelRingList *ring_list, size_t size);
+int cel_ringlist_init(CelRingList *ring_list, size_t n_size);
 void cel_ringlist_destroy(CelRingList *ring_list);
 
-CelRingList *cel_ringlist_new(size_t size);
+CelRingList *cel_ringlist_new(size_t n_size);
 void cel_ringlist_free(CelRingList *ring_list);
 
 void cel_ringlist_push_values(CelRingList *ring_list, 

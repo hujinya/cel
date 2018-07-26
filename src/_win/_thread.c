@@ -13,6 +13,7 @@
  * GNU General Public License for more details.
  */
 #include "cel/thread.h"
+#include "cel/atomic.h"
 #ifdef _CEL_WIN
 
 static DWORD s_tlsminindex = TLS_MINIMUM_AVAILABLE;
@@ -257,14 +258,6 @@ int os_spinlock_init(CelSpinLock *spinlock, int pshared)
 void os_spinlock_destroy(CelSpinLock *spinlock)
 {
     *spinlock = 0;
-}
-
-void yield(unsigned k)
-{    
-    if (k < 4);  
-    else if (k < 16) _mm_pause();
-    else if (k < 32) Sleep(0); 
-    else Sleep(1);
 }
 
 void os_spinlock_lock(CelSpinLock *spinlock)

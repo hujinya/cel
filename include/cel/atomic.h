@@ -26,11 +26,21 @@
 extern "C" {
 #endif
 
+#define cel_compiler_barrier os_compiler_barrier
+
 #define cel_atomic_exchange os_atomic_exchange
 #define cel_atomic_cmp_and_swap os_atomic_cmp_and_swap
 #define cel_atomic_store os_atomic_store
 #define cel_atomic_load os_atomic_load
 #define cel_atomic_clear os_atomic_clear
+
+static __inline void yield(unsigned k)
+{    
+    if (k < 4);  
+    else if (k < 16) _mm_pause();
+    else if (k < 32) usleep(0); 
+    else usleep(1);
+}
 
 #ifdef _CEL_WIN
 #define CEL_ARCH_ATOMIC_INC

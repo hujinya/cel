@@ -24,6 +24,7 @@ typedef volatile S64 OsAtomic;
 typedef volatile S32 OsAtomic;
 #endif
 
+#define os_compiler_barrier() 
 #define os_atomic_cmp_and_swap(ptr, oldval, newval, mem_order) \
     _InterlockedCompareExchange(ptr, newval, oldval)
 

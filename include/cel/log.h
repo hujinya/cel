@@ -97,7 +97,8 @@ typedef struct _CelLogger
     int styles;
     CelList *hook_list;
     BOOL is_flush;
-    CelLogMsg *msg_buf;
+    size_t n_bufs;
+    CelLogMsg *msg_bufs;
     CelRingList *ring_list;
 }CelLogger;
 
@@ -113,6 +114,7 @@ void _cel_logger_level_set(CelLogFacility facility, CelLogLevel level);
 #define cel_logger_processname_set(processname) \
     strncpy(g_logger.processname, _processname, CEL_FNLEN)
 void cel_logger_styles_set(int styles);
+int cel_logger_buffer_num_set(size_t num);
 int cel_logger_hook_register(const TCHAR *name,
                              CelLogMsgWriteFunc write_func, 
                              CelLogMsgFlushFunc flush_func, void *user_data);

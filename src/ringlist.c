@@ -15,17 +15,18 @@
 #include "cel/ringlist.h"
 #include "cel/error.h"
 #include "cel/allocator.h"
+#include "cel/convert.h"
 
 int cel_ringlist_init(CelRingList *ring_list, size_t size)
 {
+    size = cel_power2min((int)size);
+    //printf("size = %d\r\n", size);
     if ((ring_list->ring[0] = cel_malloc(sizeof(void *) * size)) == NULL)
         return -1;
-    ring_list->p_size = size;
-    ring_list->p_mask = size -1;
+    ring_list->size = size;
+    ring_list->mask = size -1;
     ring_list->p_head = 0;
     ring_list->p_tail = 0;
-    ring_list->c_size = size;
-    ring_list->c_mask = size -1;
     ring_list->c_head = 0;
     ring_list->c_tail = 0;
 
@@ -63,9 +64,9 @@ void cel_ringlist_push_values(CelRingList *ring_list,
 { 
     unsigned int i, idx;
     U32 size;
-    U32 mask = ring_list->p_mask;
+    U32 mask = ring_list->mask;
 
-    size = ring_list->p_size;
+    size = ring_list->size;
     idx = prod_head & mask;
     if (idx + n < size)
     { 
@@ -97,7 +98,8 @@ int _cel_ringlist_push_do_mp(CelRingList *ring_list, size_t n,
 {
     U32 prod_head, prod_next;
     U32 cons_tail, free_entries;
-    U32 mask = ring_list->p_mask;
+    U32 mask = ring_list->mask;
+    unsigned rep = 0;
 
     /* 
     * Avoid the unnecessary cmpset operation below, which is also
@@ -112,6 +114,7 @@ int _cel_ringlist_push_do_mp(CelRingList *ring_list, size_t n,
         prod_head = ring_list->p_head;
         cons_tail = ring_list->c_tail;
         free_entries = (mask + cons_tail - prod_head);
+        //printf("cons_tail = %d, prod_head = %d\r\n", cons_tail, prod_head);
         /* check that we have enough room in ring */
         if (n > free_entries)
         {
@@ -124,6 +127,7 @@ int _cel_ringlist_push_do_mp(CelRingList *ring_list, size_t n,
         &(ring_list->p_head), prod_head, prod_next, 0) == prod_next);
     /* write entries in ring */
     handle(ring_list, prod_head, n, user_data);
+    cel_compiler_barrier();
     /* if we exceed the watermark */
     //if (((mask + 1) - free_entries + n) > ring_list->p_watermark) 
     //    ;
@@ -134,9 +138,7 @@ int _cel_ringlist_push_do_mp(CelRingList *ring_list, size_t n,
     * we need to wait for them to complete
     */
     while (ring_list->p_tail != prod_head) 
-    {
-        usleep(1);
-    }
+        yield(rep++);
     ring_list->p_tail = prod_next;
     return n;
 }
@@ -151,9 +153,9 @@ void cel_ringlist_pop_values(CelRingList *ring_list,
 {
     unsigned int i, idx;
     U32 size;
-    U32 mask = ring_list->p_mask;
+    U32 mask = ring_list->mask;
 
-    size = ring_list->c_size; 
+    size = ring_list->size; 
     idx = cons_head & mask; 
     if (idx + n < size) 
     { 
@@ -185,6 +187,7 @@ int _cel_ringlist_pop_do_mp(CelRingList *ring_list, size_t n,
 {
     U32 cons_head, prod_tail;
     U32 cons_next, entries;
+    unsigned rep = 0;
 
     /* 
     * Avoid the unnecessary cmpset operation below, which is also
@@ -205,6 +208,7 @@ int _cel_ringlist_pop_do_mp(CelRingList *ring_list, size_t n,
         * and size(ring)-1. 
         */
         entries = (prod_tail - cons_head);
+        //printf("prod_tail = %d, cons_head = %d\r\n", prod_tail, cons_head);
         /* Set the actual entries for dequeue */
         if (n > entries) 
         {
@@ -217,14 +221,13 @@ int _cel_ringlist_pop_do_mp(CelRingList *ring_list, size_t n,
         &(ring_list->c_head), cons_head, cons_next, 0) == cons_next);
     /* copy in table */
     handle(ring_list, cons_head, n, user_data);
+    cel_compiler_barrier();
     /*
     * If there are other dequeues in progress that preceded us,
     * we need to wait for them to complete
     */
     while (ring_list->c_tail != cons_head) 
-    {
-        usleep(1);
-    }
+        yield(rep++);
     ring_list->c_tail = cons_next;
 
     return n;

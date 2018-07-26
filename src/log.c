@@ -57,7 +57,8 @@ CelLogger g_logger = {
     0,        /* styles */
     NULL,     /* hook_list */
     FALSE,    /* is_flush */
-    NULL,     /* msg_buf */
+    CEL_LOGBUF_NUM,
+    NULL,     /* msg_bufs */
     NULL      /* ring list */
 };
 
@@ -78,6 +79,19 @@ void _cel_logger_level_set(CelLogFacility facility, CelLogLevel level)
 void cel_logger_styles_set(int styles)
 {
     g_logger.styles = styles;
+}
+
+int cel_logger_buffer_num_set(size_t num)
+{
+    cel_multithread_mutex_lock(CEL_MT_MUTEX_LOG);
+    if (g_logger.msg_bufs == NULL)
+    {
+        g_logger.n_bufs = cel_power2min((int)num);
+        cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
+        return 0;
+    }
+    cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
+    return -1;
 }
 
 int cel_logger_hook_register(const TCHAR *name,
@@ -170,18 +184,20 @@ void _cel_log_pop_msg(CelRingList *ring_list,
                       unsigned long cons_head, size_t n,
                       void *user_data)
 {
-    U32 idx = (cons_head & ring_list->p_mask);
+    U32 idx = (cons_head & ring_list->mask);
     CelLogMsg *log_msg;
 
     while ((n--) > 0)
     {
-        if ((++idx) >= ring_list->p_size)
+        if (idx >= ring_list->size)
             idx = 0;
-        log_msg = &g_logger.msg_buf[idx];
+        log_msg = &g_logger.msg_bufs[idx];
+        //printf("pop idx=%d\r\n", idx);
         if (g_logger.hook_list == NULL)
             cel_logmsg_puts(log_msg, NULL);
         else 
             cel_logger_write(log_msg);
+        idx++;
     }
 }
 
@@ -189,21 +205,21 @@ int cel_log_flush(void)
 {
     int n_msg = 0;
 
-    if (g_logger.msg_buf == NULL)
+    if (g_logger.msg_bufs == NULL)
     {
         cel_multithread_mutex_lock(CEL_MT_MUTEX_LOG);
-        if (g_logger.msg_buf == NULL)
+        if (g_logger.msg_bufs == NULL)
         {
-            if ((g_logger.msg_buf = (CelLogMsg *)_cel_sys_malloc(
-                sizeof(CelLogMsg) * CEL_LOGBUF_NUM)) == NULL)
+            if ((g_logger.msg_bufs = (CelLogMsg *)_cel_sys_malloc(
+                sizeof(CelLogMsg) * g_logger.n_bufs)) == NULL)
             {
                 cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
                 return -1;
             }
-            if ((g_logger.ring_list = cel_ringlist_new(CEL_LOGBUF_NUM)) == NULL)
+            if ((g_logger.ring_list = cel_ringlist_new(g_logger.n_bufs)) == NULL)
             {
-                _cel_sys_free(g_logger.msg_buf);
-                g_logger.msg_buf = NULL;
+                _cel_sys_free(g_logger.msg_bufs);
+                g_logger.msg_bufs = NULL;
                 cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
                 return -1;
             }
@@ -211,10 +227,11 @@ int cel_log_flush(void)
         }
         cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
     }
-    n_msg = _cel_ringlist_pop_do_mp(g_logger.ring_list, CEL_LOGBUF_NUM, 
+    n_msg = _cel_ringlist_pop_do_mp(g_logger.ring_list, g_logger.n_bufs, 
         (CelRingListProdFunc)_cel_log_pop_msg, NULL);
     if (n_msg > 0 && g_logger.hook_list != NULL)
         cel_logger_flush();
+    //printf("n_msg = %d\r\n", n_msg);
 
     return n_msg;
 }
@@ -297,16 +314,18 @@ void _cel_log_push_msg(CelRingList *ring_list,
                        unsigned long prod_head, size_t n,
                        CelLogUserData *user_data)
 {
-    U32 idx = (prod_head & ring_list->p_mask);
+    U32 idx = (prod_head & ring_list->mask);
     CelLogMsg *log_msg;
     CelDateTime msg_time;
 
     while ((n--) > 0)
     {
-        if ((++idx) >= ring_list->p_size)
+        if (idx >= ring_list->size)
             idx = 0;
-        log_msg = &g_logger.msg_buf[idx];
+        //printf("[%d]push idx=[%d]%d \r\n", cel_thread_getid(), prod_head, idx);
+        log_msg = &g_logger.msg_bufs[idx];
         CEL_LOGMSG_WRITE();
+        idx++;
     }
 }
 
@@ -324,8 +343,12 @@ int _cel_log_puts(CelLogFacility facility, CelLogLevel level, const TCHAR *str)
     _user_data.str = str;
     if (g_logger.is_flush)
     {
-        _cel_ringlist_push_do_mp(g_logger.ring_list, 1, 
-            (CelRingListProdFunc)_cel_log_push_msg, &_user_data);
+        if (_cel_ringlist_push_do_mp(g_logger.ring_list, 1, 
+            (CelRingListProdFunc)_cel_log_push_msg, &_user_data) <= 0)
+        {
+            puts("Drop message.");
+            return -1;
+        }
     }
     else
     {
@@ -354,8 +377,12 @@ int _cel_log_hexdump(CelLogFacility facility, CelLogLevel level,
     _user_data.len = len;
     if (g_logger.is_flush)
     {
-        _cel_ringlist_push_do_mp(g_logger.ring_list, 1, 
-            (CelRingListProdFunc)_cel_log_push_msg, &_user_data);
+        if (_cel_ringlist_push_do_mp(g_logger.ring_list, 1, 
+            (CelRingListProdFunc)_cel_log_push_msg, &_user_data) <= 0)
+        {
+            puts("Drop message.");
+            return -1;
+        }
     }
     else
     {
@@ -386,8 +413,12 @@ int _cel_log_vprintf(CelLogFacility facility, CelLogLevel level,
 
     if (g_logger.is_flush)
     {
-        _cel_ringlist_push_do_mp(g_logger.ring_list, 1, 
-            (CelRingListProdFunc)_cel_log_push_msg, &_user_data);
+        if (_cel_ringlist_push_do_mp(g_logger.ring_list, 1, 
+            (CelRingListProdFunc)_cel_log_push_msg, &_user_data) <= 0)
+        {
+            puts("Drop message.");
+            return -1;
+        }
     }
     else
     {

@@ -53,6 +53,17 @@ static __inline TCHAR *cel_skipws(const TCHAR *p)
 }
 
 int cel_power2bits(int n, int min_bits, int max_bits);
+static __inline int cel_power2min(int cap)
+{
+    int n = cap -1;
+
+    n |= (n >> 1);
+    n |= (n >> 2);
+    n |= (n >> 4);
+    n |= (n >> 8);
+    n |= (n >> 16);
+    return ((n < 0) ? 1 : n + 1);
+}
 /**
  * \brief  Integer converted to dotted decimal chars,
  *         example 9,223,372,036,854,775,807.
