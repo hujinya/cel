@@ -23,6 +23,9 @@
 #define _CEL_UNIX
 #endif
 
+#define GCC_VERSION \
+    (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
+
 //#define _CEL_BIGEDIAN
 #define _CEL_MULTITHREAD
 

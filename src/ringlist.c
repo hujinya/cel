@@ -21,7 +21,7 @@ int cel_ringlist_init(CelRingList *ring_list, size_t size)
 {
     size = cel_power2min((int)size);
     //printf("size = %d\r\n", size);
-    if ((ring_list->ring[0] = cel_malloc(sizeof(void *) * size)) == NULL)
+    if ((ring_list->ring = (void **)cel_malloc(sizeof(void *) * size)) == NULL)
         return -1;
     ring_list->size = size;
     ring_list->mask = size -1;

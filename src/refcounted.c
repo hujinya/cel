@@ -25,7 +25,7 @@ int cel_refcounted_init(CelRefCounted *ref_counted, CelFreeFunc free_func)
 
 void cel_refcounted_destroy(CelRefCounted *ref_counted, void *ptr)
 {
-    if (cel_atomic_dec(&(ref_counted->cnt)) <= 0)
+    if (cel_atomic_add(&(ref_counted->cnt), -1) <= 0)
     {
         if (ref_counted->free_func != NULL)
             ref_counted->free_func(ptr);
@@ -34,19 +34,19 @@ void cel_refcounted_destroy(CelRefCounted *ref_counted, void *ptr)
 
 CelRefCounted *cel_refcounted_ref(CelRefCounted *ref_counted)
 {
-    cel_atomic_inc(&(ref_counted->cnt));
+    cel_atomic_add(&(ref_counted->cnt), 1);
     return ref_counted;
 }
 
 void *cel_refcounted_ref_ptr(CelRefCounted *ref_counted, void *ptr)
 {
-    cel_atomic_inc(&(ref_counted->cnt));
+    cel_atomic_add(&(ref_counted->cnt), 1);
     return ptr;
 }
 
 void cel_refcounted_deref(CelRefCounted *ref_counted, void *ptr)
 {
-    if (cel_atomic_dec(&(ref_counted->cnt)) <= 0)
+    if (cel_atomic_add(&(ref_counted->cnt), -1) <= 0)
     {
         if (ref_counted->free_func != NULL)
             ref_counted->free_func(ptr);

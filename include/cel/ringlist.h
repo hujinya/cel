@@ -27,7 +27,7 @@ typedef struct _CelRingList
     CelAtomic p_tail;
     CelAtomic c_head;
     CelAtomic c_tail;
-    void *ring[0];
+    void **ring;
 }CelRingList;
 
 typedef void (*CelRingListProdFunc)(CelRingList *ring_list, 

@@ -28,36 +28,25 @@ static __inline void _mm_pause(void)
     __asm__ __volatile__ ("pause" : : :"memory");
 }
 #define os_compiler_barrier() __sync_synchronize()
+
+#define os_atomic_store(ptr, val) *(ptr) = val
+#define os_atomic_load(ptr) (*(ptr))
+
+static __inline OsAtomic os_atomic_exchange(OsAtomic *ptr, OsAtomic newval)
+{
+    OsAtomic oldval;
+    do {
+        oldval = *ptr;
+    } while (__sync_val_compare_and_swap(ptr, oldval, newval) != oldval);
+    return oldval;
+}
 #define os_atomic_cmp_and_swap(ptr, oldval, newval, mem_order) \
     __sync_val_compare_and_swap(ptr, oldval, newval)
+#define os_atomic_add(ptr, increment) __sync_add_and_fetch(ptr, increment)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-
-//typedef volatile long CelAtomic;
-//
-//#define cel_atomic_init(v) __sync_lock_release(v)
-//
-//#define cel_atomic_get(v) (*(v))
-//#define cel_atomic_set(v, l) *(v) = l
-//#define cel_atomic_inc_fetch(v) __sync_add_and_fetch(v, 1)
-//#define cel_atomic_dec_fetch(v) __sync_sub_and_fetch(v, 1)
-//#define cel_atomic_add_fetch(v, l) __sync_add_and_fetch(v, l)
-//#define cel_atomic_sub_fetch(v, l) __sync_sub_and_fetch(v, l)
-//#define cel_atomic_or_fetch(v, l) __sync_or_and_fetch(v, l)
-//#define cel_atomic_and_fetch(v, l) __sync_and_and_fetch(v, l)
-//#define cel_atomic_xor_fetch(v, l) __sync_xor_and_fetch(v, l)
-//
-//#define cel_atomic_fetch_inc(v) __sync_fetch_and_add(v, 1)
-//#define cel_atomic_fetch_dec(v) __sync_fetch_sub_and(v, 1)
-//#define cel_atomic_fetch_add(v, l) __sync_fetch_and_add(v, l)
-//#define cel_atomic_fetch_sub(v, l) __syn_fetch_and_sub_and(v, l)
-//#define cel_atomic_fetch_or(v, l) __sync_fetch_and_or_and(v, l)
-//#define cel_atomic_fetch_and(v, l) __sync_fetch_and_and(v, l)
-//#define cel_atomic_fetch_xor(v, l) __sync_fetch_and_xor(v, l)
-//#define cel_atomic_cmp __sync_bool_compare_and_swap()
 
 #ifdef __cplusplus
 }

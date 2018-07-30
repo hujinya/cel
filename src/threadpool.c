@@ -303,16 +303,16 @@ static CelThreadPool *cel_threadpool_wait_pool(void)
     int waittime;
     BOOL have_relayed_thread_marker = FALSE;
 
-    long local_max_unused_threads = cel_atomic_get(&max_unused_threads);
-    long local_max_idle_time = cel_atomic_get(&max_idle_time);
+    long local_max_unused_threads = cel_atomic_load(&max_unused_threads);
+    long local_max_idle_time = cel_atomic_load(&max_idle_time);
     long local_wakeup_thread_serial;
-    long last_wakeup_thread_serial = cel_atomic_get(&wakeup_thread_serial);
+    long last_wakeup_thread_serial = cel_atomic_load(&wakeup_thread_serial);
 
-    cel_atomic_inc(&num_unused_threads);
+    cel_atomic_add(&num_unused_threads, 1);
     do
     {
         if (local_max_unused_threads != -1
-            && cel_atomic_get(&num_unused_threads) > local_max_unused_threads)
+            && cel_atomic_load(&num_unused_threads) > local_max_unused_threads)
         {
             /* If this is a superfluous thread, stop it. */
             thread_pool = NULL;
@@ -338,7 +338,7 @@ static CelThreadPool *cel_threadpool_wait_pool(void)
         }
         if (thread_pool == wakeup_thread_marker)
         {
-            local_wakeup_thread_serial = cel_atomic_get(&wakeup_thread_serial);
+            local_wakeup_thread_serial = cel_atomic_load(&wakeup_thread_serial);
             if (last_wakeup_thread_serial  == local_wakeup_thread_serial)
             {
                 if (!have_relayed_thread_marker)
@@ -351,16 +351,16 @@ static CelThreadPool *cel_threadpool_wait_pool(void)
             }
             else
             {
-                local_max_unused_threads = cel_atomic_get(&max_unused_threads);
-                local_max_idle_time = cel_atomic_get(&max_idle_time);
+                local_max_unused_threads = cel_atomic_load(&max_unused_threads);
+                local_max_idle_time = cel_atomic_load(&max_idle_time);
                 last_wakeup_thread_serial = 
-                    cel_atomic_get(&wakeup_thread_serial);
+                    cel_atomic_load(&wakeup_thread_serial);
 
                 have_relayed_thread_marker = FALSE;
             }
         }
     }while (thread_pool == wakeup_thread_marker);
-    cel_atomic_dec(&num_unused_threads);
+    cel_atomic_add(&num_unused_threads, -1);
 
     return thread_pool;
 }
@@ -383,9 +383,9 @@ void cel_threadpool_set_max_unused_threads(int max_threads)
     int i;
 
     max_threads = (max_threads < -1 ? -1 : max_threads);
-    cel_atomic_set(&max_unused_threads, (long)max_threads);
+    cel_atomic_store(&max_unused_threads, (long)max_threads);
     if ((i = num_unused_threads) > 0)
-        cel_atomic_inc(&wakeup_thread_serial);
+        cel_atomic_add(&wakeup_thread_serial, 1);
 
     cel_asyncqueue_lock(unused_thread_queue);
     while (i-- > 0)
@@ -398,12 +398,12 @@ void cel_threadpool_set_max_unused_threads(int max_threads)
 
 int cel_threadpool_get_max_unused_threads(void)
 {
-    return cel_atomic_get(&max_unused_threads);
+    return cel_atomic_load(&max_unused_threads);
 }
 
 int cel_threadpool_get_num_unused_threads(void)
 {
-    return cel_atomic_get(&num_unused_threads);
+    return cel_atomic_load(&num_unused_threads);
 }
 
 void cel_threadpool_stop_unused_threads(void)
@@ -412,7 +412,7 @@ void cel_threadpool_stop_unused_threads(void)
 
     cel_threadpool_set_max_unused_threads(0);
     if ((i = num_unused_threads) > 0)
-        cel_atomic_inc(&wakeup_thread_serial);
+        cel_atomic_add(&wakeup_thread_serial, 1);
 
     cel_asyncqueue_lock(unused_thread_queue);
     while (i-- > 0)
@@ -429,9 +429,9 @@ void cel_threadpool_set_max_idle_time(int interval)
 {
     int i;
 
-    cel_atomic_set(&max_idle_time, (long)interval);
+    cel_atomic_store(&max_idle_time, (long)interval);
     if ((i = num_unused_threads) > 0)
-        cel_atomic_inc(&wakeup_thread_serial);
+        cel_atomic_add(&wakeup_thread_serial, 1);
 
     cel_asyncqueue_lock(unused_thread_queue);
     while (i-- > 0)
@@ -444,5 +444,5 @@ void cel_threadpool_set_max_idle_time(int interval)
 
 int cel_threadpool_get_max_idle_time(void)
 {
-    return cel_atomic_get(&max_idle_time);
+    return cel_atomic_load(&max_idle_time);
 }

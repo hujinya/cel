@@ -110,7 +110,7 @@ CelTimerId cel_eventloop_schedule_timer(CelEventLoop *evt_loop,
     if (cel_timerqueue_push(&(evt_loop->timer_queue), timer))
     {
         /* Earliest changed */
-        //cel_atomic_set(&(evt_loop->timer_wakeup), 1);
+        //cel_atomic_store(&(evt_loop->timer_wakeup), 1);
         evt_loop->timer_wakeup++;
         cel_eventloop_wakeup(evt_loop);
     }

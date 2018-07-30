@@ -27,8 +27,6 @@
 extern "C" {
 #endif
 
-#define CEL_LOG_STYLES_NOLINE  0x0001
-
 typedef enum _CelLogSeverity
 {
     CEL_LOGLEVEL_UNDEFINED = -1,
@@ -66,8 +64,6 @@ typedef enum _CelLogFacility
     CEL_LOGFACILITY_LOCAL6 = 22,
     CEL_LOGFACILITY_LOCAL7 = 23,
 
-    CEL_LOGFACILITY_NET_WMIPCLIENT,
-    CEL_LOGFACILITY_NET_WMIPLISTENER,
     CEL_LOGFACILITY_COUNT
 }CelLogFacility;
 
@@ -104,48 +100,42 @@ typedef struct _CelLogger
 
 extern CelLogger g_logger;
 
-void cel_logger_facility_set(CelLogFacility facility);
-void _cel_logger_level_set(CelLogFacility facility, CelLogLevel level);
-#define cel_logger_level_set(level) \
-    _cel_logger_level_set(g_logger.facility, level)
+void cel_logger_facility_set(CelLogger *logger, CelLogFacility facility);
+
+void _cel_logger_level_set(CelLogger *logger, 
+                           CelLogFacility facility, CelLogLevel level);
+#define cel_logger_level_set(logger, level) \
+    _cel_logger_level_set(logger, (logger)->facility, level)
 #define cel_logger_severity_set cel_logger_level_set
-#define cel_logger_hostname_set(_hostname) \
-    strncpy(g_logger.hostname, _hostname, CEL_HNLEN)
-#define cel_logger_processname_set(processname) \
-    strncpy(g_logger.processname, _processname, CEL_FNLEN)
-void cel_logger_styles_set(int styles);
-int cel_logger_buffer_num_set(size_t num);
-int cel_logger_hook_register(const TCHAR *name,
+
+#define cel_logger_hostname_set(logger, _hostname) \
+    strncpy((logger)->hostname, _hostname, CEL_HNLEN)
+#define cel_logger_processname_set(logger, processname) \
+    strncpy((logger)->processname, _processname, CEL_FNLEN)
+int cel_logger_buffer_num_set(CelLogger *logger, size_t num);
+
+int cel_logger_hook_register(CelLogger *logger, const TCHAR *name,
                              CelLogMsgWriteFunc write_func, 
                              CelLogMsgFlushFunc flush_func, void *user_data);
-int cel_logger_hook_unregister(const TCHAR *name);
+int cel_logger_hook_unregister(CelLogger *logger, const TCHAR *name);
 
-int cel_log_flush(void);
+int cel_logger_flush(CelLogger *logger);
 
-int _cel_log_puts(CelLogFacility facility, CelLogLevel level, 
-                  const TCHAR *str);
-int _cel_log_vprintf(CelLogFacility facility, CelLogLevel level, 
-                     const TCHAR *fmt, va_list ap);
-int _cel_log_printf(CelLogFacility facility, CelLogLevel level, 
-                    const TCHAR *fmt, ...);
-int _cel_log_hexdump(CelLogFacility facility, CelLogLevel level,
-                     const BYTE *p, size_t len);
+int _cel_logger_puts(CelLogger *logger, CelLogLevel level, const TCHAR *str);
+int _cel_logger_vprintf(CelLogger *logger, CelLogLevel level, 
+                        const TCHAR *fmt, va_list ap);
+int _cel_logger_printf(CelLogger *logger, CelLogLevel level, 
+                       const TCHAR *fmt, ...);
+int _cel_logger_hexdump(CelLogger *logger, CelLogLevel level,
+                        const BYTE *p, size_t len);
 
-int _cel_log_debug(CelLogFacility facility, const TCHAR *fmt, ...);
-int _cel_log_info(CelLogFacility facility, const TCHAR *fmt, ...);
-int _cel_log_notice(CelLogFacility facility, const TCHAR *fmt, ...);
-int _cel_log_warning(CelLogFacility facility, const TCHAR *fmt, ...);
-int _cel_log_err(CelLogFacility facility, const TCHAR *fmt, ...);
-int _cel_log_crit(CelLogFacility facility, const TCHAR *fmt, ...);
-int _cel_log_alert(CelLogFacility facility, const TCHAR *fmt, ...);
-int _cel_log_emerg(CelLogFacility facility, const TCHAR *fmt, ...);
-
-#define cel_log_puts(level, str) _cel_log_puts(g_logger.facility, level, str)
+#define cel_log_puts(level, str) \
+    _cel_logger_puts(&g_logger, level, str)
 #define cel_log_vprintf(level, fmt, ap) \
-    _cel_log_vprintf(g_logger.facility, level, fmt, ap)
+    _cel_logger_vprintf(&g_logger, level, fmt, ap)
 #define cel_log_hexdump(level, p, len) \
-    _cel_log_hexdump(g_logger.facility, level, p, len)
-int cel_log_printf(CelLogLevel level, const TCHAR *fmt, ...);
+    _cel_logger_hexdump(&g_logger, level, p, len)
+int cel_logger_printf(CelLogLevel level, const TCHAR *fmt, ...);
 
 int cel_log_debug(const TCHAR *fmt, ...);
 int cel_log_info(const TCHAR *fmt, ...);
