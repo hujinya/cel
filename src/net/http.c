@@ -787,7 +787,7 @@ int cel_httpextheader_writing(char *hdr_name, char *value, CelStream *s)
        chunk-data     = chunk-size(OCTET)
        trailer        = *(entity-header CRLF)
 */
-long cel_http_chunked_reading(CelStream *s)
+long cel_httpchunked_reading(CelStream *s)
 {
     int position;
     size_t ch = 0, ch1;
@@ -854,7 +854,7 @@ long cel_http_chunked_reading(CelStream *s)
     }
 }
 
-long cel_http_chunked_last(CelHttpChunked *chunked, CelStream *s)
+long cel_httpchunked_writing_last(CelHttpChunked *chunked, CelStream *s)
 {
     cel_stream_set_position(s, chunked->start);
     if (chunked->size > 0)

@@ -26,13 +26,13 @@ int log_test(int argc, TCHAR *argv[])
 
     //cel_log_msghook_register
     cel_multithread_support();
-    cel_logger_buffer_num_set(&g_logger, 98758);
+    cel_log_buffer_num_set(98758);
     for (n = 0; n < 64; n++)
         cel_thread_create(&td[n], NULL, cel_log_write, NULL);
     while (TRUE)
     {
         usleep(10 * 1000);
-        cel_logger_flush(&g_logger);
+        cel_log_flush();
         //printf("drop = %d\r\n", g_logger.n_drop);
     }
     return 0;

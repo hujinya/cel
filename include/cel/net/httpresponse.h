@@ -21,7 +21,7 @@
 
 #define CEL_HTTPSTATUS_LEN               3
 #define CEL_HTTPREASON_LEN_MAX         256
-#define CEL_HTTPRESPONSE_BUFFER_SIZE  8192
+#define CEL_HTTPRESPONSE_STREAM_BUFFER_SIZE  8192
 
 typedef enum _CelHttpResponseReadingState
 {
@@ -180,6 +180,7 @@ struct _CelHttpResponse
     CelVStringA x_powered_by;
     CelRbTree ext_hdrs;
 
+    CelStream hdr_cache;
     CelHttpChunked chunked;
     CelHttpBodySaveType body_save_in;
     CelHttpBodyCache body_cache;

@@ -20,8 +20,8 @@
 #include "cel/net/http.h"
 #include "cel/net/httpmultipart.h"
 
-#define CEL_HTTPMETHOD_LEN_MAX           7
-#define CEL_HTTPREQUEST_BUFFER_SIZE   8192
+#define CEL_HTTPMETHOD_LEN_MAX                  7
+#define CEL_HTTPREQUEST_STREAM_BUFFER_SIZE   8192
 
 typedef enum _CelHttpRequsetReadingState
 {

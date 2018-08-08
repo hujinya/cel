@@ -23,11 +23,6 @@
 #include "cel/freelist.h"
 #include "cel/radixtree.h"
 
-/* Debug defines */
-#define Debug(args)   /*cel_log_debug args*/
-#define Warning(args) /* CEL_SETERRSTR(args) */ cel_log_warning args 
-#define Err(args)   /* CEL_SETERRSTR(args) */ cel_log_err args
-
 size_t cel_capacity_get_min(size_t capacity)
 {
     const size_t capacity_table[] =
@@ -141,8 +136,8 @@ typedef struct _CelSpan
 
 typedef struct _CelSpanList 
 {
-    CelList normal;
-    CelList returned;
+    CelList normal_spans;
+    CelList returned_spans;
 }CelSpanList;
 
 typedef struct _CelPageHeap
@@ -168,14 +163,15 @@ typedef struct _CelBlockSlot
 typedef struct _CelCentralCache
 {
     CelSpinLock lock;
-    size_t index;
-    CelList empty;
-    CelList none_empty;
-    size_t blocks_num;
-    int cache_size;
-    int max_cache_size;
-    size_t slots_num;
-    CelBlockSlot slots[SLOTS_NUM];
+    size_t index;                 /* Block size of map index */
+    CelList empty_spans;          /* List of empty spans */
+    CelList none_empty_spans;     /* List of non-empty spans*/
+    size_t n_free_blocks;         /* Number of free blocks in cache */
+    size_t n_allocated_blocks;    /* Number of allocated blocks from pageheap */
+    size_t used_slots;            /* Number of currently used slots */
+    CelBlockSlot slots[SLOTS_NUM];/* Cache slots */
+    int cache_size;               /* The current number of slots for this size class.*/
+    int max_cache_size;           /* Maximum size of the cache for a given size class. */
 }CelCentralCache;
 
 typedef struct _CelThreadCache
@@ -187,7 +183,7 @@ typedef struct _CelThreadCache
         };
     };
     CelThreadId thread_id;
-    size_t size, max_size;
+    size_t size, max_size;       /* Bytes size */
     CelFreeList free_list[BLOCKS_NUM];
 }CelThreadCache;
 
@@ -392,13 +388,13 @@ static int cel_pageheap_init(CelPageHeap *page_heap)
     page_heap->scavenge_counter = 0;
     page_heap->free_bytes = page_heap->system_bytes = 0;
     page_heap->committed_bytes = page_heap->unmapped_bytes = 0;
-    cel_list_init(&(page_heap->large.normal), NULL);
-    cel_list_init(&(page_heap->large.returned), NULL);
+    cel_list_init(&(page_heap->large.normal_spans), NULL);
+    cel_list_init(&(page_heap->large.returned_spans), NULL);
     i = MAX_PAGES;
     while (--i >= 0)
     {
-        cel_list_init(&(page_heap->free[i].normal), NULL);
-        cel_list_init(&(page_heap->free[i].returned), NULL);
+        cel_list_init(&(page_heap->free[i].normal_spans), NULL);
+        cel_list_init(&(page_heap->free[i].returned_spans), NULL);
     }
     cel_radixtree_init(&(page_heap->page_map), 
         ADDRESS_BITS - PAGE_SHIFT, (ADDRESS_BITS - PAGE_SHIFT)/3, NULL);
@@ -415,12 +411,12 @@ void cel_pageheap_push_span(CelPageHeap *page_heap, CelSpan *span)
     if (span->location == SPAN_ON_NORMAL_FREELIST)
     {
         (page_heap->free_bytes) += (span->n_pages << PAGE_SHIFT);
-        cel_list_push_front(&(span_list->normal), (CelListItem *)span);
+        cel_list_push_front(&(span_list->normal_spans), (CelListItem *)span);
     }
     else
     {
         (page_heap->unmapped_bytes) += (span->n_pages << PAGE_SHIFT);
-        cel_list_push_front(&(span_list->returned), (CelListItem *)span);
+        cel_list_push_front(&(span_list->returned_spans), (CelListItem *)span);
     }
 }
 
@@ -432,12 +428,12 @@ void cel_pageheap_remove_span(CelPageHeap *page_heap, CelSpan *span)
     if (span->location == SPAN_ON_NORMAL_FREELIST)
     {
         (page_heap->free_bytes) -= (span->n_pages << PAGE_SHIFT);
-        cel_list_remove(&(span_list->normal), (CelListItem *)span);
+        cel_list_remove(&(span_list->normal_spans), (CelListItem *)span);
     }
     else
     {
         (page_heap->unmapped_bytes) -= (span->n_pages << PAGE_SHIFT);
-        cel_list_remove(&(span_list->returned), (CelListItem *)span);
+        cel_list_remove(&(span_list->returned_spans), (CelListItem *)span);
     }
 }
 
@@ -454,9 +450,9 @@ static void cel_pageheap_merge_into_freelist(CelPageHeap *page_heap,
         &(page_heap->page_map), page_id - 1)) != NULL
         && prev->location == span->location)
     {
-       /* Debug((_T("Merge span %p-0x%x(%d), prev %p-0x%x(%d)"), 
+        CEL_DEBUG((_T("Merge span %p-0x%x(%d), prev %p-0x%x(%d)"), 
             span, span->start, span->n_pages, prev, 
-            prev->start, prev->n_pages));*/
+            prev->start, prev->n_pages));
         /* Remove from free list */
         cel_pageheap_remove_span(page_heap, prev);
 
@@ -469,9 +465,9 @@ static void cel_pageheap_merge_into_freelist(CelPageHeap *page_heap,
         &(page_heap->page_map), page_id + n_pages)) != NULL
         && next->location == span->location)
     {
-        /*Debug((_T("Merge span %p-0x%x(%d), next %p-0x%x(%d)"), 
+        CEL_DEBUG((_T("Merge span %p-0x%x(%d), next %p-0x%x(%d)"), 
             span, span->start, span->n_pages, next, 
-            next->start, next->n_pages));*/
+            next->start, next->n_pages));
         /* Remove from free list */
         cel_pageheap_remove_span(page_heap, next);
 
@@ -480,8 +476,8 @@ static void cel_pageheap_merge_into_freelist(CelPageHeap *page_heap,
             span->start + span->n_pages - 1, span);
         _cel_sys_free(next);
     }
-    //Debug((_T("Add span %p-0x%x(%d) to freelist"), span, 
-    //    span->start, span->n_pages));
+    CEL_DEBUG((_T("Add span %p-0x%x(%d) to freelist"), span, 
+        span->start, span->n_pages));
     cel_pageheap_push_span(page_heap, span);
 }
 
@@ -491,7 +487,7 @@ void cel_pageheap_destroy(CelPageHeap *page_heap)
     CelSpan *span;
 
     while ((span = (CelSpan *)cel_list_pop_front(
-        &(page_heap->large.normal))) != NULL)
+        &(page_heap->large.normal_spans))) != NULL)
     {
         if (cel_system_release((void *)(span->start << PAGE_SHIFT),
             span->n_pages << PAGE_SHIFT))
@@ -505,7 +501,7 @@ void cel_pageheap_destroy(CelPageHeap *page_heap)
     while (--i >= 0)
     {
         while ((span = (CelSpan *)cel_list_pop_front(
-            &(page_heap->free[i].normal))) != NULL)
+            &(page_heap->free[i].normal_spans))) != NULL)
         {
             if (cel_system_release((void *)(span->start << PAGE_SHIFT),
                 span->n_pages << PAGE_SHIFT))
@@ -520,34 +516,35 @@ void cel_pageheap_destroy(CelPageHeap *page_heap)
 }
 
 CelSpan *cel_pageheap_search_free_and_large_list(CelPageHeap *page_heap,
-                                                 size_t num)
+                                                 size_t n_pages)
 {
     int i;
-    CelSpan *span, *best = NULL;
+    CelSpan *span, *tail, *best = NULL;
     CelSpanList *span_list;
 
     /* Find first size >= n that has a non-empty list */
-    for (i = num; i < MAX_PAGES; i++)
+    for (i = n_pages; i < MAX_PAGES; i++)
     {
         span_list = &(page_heap->free[i]);
-        if (!cel_list_is_empty(&(span_list->normal)))
+        if (!cel_list_is_empty(&(span_list->normal_spans)))
         {
-            CEL_ASSERT(((CelSpan *)span_list->normal.head.next)->location 
-                == SPAN_ON_NORMAL_FREELIST);
-            return (CelSpan *)span_list->normal.head.next;
+            span = (CelSpan *)span_list->normal_spans.head.next;
+            CEL_ASSERT(span->location == SPAN_ON_NORMAL_FREELIST);
+            return (CelSpan *)span_list->normal_spans.head.next;
         }
-        if (!cel_list_is_empty(&(span_list->returned)))
+        if (!cel_list_is_empty(&(span_list->returned_spans)))
         {
-            CEL_ASSERT(((CelSpan *)span_list->returned.head.next)->location 
-                == SPAN_ON_RETURNED_FREELIST);
-            return (CelSpan *)span_list->returned.head.next;
+            span = (CelSpan *)span_list->returned_spans.head.next;
+            CEL_ASSERT(span->location == SPAN_ON_RETURNED_FREELIST);
+            return (CelSpan *)span_list->returned_spans.head.next;
         }
     }
-    /* Search through normal list */
-    for (span = (CelSpan *)cel_list_get_front(&(page_heap->large.normal)); 
-        span != (CelSpan *)&(page_heap->large.normal.tail); span = span->next)
+    /* Search through normal_spans list */
+    span = (CelSpan *)cel_list_get_front(&(page_heap->large.normal_spans));
+    tail = (CelSpan *)cel_list_get_tail(&(page_heap->large.normal_spans));
+    for (; span != tail; span = span->next)
     {
-        if (span->n_pages >= num)
+        if (span->n_pages >= n_pages)
         {
             if ((best == NULL)
                 || span->n_pages < best->n_pages
@@ -560,11 +557,11 @@ CelSpan *cel_pageheap_search_free_and_large_list(CelPageHeap *page_heap,
         }
     }
     /* Search through released list in case it has a better fit */
-    for (span = (CelSpan *)cel_list_get_front(&(page_heap->large.returned));
-        span != (CelSpan *)&(page_heap->large.returned.tail); 
-        span = span->next)
+    span = (CelSpan *)cel_list_get_front(&(page_heap->large.returned_spans));
+    tail = (CelSpan *)cel_list_get_tail(&(page_heap->large.returned_spans));
+    for (; span != tail; span = span->next)
     {
-        if (span->n_pages >= num)
+        if (span->n_pages >= n_pages)
         {
             if ((best == NULL)
                 || span->n_pages < best->n_pages
@@ -580,7 +577,7 @@ CelSpan *cel_pageheap_search_free_and_large_list(CelPageHeap *page_heap,
     return best;
 }
 
-int cel_pageheap_grow(CelPageHeap *page_heap, size_t num)
+int cel_pageheap_grow(CelPageHeap *page_heap, size_t n_pages)
 {
     unsigned int ask;
     size_t actual_size;
@@ -588,11 +585,13 @@ int cel_pageheap_grow(CelPageHeap *page_heap, size_t num)
     CelSpan *span;
 
     //_tprintf(_T("num %d")CEL_CRLF, num);
-    ask = (num > MIN_SYSTEM_ALLOC_PAGES ? num : MIN_SYSTEM_ALLOC_PAGES);
+    ask = (n_pages > MIN_SYSTEM_ALLOC_PAGES 
+        ? n_pages : MIN_SYSTEM_ALLOC_PAGES);
     if ((ptr = (char *)cel_system_alloc(
         ask << PAGE_SHIFT, &actual_size, PAGE_SIZE)) == NULL)
     {
-        Err((_T("New span failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_ERR((_T("New span memory failed(%s)."),
+            cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
     ask = actual_size >> PAGE_SHIFT;
@@ -600,8 +599,9 @@ int cel_pageheap_grow(CelPageHeap *page_heap, size_t num)
     page_heap->system_bytes += (ask << PAGE_SHIFT);
     if ((span = (CelSpan *)_cel_sys_malloc(sizeof(CelSpan))) == NULL)
     {
-        Err((_T("New span failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
-        munmap(ptr, num << PAGE_SHIFT);
+        CEL_ERR((_T("New span failed(%s)."), 
+            cel_geterrstr(cel_sys_geterrno())));
+        munmap(ptr, n_pages << PAGE_SHIFT);
         return -1;
     }
     span->next = span->prev = NULL;
@@ -615,13 +615,15 @@ int cel_pageheap_grow(CelPageHeap *page_heap, size_t num)
     if (span->n_pages > 1)
         cel_radixtree_set(&(page_heap->page_map), 
         span->start + span->n_pages - 1, span);
-    //Debug((_T("New span %p-0x%x(%d)."), span, span->start, (int)ask));
+    CEL_DEBUG((_T("New span %p-0x%x(%d x %d = %d)"),
+        span, span->start, (int)ask, (int)PAGE_SIZE, (int)actual_size));
     cel_pageheap_push_span(page_heap, span);
 
     return 0;
 }
 
-CelSpan *cel_pageheap_carve(CelPageHeap *page_heap, CelSpan *span, size_t num)
+CelSpan *cel_pageheap_carve(CelPageHeap *page_heap, 
+                            CelSpan *span, size_t n_pages)
 {
     int old_location, extra;
     CelSpan *leftover;
@@ -629,11 +631,11 @@ CelSpan *cel_pageheap_carve(CelPageHeap *page_heap, CelSpan *span, size_t num)
     old_location = span->location;
     cel_pageheap_remove_span(page_heap, span);
     span->location = SPAN_IN_USE;
-    if ((extra = span->n_pages - num) > 0)
+    if ((extra = span->n_pages - n_pages) > 0)
     {
         leftover = (CelSpan *)_cel_sys_malloc(sizeof(CelSpan));
         leftover->next = leftover->prev = NULL;
-        leftover->start = span->start + num;
+        leftover->start = span->start + n_pages;
         leftover->n_pages = extra;
         leftover->ref_count = 0;
         leftover->index = 0;
@@ -647,17 +649,19 @@ CelSpan *cel_pageheap_carve(CelPageHeap *page_heap, CelSpan *span, size_t num)
         cel_pageheap_push_span(page_heap, leftover);
 
         /* Update return span */
-        span->n_pages = num;
+        span->n_pages = n_pages;
         span->ref_count = 0;
         span->index = 0;
         cel_radixtree_set(&(page_heap->page_map), 
             span->start + span->n_pages - 1, span);
-        /*Debug((_T("Carve 2 spans %p-0x%x(%d) %p-0x%x(%d)."),
-            span, span->start, (int)num, 
-            leftover, leftover->start, (int)extra));*/
+        CEL_DEBUG((_T("Carve 2 spans %p-0x%x(%d) %p-0x%x(%d)."),
+            span, span->start, (int)n_pages, 
+            leftover, leftover->start, (int)extra));
     }
     if (old_location == SPAN_ON_RETURNED_FREELIST)
     {
+        CEL_DEBUG((_T("Commit span %p-0x%x"),
+            span, span->start, (int)span->n_pages));
         cel_system_commit((void *)(span->start << PAGE_SHIFT),
             span->n_pages << PAGE_SHIFT);
         page_heap->committed_bytes += (span->n_pages << PAGE_SHIFT);
@@ -676,47 +680,47 @@ void cel_pageheap_register_block(CelPageHeap *page_heap,
         cel_radixtree_set(&(page_heap->page_map), span->start + i, span);
 }
 
-CelSpan *cel_pageheap_allocate(CelPageHeap *page_heap, int num)
+CelSpan *cel_pageheap_allocate(CelPageHeap *page_heap, int n_pages)
 {
     CelSpan *span;
 
     cel_spinlock_lock(&(page_heap->lock));
     if ((span = cel_pageheap_search_free_and_large_list(
-        page_heap, num)) == NULL)
+        page_heap, n_pages)) == NULL)
     {
-        if (cel_pageheap_grow(page_heap, num) == -1)
+        if (cel_pageheap_grow(page_heap, n_pages) == -1)
         {
             cel_spinlock_unlock(&(page_heap->lock));
             return NULL;
         }
         if ((span = cel_pageheap_search_free_and_large_list(
-            page_heap, num)) == NULL)
+            page_heap, n_pages)) == NULL)
         {
             cel_spinlock_unlock(&(page_heap->lock));
-            Err((_T("Page heap search free[%d] and large list return null."),
-                num));
+            CEL_ERR((_T("Page heap search free[%d] and large list return null."),
+                n_pages));
             return NULL;
         }
     }
-    span = cel_pageheap_carve(page_heap, span, num);
-    /*Debug((_T("Allocate span %p-0x%x(%d), num %d"),
-        span, span->start, span->n_pages, num));*/
+    span = cel_pageheap_carve(page_heap, span, n_pages);
+    CEL_DEBUG((_T("Allocate span %p-0x%x(%d), n_pages %d"),
+        span, span->start, span->n_pages, n_pages));
     cel_spinlock_unlock(&(page_heap->lock));
 
     return span;
 }
 
-int cel_pageheap_release_pages(CelPageHeap *page_heap, int num)
+int cel_pageheap_release_pages(CelPageHeap *page_heap, int n_pages)
 {
     int released_pages = 0, released_length;
     int i;
     CelSpanList *span_list;
     CelSpan *span;
 
-    while (released_pages < num && page_heap->free_bytes > 0)
+    while (released_pages < n_pages && page_heap->free_bytes > 0)
     {
         for (i = 0; 
-            i < MAX_PAGES + 1 && released_pages < num;
+            i < MAX_PAGES + 1 && released_pages < n_pages;
             i++, (page_heap->realeased_index)++ )
         {
             if (page_heap->realeased_index > MAX_PAGES)
@@ -724,9 +728,9 @@ int cel_pageheap_release_pages(CelPageHeap *page_heap, int num)
             span_list = ((page_heap->realeased_index == MAX_PAGES)
                 ? &(page_heap->large) 
                 : &(page_heap->free[page_heap->realeased_index]));
-            if (cel_list_is_empty(&(span_list->normal)))
+            if (!cel_list_is_empty(&(span_list->normal_spans)))
             {
-                span = (CelSpan *)span_list->normal.head.next;
+                span = (CelSpan *)span_list->normal_spans.head.next;
                 if (cel_system_release((void *)(span->start << PAGE_SHIFT),
                     span->n_pages << PAGE_SHIFT))
                 {
@@ -746,12 +750,12 @@ int cel_pageheap_release_pages(CelPageHeap *page_heap, int num)
     return released_pages;
 }
 
-void cel_pageheap_incremental_scavenge(CelPageHeap *page_heap, int n)
+void cel_pageheap_incremental_scavenge(CelPageHeap *page_heap, int n_pages)
 {
     double rate = 1, mult, wait;
     int released_pages;
 
-    (page_heap->scavenge_counter) -= n;
+    (page_heap->scavenge_counter) -= n_pages;
     if (page_heap->scavenge_counter > 0)
         return;
     released_pages = cel_pageheap_release_pages(page_heap, 1);
@@ -787,10 +791,11 @@ static int cel_centralcache_init(CelCentralCache *central_cache, size_t index)
 
     cel_spinlock_init(&(central_cache->lock), 0);
     central_cache->index = index;
-    cel_list_init(&(central_cache->none_empty), NULL);
-    cel_list_init(&(central_cache->empty), NULL);
-    central_cache->slots_num = 0;
-    central_cache->blocks_num = 0;
+    cel_list_init(&(central_cache->none_empty_spans), NULL);
+    cel_list_init(&(central_cache->empty_spans), NULL);
+    central_cache->used_slots = 0;
+    central_cache->n_free_blocks = 0;
+    central_cache->n_allocated_blocks = 0;
     central_cache->max_cache_size = CENTRAL_CACHE_MAX_SLOTS_NUM;
 #ifdef SMALL_BUT_SLOW
     /* Disable the transfer cache for the small footprint case. */
@@ -818,26 +823,29 @@ void cel_centralcache_release_to_spans(CelCentralCache *central_cache,
                                        CelBlock *block)
 {
     CelSpan *span;
+    size_t num;
 
     if ((span = (CelSpan *)cel_radixtree_get(
         &(s_pageheap.page_map), (uintptr_t)block >> PAGE_SHIFT)) == NULL)
     {
-        Err((_T("Error cel_centralcache_release_to_spans")));
+        CEL_ERR((_T("Error cel_centralcache_release_to_spans")));
         return;
     }
     if (span->blocks == NULL)
     {
-        cel_list_remove(&(central_cache->empty), (CelListItem *)span);
-        cel_list_push_front(&(central_cache->none_empty), (CelListItem *)span);
+        cel_list_remove(&(central_cache->empty_spans), (CelListItem *)span);
+        cel_list_push_front(&(central_cache->none_empty_spans), (CelListItem *)span);
     }
-    (central_cache->blocks_num)++;
+    (central_cache->n_free_blocks)++;
     (span->ref_count)--;
     if (span->ref_count == 0)
     {
-        //Debug((_T("span %p ref count %d"), span, span->ref_count));
-        central_cache->blocks_num -= (span->n_pages << PAGE_SHIFT) 
+        CEL_DEBUG((_T("span %p ref count %d"), span, span->ref_count));
+        num = (span->n_pages << PAGE_SHIFT) 
             / cel_sizemap_block_to_size(central_cache->index);
-        cel_list_remove(&(central_cache->none_empty), (CelListItem *)span);
+        (central_cache->n_free_blocks) -= num;
+        (central_cache->n_allocated_blocks) -= num;
+        cel_list_remove(&(central_cache->none_empty_spans), (CelListItem *)span);
         /* Release central list lock while operating on pageheap */
         cel_spinlock_unlock(&central_cache->lock);
         cel_pageheap_deallocate(&s_pageheap, span);
@@ -854,11 +862,11 @@ void cel_centralcache_destroy(CelCentralCache *central_cache)
 {
     CelBlock *start, *next;
     
-    while (central_cache->slots_num > 0)
+    while (central_cache->used_slots > 0)
     {
-        (central_cache->slots_num)--;
+        (central_cache->used_slots)--;
         (central_cache->cache_size)--;
-        start = central_cache->slots[central_cache->slots_num].head;
+        start = central_cache->slots[central_cache->used_slots].head;
         while (start != NULL)
         {
             next = start->next;
@@ -866,17 +874,17 @@ void cel_centralcache_destroy(CelCentralCache *central_cache)
             start = next;
         }
     }
-    /*Debug((_T("Central cache[%d] free, slots num %d, blocks num %d, "
-        "emty size %d none_empty size %d."), 
+    CEL_DEBUG((_T("Central cache[%d] free, slots num %d, blocks num %d, "
+        "emty size %d none_empty_spans size %d."), 
         central_cache->index, 
-        central_cache->slots_num,
-        central_cache->blocks_num, 
-        central_cache->empty.size, 
-        central_cache->none_empty.size));*/
-    CEL_ASSERT(cel_list_is_empty(&(central_cache->empty)) 
-        && cel_list_is_empty(&(central_cache->none_empty)));
-    cel_list_destroy(&(central_cache->none_empty));
-    cel_list_destroy(&(central_cache->empty));
+        central_cache->used_slots,
+        central_cache->n_free_blocks, 
+        central_cache->empty_spans.size, 
+        central_cache->none_empty_spans.size));
+    CEL_ASSERT(cel_list_is_empty(&(central_cache->empty_spans)) 
+        && cel_list_is_empty(&(central_cache->none_empty_spans)));
+    cel_list_destroy(&(central_cache->none_empty_spans));
+    cel_list_destroy(&(central_cache->empty_spans));
 }
 
 CelSpan *cel_centralcache_fetch_from_pageheap(CelCentralCache *central_cache)
@@ -893,6 +901,7 @@ CelSpan *cel_centralcache_fetch_from_pageheap(CelCentralCache *central_cache)
         cel_spinlock_lock(&(central_cache->lock));
         return NULL;
     }
+    CEL_ASSERT(span->n_pages == n_pages);
     cel_pageheap_register_block(&s_pageheap, span, central_cache->index);
     /* Split the block into pieces and add to the free-list */
     span->blocks = NULL;
@@ -908,11 +917,13 @@ CelSpan *cel_centralcache_fetch_from_pageheap(CelCentralCache *central_cache)
         new_block = (CelBlock *)((char *)new_block + block_size);
         num_block++;
     }
+    CEL_ASSERT((char *)new_block <= limit);
     span->ref_count = 0;
-    /*Debug((_T("Span 0x%x split %d blocks(%d)"),
-        span->start, (int)num_block, block_size));*/
+    CEL_DEBUG((_T("Span 0x%x split %d blocks(%d)"),
+        span->start, (int)num_block, block_size));
     cel_spinlock_lock(&(central_cache->lock));
-    central_cache->blocks_num += num_block;
+    central_cache->n_free_blocks += num_block;
+    central_cache->n_allocated_blocks += num_block;
 
     return span;
 }
@@ -922,21 +933,22 @@ CelBlock *cel_centralcache_fetch_from_span(CelCentralCache *central_cache)
     CelSpan *span;
     CelBlock *free_block;
 
-    if (cel_list_is_empty(&(central_cache->none_empty)))
+    if (cel_list_is_empty(&(central_cache->none_empty_spans)))
     {
         if ((span = cel_centralcache_fetch_from_pageheap(
             central_cache)) == NULL)
             return NULL;
-        cel_list_push_front(&(central_cache->none_empty), (CelListItem *)span);
+        cel_list_push_front(&(central_cache->none_empty_spans), (CelListItem *)span);
     }
-    span = (CelSpan *)cel_list_get_front(&(central_cache->none_empty));
+    span = (CelSpan *)cel_list_get_front(&(central_cache->none_empty_spans));
     (span->ref_count)++;
+    CEL_ASSERT(span->blocks != NULL);
     free_block = span->blocks;
     if ((span->blocks = (free_block->next)) == NULL)
     {
         /* Move to empty list */
-        cel_list_remove(&(central_cache->none_empty),(CelListItem *)span);
-        cel_list_push_front(&(central_cache->empty), (CelListItem *)span);
+        cel_list_remove(&(central_cache->none_empty_spans),(CelListItem *)span);
+        cel_list_push_front(&(central_cache->empty_spans), (CelListItem *)span);
     }
     return free_block;
 }
@@ -948,11 +960,11 @@ int cel_centralcache_allocate(CelCentralCache *central_cache,
     CelBlock *fetch_block;
 
     cel_spinlock_lock(&(central_cache->lock));
-    if (central_cache->slots_num > 0)
+    if (central_cache->used_slots > 0)
     {
-        --(central_cache->slots_num);
-        *start = central_cache->slots[central_cache->slots_num].head;
-        *end = central_cache->slots[central_cache->slots_num].tail;
+        --(central_cache->used_slots);
+        *start = central_cache->slots[central_cache->used_slots].head;
+        *end = central_cache->slots[central_cache->used_slots].tail;
         cel_spinlock_unlock(&central_cache->lock);
         return num;
     }
@@ -974,7 +986,7 @@ int cel_centralcache_allocate(CelCentralCache *central_cache,
             //printf("start %p next %p\r\n", *start, (*start)->next);
         }
     }
-    central_cache->blocks_num -= ret;
+    central_cache->n_free_blocks -= ret;
     cel_spinlock_unlock(&(central_cache->lock));
 
     return ret;
@@ -989,14 +1001,14 @@ BOOL cel_centralcache_shrink_cache(CelCentralCache *central_cache,
     if (central_cache->cache_size == 0)
         return FALSE;
     if (force == FALSE 
-        && central_cache->slots_num == (size_t)central_cache->cache_size)
+        && central_cache->used_slots == (size_t)central_cache->cache_size)
         return FALSE;
     if (central_cache->cache_size == 0)
         return FALSE;
     // lock inverter
     //cel_spinlock_unlock(&(s_centralcache[locked_index].lock));
     //cel_spinlock_lock(&(central_cache->lock));
-    if (central_cache->slots_num == (size_t)central_cache->cache_size)
+    if (central_cache->used_slots == (size_t)central_cache->cache_size)
     {
         if (force == FALSE)
         {
@@ -1005,8 +1017,8 @@ BOOL cel_centralcache_shrink_cache(CelCentralCache *central_cache,
         else
         {
             (central_cache->cache_size)--;
-            (central_cache->slots_num)--;
-            start = central_cache->slots[central_cache->slots_num].head;
+            (central_cache->used_slots)--;
+            start = central_cache->slots[central_cache->used_slots].head;
             while (start != NULL)
             {
                 next = start->next;
@@ -1045,7 +1057,7 @@ BOOL cel_centralcache_evict_random(CelCentralCache *central_cache,
 
 BOOL cel_centralcache_make_cache_space(CelCentralCache *central_cache)
 {
-    if ((int)central_cache->slots_num < central_cache->cache_size)
+    if ((int)central_cache->used_slots < central_cache->cache_size)
         return TRUE;
     if (central_cache->cache_size == central_cache->max_cache_size)
         return FALSE;
@@ -1068,15 +1080,15 @@ int cel_centralcache_deallocate(CelCentralCache *central_cache,
 {
     CelBlock *next;
 
-    /*Debug((_T("Centralcache %d deallocate start %p, end %p, num %d"), 
-        central_cache->index, start, end, num));*/
+    CEL_DEBUG((_T("Centralcache %d deallocate start %p, end %p, num %d"), 
+        central_cache->index, start, end, num));
     cel_spinlock_lock(&(central_cache->lock));
     if ((size_t)num == cel_sizemap_block_grow(central_cache->index)
         && cel_centralcache_make_cache_space(central_cache))
     {
-        central_cache->slots[central_cache->slots_num].head = start;
-        central_cache->slots[central_cache->slots_num].tail = end;
-        central_cache->slots_num++;
+        central_cache->slots[central_cache->used_slots].head = start;
+        central_cache->slots[central_cache->used_slots].tail = end;
+        central_cache->used_slots++;
         cel_spinlock_unlock(&(central_cache->lock));
         return num;
     }
@@ -1152,11 +1164,11 @@ static CelThreadCache *cel_threadcache_new(void)
             s_next_memory_steal = thread_cache;
         cel_list_push_front(&s_threadcache_list, (CelListItem *)thread_cache);
         cel_spinlock_unlock(&(s_pageheap.lock));
-        Debug((_T("New thread(tid:%ld) caches %p."), 
+        CEL_DEBUG((_T("New thread(tid:%ld) caches %p."), 
             cel_thread_getid(), thread_cache));
         return thread_cache;
     }
-    Debug((_T("New thread(tid:%ld) caches retun null."),
+    CEL_DEBUG((_T("New thread(tid:%ld) caches retun null."),
         cel_thread_getid()));
 
     return NULL;
@@ -1175,7 +1187,8 @@ void cel_threadcache_release_blocks(CelThreadCache *thread_cache,
     while (num > grow_size)
     {
         cel_freelist_pop_range(free_list, &start, &end, grow_size);
-        cel_centralcache_deallocate(&s_centralcache[index], start, end, grow_size);
+        cel_centralcache_deallocate(&s_centralcache[index],
+            start, end, grow_size);
         num -= grow_size;
     }
     if (num > 0)
@@ -1184,8 +1197,9 @@ void cel_threadcache_release_blocks(CelThreadCache *thread_cache,
         cel_centralcache_deallocate(&s_centralcache[index], start, end, num);
     }
     thread_cache->size -= delta_bytes;
-    /*Debug((_T("Thread(tid:%ld) size %d, max_size %d"), 
-        cel_thread_getid(), thread_cache->size, thread_cache->max_size));*/
+    CEL_DEBUG((_T("Thread(tid:%ld) releas blocks %d * %d, size %d, max_size %d"), 
+        cel_thread_getid(), num, (int)cel_sizemap_block_to_size(index),
+        thread_cache->size, thread_cache->max_size));
 }
 
 static void cel_threadcache_free(CelThreadCache *thread_cache)
@@ -1203,8 +1217,8 @@ static void cel_threadcache_free(CelThreadCache *thread_cache)
         }
         cel_freelist_destroy(&(thread_cache->free_list[i]));
     }
-    /*Debug((_T("Thread(tid:%ld) caches free, size %d."), 
-        cel_thread_getid(), thread_cache->size));*/
+    CEL_DEBUG((_T("Thread(tid:%ld) caches free, size %d."), 
+        cel_thread_getid(), thread_cache->size));
     cel_spinlock_lock(&(s_pageheap.lock));
     cel_list_remove(&s_threadcache_list, (CelListItem *)thread_cache);
     if (s_next_memory_steal == thread_cache)
@@ -1236,7 +1250,7 @@ static CelThreadCache *cel_threadcache_get(void)
             }
             cel_threadcache_free(thread_cache);
         }
-        Debug((_T("Get thread(tid:%ld) caches return null."), 
+        CEL_DEBUG((_T("Get thread(tid:%ld) caches return null."), 
             cel_thread_getid()));
         return NULL;
     }
@@ -1255,12 +1269,15 @@ CelBlock *cel_threadcache_allocate(CelThreadCache *thread_cache, size_t index)
     if (cel_freelist_is_empty(free_list))
     {
         grow_size = cel_sizemap_block_grow(index);
+        if (grow_size > free_list->max_size)
+            grow_size = free_list->max_size;
         if ((allocate_num = cel_centralcache_allocate(
             &s_centralcache[index], &start, &end, grow_size)) <= 0)
         {
             return NULL;
         }
-        //Debug((_T("Fetch %d blocks from central cache."), (int)allocate_num));
+        CEL_DEBUG((_T("Thread(tid:%ld) fetch %d[%p-%p] blocks from central cache."), 
+            cel_thread_getid(), (int)allocate_num, start, end));
         if ((--allocate_num) >= 0)
         {
             cel_freelist_push_range(free_list, start->next, end, allocate_num);
@@ -1282,7 +1299,8 @@ CelBlock *cel_threadcache_allocate(CelThreadCache *thread_cache, size_t index)
     }
     else
     {
-        //Debug((_T("Fetch block size %d from free list."), (int)block_size));
+        //CEL_DEBUG((_T("Thread(tid:%ld) fetch block size %d from free list."), 
+        //cel_thread_getid(), (int)block_size));
         start = cel_freelist_pop(free_list);
         (thread_cache->size) -= block_size;
     }
@@ -1368,6 +1386,75 @@ void cel_threadcache_deallocate(CelThreadCache *thread_cache,
     }
 }
 
+int cel_allocator_dump(char *buf, size_t size)
+{
+    int i;
+    size_t cursor;
+    size_t num1, num2;
+    CelThreadCache *thread_cache, *thread_cache_tail;
+
+    if (cel_malloc != cel_allocate)
+        return 0;
+    cursor = 0;
+    cursor += snprintf(buf + cursor, size - cursor, "{\"allocator\":");
+    /* central_caches */
+    cursor += snprintf(buf + cursor, size - cursor, CEL_CRLF"{\"central_caches\":[");
+    for (i = 0; i < BLOCKS_NUM; i++)
+    {
+        if (s_centralcache[i].n_allocated_blocks == 0)
+            continue;
+        cel_spinlock_lock(&(s_centralcache[i].lock));
+        cursor += snprintf(buf + cursor, size - cursor, 
+            CEL_CRLF"{ \"id\":%d, \"size\":%d, \"allocated\":%d, \"free\":%d, "
+            "\"thread_caches\":[",
+            (int)i, (int)cel_sizemap_block_to_size(i), 
+            (int)s_centralcache[i].n_allocated_blocks, 
+            (int)s_centralcache[i].n_free_blocks);
+        num1 = 0;
+        thread_cache =  
+            (CelThreadCache *)cel_list_get_head(&s_threadcache_list);
+        thread_cache_tail = 
+            (CelThreadCache *)cel_list_get_tail(&s_threadcache_list);
+        while ((thread_cache = thread_cache->next) != thread_cache_tail)
+        {
+            cursor += snprintf(buf + cursor, size - cursor, 
+                "%d,", (int)(thread_cache->free_list[i].size));
+            num1 += thread_cache->free_list[i].size;
+        }
+        cursor -= 1;
+        cursor += snprintf(buf + cursor, size - cursor, "], \"used\":%d },", 
+            (int)(s_centralcache[i].n_allocated_blocks 
+            - s_centralcache[i].n_free_blocks - num1));
+        cel_spinlock_unlock(&(s_centralcache[i].lock));
+    }
+    cursor -= 1;
+    cursor += snprintf(buf + cursor, size - cursor, "],");
+    /* page_heaps */
+    cel_spinlock_lock(&(s_pageheap.lock));
+    cursor += snprintf(buf + cursor, size - cursor, CEL_CRLF"{\"page_heaps\":[");
+    for (i = 0; i < MAX_PAGES; i++)
+    {
+        num1 = cel_list_get_size(&(s_pageheap.free[i].normal_spans));
+        num2 = cel_list_get_size(&(s_pageheap.free[i].returned_spans));
+        if (num1 + num2 <= 0)
+            continue;
+        cursor += snprintf(buf + cursor, size - cursor, 
+            CEL_CRLF"{ \"id\":%d, \"size\":%d, \"normal\":%d, \"retunred\":%d },",
+            (int)i, (int)((i + 1) * PAGE_SIZE), (int)num1, (int)num2);
+    }
+    cursor -= 1;
+    cursor += snprintf(buf + cursor, size - cursor, "],");
+    /* lagre_pages */
+    cursor += snprintf(buf + cursor, size - cursor, CEL_CRLF"{\"lagre_pages\":[");
+    cursor -= 1;
+    cursor += snprintf(buf + cursor, size - cursor, "]");
+    cel_spinlock_unlock(&(s_pageheap.lock));
+    cursor += snprintf(buf + cursor, size - cursor, "}");
+    //puts(buf);
+
+    return (int)cursor;
+}
+
 void *cel_allocate(size_t size)
 {
     size_t n;
@@ -1403,13 +1490,10 @@ void cel_deallocate(void *buf)
     size_t index;
     CelThreadCache *thread_cache;
 
-    if ((span = (CelSpan *)cel_radixtree_get(
-        &(s_pageheap.page_map), ((uintptr_t)buf) >> PAGE_SHIFT)) == NULL)
-    {
-        Warning((_T("Attempt to free invalid pointer %p"), buf));
-        return ;
-    }
-    /*Debug((_T("Deallocate %p(0x%x), span %p index %d."), 
+    span = (CelSpan *)cel_radixtree_get(
+        &(s_pageheap.page_map), ((uintptr_t)buf) >> PAGE_SHIFT);
+    CEL_ASSERT(span != NULL);
+   /*CEL_DEBUG((_T("Deallocate %p(0x%x), span %p index %d."), 
         buf, ((uintptr_t)buf) >> PAGE_SHIFT, span->start, span->index));*/
     if ((index = span->index) != 0)
     {

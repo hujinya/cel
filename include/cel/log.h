@@ -21,6 +21,7 @@
 #include "cel/datetime.h"
 #include "cel/list.h"
 #include "cel/ringlist.h"
+#include <stdarg.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -66,7 +67,6 @@ typedef enum _CelLogFacility
     CEL_LOGFACILITY_COUNT
 }CelLogFacility;
 
-#define CEL_DEFAULT_FACILITY     CEL_LOGFACILITY_USER
 #define CEL_LOGCONTENT_LEN       512  /* Bytes */
 
 typedef struct _CelLogMsg
@@ -118,12 +118,17 @@ int cel_logger_hook_register(CelLogger *logger, const TCHAR *name,
                              CelLogMsgFlushFunc flush_func, void *user_data);
 int cel_logger_hook_unregister(CelLogger *logger, const TCHAR *name);
 
-int cel_logger_puts(CelLogger *logger, CelLogLevel level, const TCHAR *str);
-int cel_logger_vprintf(CelLogger *logger, CelLogLevel level, 
+int cel_logger_puts(CelLogger *logger, 
+                    CelLogFacility facility, CelLogLevel level, 
+                    const TCHAR *str);
+int cel_logger_vprintf(CelLogger *logger, 
+                       CelLogFacility facility, CelLogLevel level, 
                        const TCHAR *fmt, va_list ap);
-int cel_logger_printf(CelLogger *logger, CelLogLevel level, 
+int cel_logger_printf(CelLogger *logger, 
+                      CelLogFacility facility, CelLogLevel level, 
                       const TCHAR *fmt, ...);
-int cel_logger_hexdump(CelLogger *logger, CelLogLevel level,
+int cel_logger_hexdump(CelLogger *logger, 
+                       CelLogFacility facility, CelLogLevel level,
                        const BYTE *p, size_t len);
 int cel_logger_flush(CelLogger *logger);
 
@@ -132,7 +137,7 @@ int cel_logger_flush(CelLogger *logger);
 #define cel_log_facility_set(facility) \
     cel_log_facility_set(&g_logger, facility)
 #define cel_log_level_set(level) cel_logger_level_set(&g_logger, level)
-#define cel_severity_set cel_logger_level_set
+#define cel_log_severity_set cel_logger_level_set
 
 #define cel_log_hostname_set(_hostname) \
     cel_logger_hostname_set(&g_logger, _hostname)
@@ -145,11 +150,11 @@ int cel_logger_flush(CelLogger *logger);
     cel_logger_hook_unregister(&g_logger, name)
 
 #define cel_log_puts(level, str) \
-    cel_logger_puts(&g_logger, level, str)
+    cel_logger_puts(&g_logger, g_logger.facility, level, str)
 #define cel_log_vprintf(level, fmt, ap) \
-    cel_logger_vprintf(&g_logger, level, fmt, ap)
+    cel_logger_vprintf(&g_logger, g_logger.facility, level, fmt, ap)
 #define cel_log_hexdump(level, p, len) \
-    cel_logger_hexdump(&g_logger, level, p, len)
+    cel_logger_hexdump(&g_logger, g_logger.facility, level, p, len)
 int cel_log_printf(CelLogLevel level, const TCHAR *fmt, ...);
 static __inline int cel_log_flush(void){
     return cel_logger_flush(&g_logger);
@@ -197,22 +202,60 @@ int cel_logmsg_puts(CelLogMsg *msg, void *user_data);
 int cel_logmsg_dbinsert(CelLogMsg *msg, void *user_data);
 
 // Like assert(), but executed even in _CEL_DEBUG mode
-#undef CEL_CHECK_CONDITION
-#define CEL_CHECK_CONDITION(cond)                              \
+#undef CEL_ASSERT
+#undef CEL_DEBUG
+#undef CEL_WARNING
+#undef CEL_ERR
+#ifdef _CEL_DEBUG
+
+#define CEL_ASSERT(cond)  \
 do {                                                           \
   if (!(cond)) {                                               \
-    cel_log_debug(_T("%s(%d)-%s()-%s"),                        \
+    _ftprintf(stderr, _T("%s(%d)-%s()-#%s"),                   \
         _T(__FILE__), __LINE__, _T(__FUNCTION__), #cond);      \
     abort();                                                   \
   }                                                            \
 }while (0)
 
-#undef CEL_ASSERT
-#ifdef _CEL_DEBUG
-#define CEL_ASSERT(cond) CEL_CHECK_CONDITION(cond)
+static __inline int cel_debug(const TCHAR *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    cel_logger_vprintf(
+        &g_logger, CEL_LOGFACILITY_LOCAL0, CEL_LOGLEVEL_DEBUG, fmt, args);
+    va_end(args);
+    return 0;
+}
+static __inline int cel_err(const TCHAR *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    cel_logger_vprintf(
+        &g_logger, CEL_LOGFACILITY_LOCAL0, CEL_LOGLEVEL_WARNING, fmt, args);
+    va_end(args);
+    return 0;
+}
+static __inline int cel_warning(const TCHAR *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    cel_logger_vprintf(
+        &g_logger, CEL_LOGFACILITY_LOCAL0, CEL_LOGLEVEL_ERR, fmt, args);
+    va_end(args);
+    return 0;
+}
+#define CEL_DEBUG(args) cel_debug args
+#define CEL_WARNING(args) cel_err args
+#define CEL_ERR(args) cel_warning args
+
 #else
-#define CEL_ASSERT(cond) ((void) 0)
-#endif
+#define CEL_ASSERT(cond)    ((void) 0)
+
+#define CEL_DEBUG(args)     ((void) 0)
+#define CEL_WARNING(args)   ((void) 0)
+#define CEL_ERR(args)       ((void) 0)
+
+#endif /* _CEL_DEBUG */
 
 #ifdef __cplusplus
 }

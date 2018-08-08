@@ -441,6 +441,8 @@ int cel_sslsocket_async_handshake(CelSslAsyncHandshakeArgs *args)
     CelSocketAsyncArgs *socket_args = &(args->socket_args);
     CelSslSocket *ssl_sock = args->ssl_sock;
 
+    CEL_ASSERT(args != NULL);
+    CEL_ASSERT(args->async_callback != NULL);
     if ((args->result = cel_ssl_handshake(ssl_sock->ssl)) != 1)
     {
         if ((args->error = SSL_get_error(ssl_sock->ssl, args->result)) == SSL_ERROR_NONE
@@ -478,6 +480,8 @@ int cel_sslsocket_async_send(CelSslAsyncSendArgs *args)
     CelSocketAsyncArgs *socket_args = &(args->socket_args);
     CelSslSocket *ssl_sock = args->ssl_sock;
 
+    CEL_ASSERT(args != NULL);
+    CEL_ASSERT(args->async_callback != NULL);
     if ((args->result = cel_ssl_write(
         ssl_sock->ssl, args->buffers->buf, args->buffers->len)) > 0)
     {
@@ -502,6 +506,8 @@ int cel_sslsocket_async_recv(CelSslAsyncRecvArgs *args)
     CelSslSocket *ssl_sock = args->ssl_sock;
 
     //ERR_clear_error();
+    CEL_ASSERT(args != NULL);
+    CEL_ASSERT(args->async_callback != NULL);
     if ((args->result = cel_ssl_read(
         ssl_sock->ssl, args->buffers->buf, args->buffers->len)) <= 0)
     {

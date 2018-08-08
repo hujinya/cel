@@ -218,7 +218,7 @@ int cel_httpresponse_init(CelHttpResponse *rsp)
     rsp->body_writing_callback = NULL;
 
     cel_stream_init(&(rsp->s));
-    cel_stream_resize(&(rsp->s), CEL_HTTPRESPONSE_BUFFER_SIZE);
+    cel_stream_resize(&(rsp->s), CEL_HTTPRESPONSE_STREAM_BUFFER_SIZE);
 
     return 0;
 }
@@ -459,7 +459,7 @@ start:
         }
         else
         {
-            if ((chunk_size = cel_http_chunked_reading(s)) == 0)
+            if ((chunk_size = cel_httpchunked_reading(s)) == 0)
                 return 0;
             else if (chunk_size < 0)
             {
@@ -666,7 +666,7 @@ static int cel_httpresponse_writing_body(CelHttpResponse *rsp, CelStream *s)
             if (rsp->writing_body_offset != -1)
             {
                 cel_stream_set_position(s, 
-                    cel_http_chunked_get_buffer_position(&(rsp->chunked)));
+                    cel_httpchunked_get_send_buffer_position(&(rsp->chunked)));
                 if (rsp->body_writing_callback == NULL
                     || (_size = rsp->body_writing_callback(
                     rsp, s, rsp->body_writing_user_data)) <= 0)
@@ -674,7 +674,7 @@ static int cel_httpresponse_writing_body(CelHttpResponse *rsp, CelStream *s)
                     rsp->writing_error = CEL_HTTP_WANT_WRITE;
                     return -1;
                 }
-                cel_http_chunked_seek(&(rsp->chunked), _size);
+                cel_httpchunked_send_seek(&(rsp->chunked), _size);
                 rsp->writing_body_offset += _size;
                 rsp->content_length += _size;
                 rsp->writing_error = CEL_HTTP_WANT_WRITE;
@@ -683,7 +683,7 @@ static int cel_httpresponse_writing_body(CelHttpResponse *rsp, CelStream *s)
             else
             {
                 /* Last chunk */
-                cel_http_chunked_last(&(rsp->chunked), s);
+                cel_httpchunked_writing_last(&(rsp->chunked), s);
                 return 0;
             }
         }
@@ -730,7 +730,7 @@ int cel_httpresponse_writing(CelHttpResponse *rsp, CelStream *s)
     case CEL_HTTPRESPONSE_WRITING_HEADER:
         if (cel_httpresponse_writing_header(rsp, s) == -1)
             return -1;
-        cel_http_chuked_init(&(rsp->chunked), cel_stream_get_position(s));
+        cel_httpchunked_init(&(rsp->chunked), cel_stream_get_position(s));
         rsp->writing_state = CEL_HTTPRESPONSE_WRITING_BODY;
     case CEL_HTTPRESPONSE_WRITING_BODY:
         //puts("CEL_HTTPRESPONSE_WRITING_BODY");
@@ -802,9 +802,10 @@ void *cel_httpresponse_get_send_buffer(CelHttpResponse *rsp)
         cel_httpresponse_set_header(rsp, 
             CEL_HTTPHDR_TRANSFER_ENCODING, 
             &transfer_encoding, sizeof(transfer_encoding));
+        cel_httpresponse_writing(rsp, &(rsp->s));
     }
 
-    return cel_http_chunked_get_buffer(&(rsp->chunked), s);
+    return cel_httpchunked_get_send_buffer(&(rsp->chunked), s);
 }
 
 size_t cel_httpresponse_get_send_buffer_size(CelHttpResponse *rsp)
@@ -816,15 +817,17 @@ size_t cel_httpresponse_get_send_buffer_size(CelHttpResponse *rsp)
     {
         cel_httpresponse_set_header(rsp, CEL_HTTPHDR_TRANSFER_ENCODING, 
             &transfer_encoding, sizeof(transfer_encoding));
+        cel_httpresponse_writing(rsp, &(rsp->s));
     }
-    return cel_http_chunked_get_buffer_size(&(rsp->chunked), s);
+    return cel_httpchunked_get_send_buffer_size(&(rsp->chunked), s);
 }
 
 void cel_httpresponse_seek_send_buffer(CelHttpResponse *rsp, int offset)
 {
     if (offset > 0)
     {
-        cel_http_chunked_seek(&(rsp->chunked), offset);
+        cel_httpchunked_send_seek(&(rsp->chunked), offset);
+        cel_stream_seek(&(rsp->s), offset);
         rsp->writing_body_offset += offset;
     }
 }
@@ -838,8 +841,9 @@ int cel_httpresponse_resize_send_buffer(CelHttpResponse *rsp, size_t resize)
     {
         cel_httpresponse_set_header(rsp, CEL_HTTPHDR_TRANSFER_ENCODING, 
             &transfer_encoding, sizeof(transfer_encoding));
+        cel_httpresponse_writing(rsp, &(rsp->s));
     }
-    return cel_http_chunked_resize_buffer(&(rsp->chunked), s, resize);
+    return cel_httpchunked_resize_send_buffer(&(rsp->chunked), s, resize);
 }
 
 typedef struct _CelHttpResponseBuf

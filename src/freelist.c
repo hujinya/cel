@@ -61,7 +61,7 @@ void cel_freelist_pop_range(CelFreeList *free_list,
     *end = tmp;
     free_list->free = tmp->next;
     //printf("start %p, end %p, free %p\r\n", *start, *end, free_list->free);
-    tmp->next = NULL;
+    (*end)->next = NULL;
     (free_list->size) -= num;
     if (free_list->size < free_list->lowater)
         free_list->lowater = free_list->size;

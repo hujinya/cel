@@ -51,27 +51,34 @@ void cel_freelist_free(CelFreeList *free_list);
 #define cel_freelist_set_overages(free_list, _overages) \
     (free_list)->overages = _overages
 
-#define cel_freelist_push(free_list, block) \
-    (block)->next = (free_list)->free, \
-    (free_list)->free = block, \
-    ((free_list)->size)++
+static __inline 
+void cel_freelist_push(CelFreeList *free_list, CelBlock *block)
+{
+    block->next = free_list->free;
+    free_list->free = block;
+    (free_list->size)++;
+}
 
 static __inline CelBlock *cel_freelist_pop(CelFreeList *free_list)
 {
     CelBlock *result;
 
-    (free_list->size)--;
     if (free_list->size < free_list->lowater)
         free_list->lowater = free_list->size;
     result = free_list->free;
     free_list->free = result->next;
+    (free_list->size)--;
     return result;
 }
 
-#define cel_freelist_push_range(free_list, start, end, num) \
-    (end)->next = (free_list)->free,\
-    (free_list)->free = (start),\
-    ((free_list)->size) += (num)
+static __inline 
+void cel_freelist_push_range(CelFreeList *free_list, 
+                             CelBlock *start, CelBlock *end, int num)
+{
+    end->next = free_list->free;
+    free_list->free = start;
+    (free_list->size) += num;
+}
 
 void cel_freelist_pop_range(CelFreeList *free_list, 
                             CelBlock **start, CelBlock **end, int num);

@@ -56,6 +56,11 @@ int cel_allocator_hook_register(CelMallocFunc malloc_func,
                                 CelReallocFunc realloc_func);
 void cel_allocator_hook_unregister(void);
 
+void *cel_allocate(size_t size);
+void cel_deallocate(void *buf);
+void *cel_reallocate(void *memory, size_t new_size);
+/* ThreadCache->CentralCache->PageHeap->Span */
+int cel_allocator_dump(char *buf, size_t size);
 
 static __inline void *cel_calloc(int num_elems, int elem_size)
 {

@@ -194,7 +194,7 @@ void cel_httpclient_do_send_requset(CelHttpClient *client,
             cel_stream_get_pointer(&(req->s)), remaing_length);
     }
     cel_stream_set_position(&(req->s), remaing_length);
-    cel_http_chuked_init(&(req->chunked), remaing_length);
+    cel_httpchunked_init(&(req->chunked), remaing_length);
     if (req->writing_state != CEL_HTTPREQUEST_WRITING_OK)
     {
         if (cel_httprequest_writing(req, &(req->s)) == -1)
@@ -286,7 +286,7 @@ void cel_httpclient_do_send_response(CelHttpClient *client,
             cel_stream_get_pointer(&(rsp->s)), remaing_length);
     }
     cel_stream_set_position(&(rsp->s), remaing_length);
-    cel_http_chuked_init(&(rsp->chunked), remaing_length);
+    cel_httpchunked_init(&(rsp->chunked), remaing_length);
     if (rsp->writing_state != CEL_HTTPRESPONSE_WRITING_OK)
     {
         if (cel_httpresponse_writing(rsp, &(rsp->s)) == -1)

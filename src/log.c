@@ -20,9 +20,8 @@
 #include "cel/file.h"
 #include "cel/multithread.h"
 #include "cel/net/sockaddr.h"
-#include <stdarg.h>
 
-#define CEL_LOGBUF_NUM   1024 * 1024
+#define CEL_LOGBUF_NUM   10 * 1024
 
 typedef struct _CelLogSpecific
 {
@@ -51,8 +50,14 @@ static const TCHAR *s_loglevelstr[] = {
 };
 
 CelLogger g_logger = { 
-    CEL_DEFAULT_FACILITY, /* facility */
-    { CEL_LOGLEVEL_DEBUG, CEL_LOGLEVEL_DEBUG },  /* level */
+    CEL_LOGFACILITY_LOCAL1, /* facility */
+    { 
+        -1,-1, -1, -1,-1,                  /* 0 - 4 */
+        -1,-1,-1,-1,-1,                    /* 5 - 9 */
+        -1,-1,-1,-1,-1,                    /* 10 - 14 */
+        -1, CEL_LOGLEVEL_DEBUG, CEL_LOGLEVEL_DEBUG,-1, -1, /* 15 - 19 */
+        -1,-1,-1,-1        /* 20 - 23 */
+    },  /* level */
     { '\0' }, /* hostname */
     { '\0' }, /* processname */
     0,        /* styles */
@@ -211,12 +216,15 @@ int cel_logger_flush(CelLogger *logger)
         cel_multithread_mutex_lock(CEL_MT_MUTEX_LOG);
         if (logger->msg_bufs == NULL)
         {
+            logger->n_bufs = cel_power2min(logger->n_bufs);
             if ((logger->msg_bufs = (CelLogMsg *)_cel_sys_malloc(
                 sizeof(CelLogMsg) * logger->n_bufs)) == NULL)
             {
                 cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
                 return -1;
             }
+            /*printf("size %d * %d = %d\r\n", 
+                sizeof(CelLogMsg), logger->n_bufs, sizeof(CelLogMsg) * logger->n_bufs);*/
             if ((logger->ring_list = 
                 cel_ringlist_new(logger->n_bufs)) == NULL)
             {
@@ -229,11 +237,12 @@ int cel_logger_flush(CelLogger *logger)
         }
         cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
     }
+    //printf("n_msg %ld\r\n", cel_getticks());
     n_msg = _cel_ringlist_pop_do_mp(logger->ring_list, logger->n_bufs, 
         (CelRingListProdFunc)_cel_logger_ringlist_pop_msg, logger);
     if (n_msg > 0 && logger->hook_list != NULL)
         _cel_loggger_flush(logger);
-    //printf("n_msg = %d\r\n", n_msg);
+    //printf("n_msg = %d %ld\r\n", n_msg, cel_getticks());
 
     return n_msg;
 }
@@ -334,13 +343,15 @@ void _cel_logger_ringlist_push_msg(CelRingList *ring_list,
     }
 }
 
-int cel_logger_puts(CelLogger *logger, CelLogLevel level, const TCHAR *str)
+int cel_logger_puts(CelLogger *logger,
+                    CelLogFacility facility, CelLogLevel level, 
+                    const TCHAR *str)
 {
     CelLogUserData _user_data, *user_data;
     CelLogMsg *log_msg;
     CelDateTime msg_time;
 
-    if (logger->level[logger->facility] < level)
+    if (logger->level[facility] < level)
         return -1;
     _user_data.logger = logger;
     _user_data.facility = logger->facility;
@@ -368,14 +379,15 @@ int cel_logger_puts(CelLogger *logger, CelLogLevel level, const TCHAR *str)
     return 0;
 }
 
-int cel_logger_hexdump(CelLogger *logger, CelLogLevel level, 
-                        const BYTE *p, size_t len)
+int cel_logger_hexdump(CelLogger *logger, 
+                       CelLogFacility facility, CelLogLevel level, 
+                       const BYTE *p, size_t len)
 {
     CelLogUserData _user_data, *user_data;
     CelLogMsg *log_msg;
     CelDateTime msg_time;
 
-    if (g_logger.level[logger->facility] < level)
+    if (g_logger.level[facility] < level)
         return -1;
     _user_data.logger = logger;
     _user_data.facility = logger->facility;
@@ -404,15 +416,16 @@ int cel_logger_hexdump(CelLogger *logger, CelLogLevel level,
     return 0;
 }
 
-int cel_logger_vprintf(CelLogger *logger, CelLogLevel level, 
-                        const TCHAR *fmt, va_list ap)
+int cel_logger_vprintf(CelLogger *logger, 
+                       CelLogFacility facility, CelLogLevel level, 
+                       const TCHAR *fmt, va_list ap)
 {
     CelLogUserData _user_data, *user_data;
     CelLogMsg *log_msg;
     CelDateTime msg_time;
 
     //_tprintf(_T("%d %d\r\n"), logger->level[CEL_DEFAULT_FACILITY],  level);
-    if (logger->level[logger->facility] < level)
+    if (logger->level[facility] < level)
         return -1;
     _user_data.logger = logger;
     _user_data.facility = logger->facility;
@@ -560,9 +573,11 @@ static int cel_log_fremove_callback(const TCHAR *dir, const TCHAR *file_name,
 int cel_logmsg_fwrite(CelLogMsg *msg, void *path)
 {
     static int file_day = -1;
+    static CelDateTime timestamp_cached;
+    static TCHAR strtime[26];
     int msg_day;
     long lfile;
-    TCHAR strtime[26], filename[15], file_path[CEL_PATHLEN];
+    TCHAR filename[15], file_path[CEL_PATHLEN];
 
     cel_datetime_get_date(&(msg->timestamp), NULL, NULL, &msg_day, NULL);
     //_tprintf("msg_day %d, file_day %d\r\n", msg_day, file_day);
@@ -601,7 +616,11 @@ int cel_logmsg_fwrite(CelLogMsg *msg, void *path)
         _fputts(CEL_CRLF, s_fp);
     }
     /* Write log line*/
-    cel_datetime_strfltime(&(msg->timestamp), strtime, 26, _T("%b %d %X"));
+    if (timestamp_cached != msg->timestamp)
+    {
+        timestamp_cached = msg->timestamp;
+        cel_datetime_strfltime(&(msg->timestamp), strtime, 26, _T("%b %d %X"));
+    }
     if (_ftprintf(s_fp, _T("%s [%ld]: <%s>%s.")CEL_CRLF, 
         /*((msg->facility << 3) | msg->level), */
         strtime, msg->pid, s_loglevelstr[msg->level], msg->content) == EOF)
@@ -620,9 +639,14 @@ int cel_logmsg_fflush(void *path)
 
 int cel_logmsg_puts(CelLogMsg *msg, void *user_data)
 {
-    TCHAR strtime[26];
+    static CelDateTime timestamp_cached;
+    static TCHAR strtime[26];
 
-    cel_datetime_strfltime(&(msg->timestamp), strtime, 26, _T("%b %d %X"));
+    if (timestamp_cached != msg->timestamp)
+    {
+        timestamp_cached = msg->timestamp;
+        cel_datetime_strfltime(&(msg->timestamp), strtime, 26, _T("%b %d %X"));
+    }
     _tprintf(_T("%s [%ld]: <%s>%s.")CEL_CRLF, 
         /*((msg->facility << 3) | msg->level), */
         strtime, 

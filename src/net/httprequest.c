@@ -222,7 +222,7 @@ int cel_httprequest_init(CelHttpRequest *req)
     req->body_writing_callback = NULL;
 
     cel_stream_init(&(req->s));
-    cel_stream_resize(&(req->s), CEL_HTTPREQUEST_BUFFER_SIZE);
+    cel_stream_resize(&(req->s), CEL_HTTPREQUEST_STREAM_BUFFER_SIZE);
 
     return 0;
 }
@@ -501,7 +501,7 @@ start:
         }
         else
         {
-            if ((chunk_size = cel_http_chunked_reading(s)) == 0)
+            if ((chunk_size = cel_httpchunked_reading(s)) == 0)
                 return 0;
             else if (chunk_size < 0)
             {
@@ -740,7 +740,7 @@ static int cel_httprequest_writing_body(CelHttpRequest *req, CelStream *s)
             if (req->writing_body_offset != -1)
             {
                 cel_stream_set_position(s, 
-                    cel_http_chunked_get_buffer_position(&(req->chunked)));
+                    cel_httpchunked_get_send_buffer_position(&(req->chunked)));
                 if (req->body_writing_callback == NULL
                     || (_size = req->body_writing_callback(
                     req, s, req->body_writing_user_data)) <= 0)
@@ -748,7 +748,7 @@ static int cel_httprequest_writing_body(CelHttpRequest *req, CelStream *s)
                     req->writing_error = CEL_HTTP_WANT_WRITE;
                     return -1;
                 }
-                cel_http_chunked_seek(&(req->chunked), _size);
+                cel_httpchunked_send_seek(&(req->chunked), _size);
                 req->writing_body_offset += _size;
                 req->content_length += _size;
                 req->writing_error = CEL_HTTP_WANT_WRITE;
@@ -757,7 +757,7 @@ static int cel_httprequest_writing_body(CelHttpRequest *req, CelStream *s)
             else
             {
                 /* Last chunk */
-                cel_http_chunked_last(&(req->chunked), s);
+                cel_httpchunked_writing_last(&(req->chunked), s);
                 return 0;
             }
         }
@@ -836,7 +836,7 @@ int cel_httprequest_writing(CelHttpRequest *req, CelStream *s)
     case CEL_HTTPREQUEST_WRITING_HEADER:
         if (cel_httprequest_writing_header(req, s) == -1)
             return -1;
-        cel_http_chuked_init(&(req->chunked), cel_stream_get_position(s));
+        cel_httpchunked_init(&(req->chunked), cel_stream_get_position(s));
         req->writing_state = CEL_HTTPREQUEST_WRITING_BODY;
     case CEL_HTTPREQUEST_WRITING_BODY:
         if (cel_httprequest_writing_body(req, s) == -1)
@@ -997,8 +997,9 @@ void *cel_httprequest_get_send_buffer(CelHttpRequest *req)
         cel_httprequest_set_header(req, 
             CEL_HTTPHDR_TRANSFER_ENCODING, 
             &transfer_encoding, sizeof(transfer_encoding));
+        cel_httprequest_writing(req, &(req->s));
     }
-    return cel_http_chunked_get_buffer(&(req->chunked), s);
+    return cel_httpchunked_get_send_buffer(&(req->chunked), s);
 }
 
 size_t cel_httprequest_get_send_buffer_size(CelHttpRequest *req)
@@ -1011,15 +1012,17 @@ size_t cel_httprequest_get_send_buffer_size(CelHttpRequest *req)
         cel_httprequest_set_header(req, 
             CEL_HTTPHDR_TRANSFER_ENCODING, 
             &transfer_encoding, sizeof(transfer_encoding));
+        cel_httprequest_writing(req, &(req->s));
     }
-    return cel_http_chunked_get_buffer_size(&(req->chunked), s);
+    return cel_httpchunked_get_send_buffer_size(&(req->chunked), s);
 }
 
 void cel_httprequest_seek_send_buffer(CelHttpRequest *req, int offset)
 {
     if (offset > 0)
     {
-        cel_http_chunked_seek(&(req->chunked), offset);
+        cel_httpchunked_send_seek(&(req->chunked), offset);
+        cel_stream_seek(&(req->s), offset);
         req->writing_body_offset += offset;
     }
 }
@@ -1034,8 +1037,9 @@ int cel_httprequest_resize_send_buffer(CelHttpRequest *req, size_t resize)
         cel_httprequest_set_header(req, 
             CEL_HTTPHDR_TRANSFER_ENCODING, 
             &transfer_encoding, sizeof(transfer_encoding));
+        cel_httprequest_writing(req, &(req->s));
     }
-    return cel_http_chunked_resize_buffer(&(req->chunked), s, resize);
+    return cel_httpchunked_resize_send_buffer(&(req->chunked), s, resize);
 }
 
 typedef struct _CelHttpRequestBuf

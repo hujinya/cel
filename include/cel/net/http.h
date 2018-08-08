@@ -32,6 +32,14 @@
 #define CEL_HTTPBODY_CACHE_LEN_MAX   1024 * 1024 * 1024
 #define CEL_HTTPBODY_CACHE_PATH      "./cache/bdy/"
 
+typedef enum _CelHttpError
+{
+    CEL_HTTP_NO_ERROR = 0,
+    CEL_HTTP_ERROR,
+    CEL_HTTP_WANT_READ,
+    CEL_HTTP_WANT_WRITE
+}CelHttpError;
+
 typedef enum _CelHttpVersion
 {
     CEL_HTTPVER_UNDEFINED = -1,
@@ -132,14 +140,6 @@ typedef enum _CelHttpHeader
     CEL_HTTPHDR_COUNT
 }CelHttpHeader;
 
-typedef enum _CelHttpError
-{
-    CEL_HTTP_NO_ERROR = 0,
-    CEL_HTTP_ERROR,
-    CEL_HTTP_WANT_READ,
-    CEL_HTTP_WANT_WRITE
-}CelHttpError;
-
 typedef enum _CelHttpConnection
 {
     CEL_HTTPCON_UNDEFINED = -1,
@@ -174,23 +174,6 @@ typedef struct _CelHttpCookie
     CelVStringA path;
     BOOL secure, httponly;
 }CelHttpCookie, CelHttpSetCookie;
-
-typedef enum _CelHttpBodySaveType
-{
-    CEL_HTTPBODY_SAVE_UNDEFINED = -1,
-    CEL_HTTPBODY_SAVE_IN_CACHE,
-    CEL_HTTPBODY_SAVE_IN_MULTIPART
-}CelHttpBodySaveType;
-
-typedef struct _CelHttpBodyCache
-{
-    long long size;
-    size_t buf_max_size;
-    CelStream buf;
-    BOOL clear_file;
-    FILE *fp;
-    CelVStringA file_path;
-}CelHttpBodyCache;
 
 #define cel_httpsetcookie_init cel_httpcookie_init
 #define cel_httpsetcookie_destroy cel_httpcookie_destroy
@@ -250,6 +233,30 @@ extern CelHttpHeaderHandler g_httpcontentrange_handler;
 extern CelHttpHeaderHandler g_httpcookie_handler;
 extern CelHttpHeaderHandler g_httprange_handler;
 extern CelHttpHeaderHandler g_httptransferencoding_handler;
+
+typedef struct _CelHttpChunked
+{
+    BOOL last;
+    int start;
+    unsigned int size;
+}CelHttpChunked;
+
+typedef enum _CelHttpBodySaveType
+{
+    CEL_HTTPBODY_SAVE_UNDEFINED = -1,
+    CEL_HTTPBODY_SAVE_IN_CACHE,
+    CEL_HTTPBODY_SAVE_IN_MULTIPART
+}CelHttpBodySaveType;
+
+typedef struct _CelHttpBodyCache
+{
+    long long size;
+    size_t buf_max_size;
+    CelStream buf;
+    BOOL clear_file;
+    FILE *fp;
+    CelVStringA file_path;
+}CelHttpBodyCache;
 
 #ifdef __cplusplus
 extern "C" {
@@ -349,14 +356,7 @@ int cel_httptransferencoding_writing(const char *hdr_name,
 
 int cel_httpextheader_writing(char *hdr_name, char *value, CelStream *s);
 
-typedef struct _CelHttpChunked
-{
-    BOOL last;
-    int start;
-    unsigned int size;
-}CelHttpChunked;
-
-static __inline int cel_http_chuked_init(CelHttpChunked *chunked, int start)
+static __inline int cel_httpchunked_init(CelHttpChunked *chunked, int start)
 {
     chunked->last = FALSE;
     chunked->start = start;
@@ -364,31 +364,29 @@ static __inline int cel_http_chuked_init(CelHttpChunked *chunked, int start)
     return 0;
 }
 
+long cel_httpchunked_reading(CelStream *s);
+
 static __inline 
-int cel_http_chunked_get_buffer_position(CelHttpChunked *chunked)
+int cel_httpchunked_get_send_buffer_position(CelHttpChunked *chunked)
 {
     return chunked->start + chunked->size + 9;
 }
 static __inline 
-void *cel_http_chunked_get_buffer(CelHttpChunked *chunked, CelStream *s)
+void *cel_httpchunked_get_send_buffer(CelHttpChunked *chunked, CelStream *s)
 {
     cel_stream_set_position(s, 
-        cel_http_chunked_get_buffer_position(chunked));
+        cel_httpchunked_get_send_buffer_position(chunked));
     return cel_stream_get_pointer(s);
 }
-static __inline void cel_http_chunked_seek(CelHttpChunked *chunked, int offset)
+#define cel_httpchunked_get_send_buffer_size(chunked, s) \
+    (cel_stream_get_remaining_capacity(s) - 11)
+#define cel_httpchunked_resize_send_buffer(chunked, s, resize) \
+    cel_stream_remaining_resize(s, resize + 11)
+static __inline void cel_httpchunked_send_seek(CelHttpChunked *chunked, int offset)
 {
     chunked->size += offset;
 }
-
-#define cel_http_chunked_get_buffer_size(chunked, s) \
-    (cel_stream_get_remaining_capacity(s) - 11)
-#define cel_http_chunked_resize_buffer(chunked, s, resize) \
-    cel_stream_remaining_resize(s, resize + 11)
-
-
-long cel_http_chunked_reading(CelStream *s);
-long cel_http_chunked_last(CelHttpChunked *chunked, CelStream *s);
+long cel_httpchunked_writing_last(CelHttpChunked *chunked, CelStream *s);
 
 
 int cel_httpbodycache_init(CelHttpBodyCache *cache, size_t buf_max_size);

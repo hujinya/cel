@@ -132,9 +132,13 @@ int _cel_ringlist_push_do_mp(CelRingList *ring_list, size_t n,
     * If there are other enqueues in progress that preceded us,
     * we need to wait for them to complete
     */
-    while (ring_list->p_tail != prod_head) 
+    while (ring_list->p_tail != prod_head)
+    {
         yield(rep++);
+    }
     ring_list->p_tail = prod_next;
+    if (rep > 0)
+        printf("push yield, rep = %d\r\n", rep);
     return n;
 }
 
@@ -221,9 +225,13 @@ int _cel_ringlist_pop_do_mp(CelRingList *ring_list, size_t n,
     * If there are other dequeues in progress that preceded us,
     * we need to wait for them to complete
     */
-    while (ring_list->c_tail != cons_head) 
+    while (ring_list->c_tail != cons_head)
+    {
         yield(rep++);
+    }
     ring_list->c_tail = cons_next;
+    if (rep > 0)
+        printf("pop yield, rep = %d\r\n", rep);
 
     return n;
 }
