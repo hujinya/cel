@@ -15,12 +15,6 @@
 #include "cel/convert.h"
 #include "cel/error.h"
 #include "cel/allocator.h"
-#include "cel/log.h"
-
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args) /* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args) /* cel_log_err args */
 
 #define LLSTRLEN      27 /* -9,223,372,036,854,775,807 */
 

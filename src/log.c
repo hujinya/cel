@@ -15,6 +15,7 @@
 #include "cel/log.h"
 #include "cel/error.h"
 #include "cel/allocator.h"
+#include "cel/atomic.h"
 #include "cel/convert.h"
 #include "cel/file.h"
 #include "cel/multithread.h"
@@ -333,7 +334,7 @@ void _cel_logger_ringlist_push_msg(CelRingList *ring_list,
     }
 }
 
-int _cel_logger_puts(CelLogger *logger, CelLogLevel level, const TCHAR *str)
+int cel_logger_puts(CelLogger *logger, CelLogLevel level, const TCHAR *str)
 {
     CelLogUserData _user_data, *user_data;
     CelLogMsg *log_msg;
@@ -367,7 +368,7 @@ int _cel_logger_puts(CelLogger *logger, CelLogLevel level, const TCHAR *str)
     return 0;
 }
 
-int _cel_logger_hexdump(CelLogger *logger, CelLogLevel level, 
+int cel_logger_hexdump(CelLogger *logger, CelLogLevel level, 
                         const BYTE *p, size_t len)
 {
     CelLogUserData _user_data, *user_data;
@@ -403,7 +404,7 @@ int _cel_logger_hexdump(CelLogger *logger, CelLogLevel level,
     return 0;
 }
 
-int _cel_logger_vprintf(CelLogger *logger, CelLogLevel level, 
+int cel_logger_vprintf(CelLogger *logger, CelLogLevel level, 
                         const TCHAR *fmt, va_list ap)
 {
     CelLogUserData _user_data, *user_data;

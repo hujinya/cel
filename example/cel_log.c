@@ -7,7 +7,7 @@ int cel_log_write(void *user_data)
     int i = 0;
     while (TRUE)
     {
-        while (i++ < 100000)
+        while (i++ < 10000)
         {
             //if (i == 5)
                 //usleep(10 * 1000);

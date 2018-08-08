@@ -18,7 +18,6 @@
 /* http://www.ietf.org/rfc/rfc3164.txt */
 
 #include "cel/types.h"
-#include "cel/atomic.h"
 #include "cel/datetime.h"
 #include "cel/list.h"
 #include "cel/ringlist.h"
@@ -119,24 +118,42 @@ int cel_logger_hook_register(CelLogger *logger, const TCHAR *name,
                              CelLogMsgFlushFunc flush_func, void *user_data);
 int cel_logger_hook_unregister(CelLogger *logger, const TCHAR *name);
 
+int cel_logger_puts(CelLogger *logger, CelLogLevel level, const TCHAR *str);
+int cel_logger_vprintf(CelLogger *logger, CelLogLevel level, 
+                       const TCHAR *fmt, va_list ap);
+int cel_logger_printf(CelLogger *logger, CelLogLevel level, 
+                      const TCHAR *fmt, ...);
+int cel_logger_hexdump(CelLogger *logger, CelLogLevel level,
+                       const BYTE *p, size_t len);
 int cel_logger_flush(CelLogger *logger);
 
-int _cel_logger_puts(CelLogger *logger, CelLogLevel level, const TCHAR *str);
-int _cel_logger_vprintf(CelLogger *logger, CelLogLevel level, 
-                        const TCHAR *fmt, va_list ap);
-int _cel_logger_printf(CelLogger *logger, CelLogLevel level, 
-                       const TCHAR *fmt, ...);
-int _cel_logger_hexdump(CelLogger *logger, CelLogLevel level,
-                        const BYTE *p, size_t len);
+
+/* Global log */
+#define cel_log_facility_set(facility) \
+    cel_log_facility_set(&g_logger, facility)
+#define cel_log_level_set(level) cel_logger_level_set(&g_logger, level)
+#define cel_severity_set cel_logger_level_set
+
+#define cel_log_hostname_set(_hostname) \
+    cel_logger_hostname_set(&g_logger, _hostname)
+#define cel_log_processname_set(processname) \
+    cel_logger_processname_set(&g_logger, processname)
+#define cel_log_buffer_num_set(num) cel_logger_buffer_num_set(&g_logger, num)
+#define cel_log_hook_register(name, write_func, flush_func, user_data)\
+    cel_logger_hook_register(&g_logger, name, write_func, flush_func, user_data)
+#define cel_log_hook_unregister(name) \
+    cel_logger_hook_unregister(&g_logger, name)
 
 #define cel_log_puts(level, str) \
-    _cel_logger_puts(&g_logger, level, str)
+    cel_logger_puts(&g_logger, level, str)
 #define cel_log_vprintf(level, fmt, ap) \
-    _cel_logger_vprintf(&g_logger, level, fmt, ap)
+    cel_logger_vprintf(&g_logger, level, fmt, ap)
 #define cel_log_hexdump(level, p, len) \
-    _cel_logger_hexdump(&g_logger, level, p, len)
-int cel_logger_printf(CelLogLevel level, const TCHAR *fmt, ...);
-
+    cel_logger_hexdump(&g_logger, level, p, len)
+int cel_log_printf(CelLogLevel level, const TCHAR *fmt, ...);
+static __inline int cel_log_flush(void){
+    return cel_logger_flush(&g_logger);
+}
 int cel_log_debug(const TCHAR *fmt, ...);
 int cel_log_info(const TCHAR *fmt, ...);
 int cel_log_notice(const TCHAR *fmt, ...);

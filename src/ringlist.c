@@ -128,11 +128,6 @@ int _cel_ringlist_push_do_mp(CelRingList *ring_list, size_t n,
     /* write entries in ring */
     handle(ring_list, prod_head, n, user_data);
     cel_compiler_barrier();
-    /* if we exceed the watermark */
-    //if (((mask + 1) - free_entries + n) > ring_list->p_watermark) 
-    //    ;
-    //else
-    //    ;
     /*
     * If there are other enqueues in progress that preceded us,
     * we need to wait for them to complete
