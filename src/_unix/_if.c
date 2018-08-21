@@ -21,10 +21,6 @@
 #include <sys/ioctl.h>
 #include <net/if.h>        //for struct ifreq
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
 
 int cel_if_getindex(const TCHAR *if_name, int *if_index)
 {

@@ -15,8 +15,8 @@
 #ifndef __CEL_COROUTINE_UNIX_H__
 #define __CEL_COROUTINE_UNIX_H__
 
-#include "cel/config.h"
 #include "cel/types.h"
+#include "cel/list.h"
 #include <stddef.h> /* ptrdiff_t */
 #if __APPLE__ && __MACH__
 #include <sys/ucontext.h>
@@ -37,6 +37,7 @@ typedef struct _OsCoroutineScheduler
     int co_running;
     int co_num;
     int co_capacity;
+    CelList ready_list;
     OsCoroutineEntity **co_entitys;
 }OsCoroutineScheduler;
 
@@ -47,6 +48,12 @@ typedef struct _OsCoroutineAttr
 
 struct _OsCoroutineEntity
 {
+    union {
+        CelListItem list_item;
+        struct {
+            struct _OsCoroutineEntity *next, *prev;
+        };
+    };
     int id;
     OsCoroutineFunc func;
     void *user_data;
@@ -71,6 +78,19 @@ static __inline
 OsCoroutineEntity *os_coroutinescheduler_running(OsCoroutineScheduler *schd)
 {
     return schd->co_entitys[schd->co_running];
+}
+
+static __inline 
+void os_coroutinescheduler_push_ready(OsCoroutineScheduler *schd, 
+                                      OsCoroutineEntity *co_entity)
+{
+    cel_list_push_front(&(schd->ready_list), &(co_entity->list_item));
+}
+
+static __inline 
+OsCoroutineEntity *os_coroutinescheduler_pop_ready(OsCoroutineScheduler *schd)
+{
+    return (OsCoroutineEntity *)cel_list_pop_back(&(schd->ready_list));
 }
 
 int os_coroutineentity_create(OsCoroutineEntity **co_entity, 

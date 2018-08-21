@@ -24,10 +24,6 @@
 #include <Psapi.h>    /* GetPerformanceInfo() */
 #include <Iphlpapi.h> /* GetIfTable() */
 
-/* Debug defines */
-#define Debug(args)   /*cel_log_debug args*/
-#define Warning(args) CEL_SETERRSTR(args)/*cel_log_warning args*/
-#define Err(args)   CEL_SETERRSTR(args)/*cel_log_err args*/
 
 CelPerf s_perf = { { 0 }, { 0 }, { 0 }, { 0 }};
 
@@ -226,14 +222,14 @@ CelCpuPerf *cel_getcpuperf(void)
         && (PNtQuerySystemInformation = (PROCNTQSI) GetProcAddress(
         GetModuleHandle(_T("ntdll")), "NtQuerySystemInformation")) == NULL)
     {
-        Err((_T("Load NtQuerySystemInformation failed.(GetProcAddress():%s)"), 
+        CEL_ERR((_T("Load NtQuerySystemInformation failed.(GetProcAddress():%s)"), 
             cel_geterrstr(cel_sys_geterrno())));
         return NULL;
     }
     if ((lStatus = PNtQuerySystemInformation(
         SystemBasicInformation, &sbi, sizeof(sbi), &ulLen)) != NO_ERROR)
     {
-        Err((_T("SystemBasicInformation():%s."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_ERR((_T("SystemBasicInformation():%s."), cel_geterrstr(cel_sys_geterrno())));
         return NULL;
     }
     // sizeof(SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION) = 44(32bit)/48(32bit)
@@ -241,13 +237,13 @@ CelCpuPerf *cel_getcpuperf(void)
     if ((sppi = 
         (SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION *)cel_malloc(ulLen)) == NULL)
     {
-        Err((_T("%s"), cel_geterrstr(cel_sys_geterrno())));
+        CEL_ERR((_T("%s"), cel_geterrstr(cel_sys_geterrno())));
         return NULL;
     }
     if ((lStatus = PNtQuerySystemInformation(SystemProcessorPerformanceInformation,
         sppi, ulLen, &ulLen)) != NO_ERROR)
     {
-        Err((_T("SystemProcessorPerformanceInformation():%s."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_ERR((_T("SystemProcessorPerformanceInformation():%s."), cel_geterrstr(cel_sys_geterrno())));
         cel_free(sppi);
         return NULL;
     }
@@ -386,7 +382,7 @@ CelNetPerf *cel_getnetperf(void)
     {
         if (dwResult != ERROR_INSUFFICIENT_BUFFER)
         {
-            Err((_T("GetIfTable():%s."), cel_geterrstr(cel_sys_geterrno())));
+            CEL_ERR((_T("GetIfTable():%s."), cel_geterrstr(cel_sys_geterrno())));
             cel_free(iftb);
             return NULL;
         }
@@ -397,7 +393,7 @@ CelNetPerf *cel_getnetperf(void)
     if ((dwResult = GetIfTable(iftb, &ulLen, FALSE)) != NO_ERROR)
     {
         cel_free(iftb);
-        Err((_T("GetIfTable():%s."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_ERR((_T("GetIfTable():%s."), cel_geterrstr(cel_sys_geterrno())));
         return NULL;
     }
     t_received = t_sent = 0;

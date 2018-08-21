@@ -20,11 +20,6 @@
 #include "cel/net/_telnet.h"
 #include <stdarg.h>
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args) /* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args) /* cel_log_err args */
-
 static void cel_readline_clear(CelReadLine *rl);
 static void cel_readline_redisplay(CelReadLine *rl);
 static void cel_readline_forward_char(CelReadLine *rl, int nbytes);

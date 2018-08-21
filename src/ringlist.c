@@ -63,12 +63,9 @@ void cel_ringlist_push_values(CelRingList *ring_list,
                               unsigned long prod_head, size_t n, void **values)
 { 
     unsigned int i, idx;
-    U32 size;
-    U32 mask = ring_list->mask;
 
-    size = ring_list->size;
-    idx = prod_head & mask;
-    if (idx + n < size)
+    idx = (prod_head & (ring_list->mask));
+    if (idx + n < ring_list->size)
     { 
         for (i = 0; i < (n & ((~(unsigned)0x3))); i += 4, idx += 4)
         { 
@@ -86,7 +83,7 @@ void cel_ringlist_push_values(CelRingList *ring_list,
     }
     else 
     { 
-        for (i = 0; idx < size; i++, idx++)
+        for (i = 0; idx < ring_list->size; i++, idx++)
             ring_list->ring[idx] = values[i]; 
         for (idx = 0; i < n; i++, idx++) 
             ring_list->ring[idx] = values[i]; 
@@ -124,7 +121,7 @@ int _cel_ringlist_push_do_mp(CelRingList *ring_list, size_t n,
         }
         prod_next = prod_head + n;
     }while (cel_atomic_cmp_and_swap(
-        &(ring_list->p_head), prod_head, prod_next, 0) == prod_next);
+        &(ring_list->p_head), prod_head, prod_next, 0) != prod_head);
     /* write entries in ring */
     handle(ring_list, prod_head, n, user_data);
     cel_compiler_barrier();
@@ -135,10 +132,13 @@ int _cel_ringlist_push_do_mp(CelRingList *ring_list, size_t n,
     while (ring_list->p_tail != prod_head)
     {
         yield(rep++);
+        /*if (rep > 4)
+            printf("push yield, rep = %d, "
+            "size %d, p_tail %d, prod_head %d\r\n",
+            rep, ring_list->size, ring_list->p_tail, prod_head);*/
     }
     ring_list->p_tail = prod_next;
-    if (rep > 0)
-        printf("push yield, rep = %d\r\n", rep);
+    
     return n;
 }
 
@@ -151,12 +151,9 @@ void cel_ringlist_pop_values(CelRingList *ring_list,
                              unsigned long cons_head, size_t n, void **values)
 {
     unsigned int i, idx;
-    U32 size;
-    U32 mask = ring_list->mask;
 
-    size = ring_list->size; 
-    idx = cons_head & mask; 
-    if (idx + n < size) 
+    idx = cons_head & (ring_list->mask); 
+    if (idx + n < ring_list->size) 
     { 
         for (i = 0; i < (n & ((~(unsigned)0x3))); i+=4, idx+=4) 
         { 
@@ -174,7 +171,7 @@ void cel_ringlist_pop_values(CelRingList *ring_list,
     } 
     else 
     {
-        for (i = 0; idx < size; i++, idx++)
+        for (i = 0; idx < ring_list->size; i++, idx++)
             values[i] = ring_list->ring[idx];
         for (idx = 0; i < n; i++, idx++)
             values[i] = ring_list->ring[idx];
@@ -217,7 +214,7 @@ int _cel_ringlist_pop_do_mp(CelRingList *ring_list, size_t n,
         }
         cons_next = cons_head + n;
     }while(cel_atomic_cmp_and_swap(
-        &(ring_list->c_head), cons_head, cons_next, 0) == cons_next);
+        &(ring_list->c_head), cons_head, cons_next, 0) != cons_head);
     /* copy in table */
     handle(ring_list, cons_head, n, user_data);
     cel_compiler_barrier();
@@ -228,10 +225,11 @@ int _cel_ringlist_pop_do_mp(CelRingList *ring_list, size_t n,
     while (ring_list->c_tail != cons_head)
     {
         yield(rep++);
+        /*if (rep > 4)
+            printf("pop yield, rep = %d c_tail %d c_head %d\r\n", 
+            rep, ring_list->c_tail, cons_head);*/
     }
     ring_list->c_tail = cons_next;
-    if (rep > 0)
-        printf("pop yield, rep = %d\r\n", rep);
 
     return n;
 }

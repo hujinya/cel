@@ -17,11 +17,6 @@
 #include "cel/error.h"
 #include "cel/log.h"
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
-
 void cel_timeval_set(struct timeval *tv, 
                      const struct timeval *now, long milliseconds)
 {

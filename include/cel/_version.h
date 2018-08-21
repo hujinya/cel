@@ -1,9 +1,9 @@
 #ifndef __VERSION_H__
 #define __VERSION_H__
-#define MAJOR
-#define MINOR
-#define REVISION
-#define BUILD
+#define MAJOR 1
+#define MINOR 0
+#define REVISION 9
+#define BUILD 10
 #define EXTRA ""
 #define OS "\S"
 #define PLATFORM "Linux 3.10.0-514.10.2.el7.x86_64"

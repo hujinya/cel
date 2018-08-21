@@ -17,11 +17,6 @@
 #include "cel/log.h"
 #include "cel/atomic.h"
 
-/* Debug defines */
-#define Debug(args)    /*cel_log_debug args*/ 
-#define Warning(args)  CEL_SETERRSTR(args)/*cel_log_warning args */
-#define Err(args)    CEL_SETERRSTR(args)/*cel_log_err args*/ 
-
 /* Global vars */
 static CelAsyncQueue *unused_thread_queue = NULL;
 static void *wakeup_thread_marker = (void *)&cel_threadpool_new;
@@ -72,7 +67,7 @@ int cel_threadpool_init(CelThreadPool *thread_pool,
         }
         cel_asyncqueue_unlock(&thread_pool->task_queue);
     }
-    Debug((_T("Threadpool %p init(max_threads:%d, exclusive:%d)."), 
+    CEL_DEBUG((_T("Threadpool %p init(max_threads:%d, exclusive:%d)."), 
         thread_pool, max_threads, exclusive));
     return 0;
 }
@@ -110,7 +105,7 @@ void cel_threadpool_destroy(CelThreadPool *thread_pool,
      */
     cel_asyncqueue_unlock(&thread_pool->task_queue);
     cel_threadpool_free_internal(thread_pool);
-    Debug((_T("Threadpool %p destroy"
+    CEL_DEBUG((_T("Threadpool %p destroy"
         "(immediate:%d , waiting:%d , threads:%d)."), 
         thread_pool, immediate, waiting, thread_pool->num_threads));
 }
@@ -204,7 +199,7 @@ static int cel_threadpool_thread_proxy(void *data)
     void *task_data;
     CelThreadPool *thread_pool = (CelThreadPool *)data;
 
-    Debug((_T("New thread 0x%x started for pool %p."), 
+    CEL_DEBUG((_T("New thread 0x%x started for pool %p."), 
         cel_thread_self(), thread_pool));
     cel_asyncqueue_lock(&thread_pool->task_queue);
     while (TRUE)
@@ -235,16 +230,16 @@ static int cel_threadpool_thread_proxy(void *data)
 
         cel_asyncqueue_unlock(&(thread_pool->task_queue));
         /* No task data was received, so this thread goes to the global pool */
-        Debug((_T("Thread 0x%x leave pool %p for global pool."), 
+        CEL_DEBUG((_T("Thread 0x%x leave pool %p for global pool."), 
             cel_thread_self(), thread_pool));
         if ((thread_pool = cel_threadpool_wait_pool()) == NULL)
         {
-            Debug(("Thread 0x%x exit for global pool.", cel_thread_self()));
+            CEL_DEBUG(("Thread 0x%x exit for global pool.", cel_thread_self()));
             break;
         }
         //printf("%p %p\r\n", thread_pool, &thread_pool->task_queue);
         cel_asyncqueue_lock(&(thread_pool->task_queue));
-        Debug((_T("Thread 0x%x entering pool %p from global pool."), 
+        CEL_DEBUG((_T("Thread 0x%x entering pool %p from global pool."), 
             cel_thread_self(), thread_pool));
     }
     cel_thread_exit(0);
@@ -272,7 +267,7 @@ static void *cel_threadpool_wait_task(CelThreadPool *thread_pool)
             /* Exclusive threads stay attached to the pool. */
             task_data = 
                 cel_asyncqueue_pop_unlocked(&(thread_pool->task_queue));
-            Debug((_T("Thread 0x%x in exclusive pool %p waits for task")
+            CEL_DEBUG((_T("Thread 0x%x in exclusive pool %p waits for task")
                 _T("(%d running, %d unprocessed)."), 
                 cel_thread_self(), thread_pool, thread_pool->num_threads, 
                 cel_asyncqueue_get_size_unlocked(&thread_pool->task_queue)));
@@ -284,7 +279,7 @@ static void *cel_threadpool_wait_task(CelThreadPool *thread_pool)
              * A thread will wait for new tasks for at most 500 milliseconds 
              * before going to the global pool.
              */
-            Debug((_T("Thread 0x%x in pool %p waits for up to ")
+            CEL_DEBUG((_T("Thread 0x%x in pool %p waits for up to ")
                 _T("a 1/2 second for task. %d running, %d unprocessed)."), 
                 cel_thread_self(), thread_pool, thread_pool->num_threads, 
                 cel_asyncqueue_get_size_unlocked(&thread_pool->task_queue)));
@@ -321,7 +316,7 @@ static CelThreadPool *cel_threadpool_wait_pool(void)
         else if (local_max_idle_time > 0)
         {
             /* If a maximal idle time is given, wait for the given time. */
-            Debug((_T("Thread 0x%x waiting in global pool "
+            CEL_DEBUG((_T("Thread 0x%x waiting in global pool "
                 "for %d milliseconds ."), 
                 cel_thread_self(), local_max_idle_time));
             waittime = local_max_idle_time * 1000;
@@ -331,7 +326,7 @@ static CelThreadPool *cel_threadpool_wait_pool(void)
         else
         {
             /* If no maximal idle time is given, wait indefinitely. */
-            Debug((_T("Thread 0x%x waiting in global pool."), 
+            CEL_DEBUG((_T("Thread 0x%x waiting in global pool."), 
                 cel_thread_self()));
             thread_pool = 
                 (CelThreadPool *)cel_asyncqueue_pop(unused_thread_queue);

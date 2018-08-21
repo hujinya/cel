@@ -17,11 +17,6 @@
 #include "cel/log.h"
 #include "cel/allocator.h"
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */ 
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
-
 int cel_rbtree_init(CelRbTree *rbtree, CelCompareFunc key_comparator, 
                     CelFreeFunc key_freefunc, CelFreeFunc value_freefunc)
 {

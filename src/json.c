@@ -18,11 +18,6 @@
 #include "cel/file.h"
 #include "cel/log.h"
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args) /*cel_log_err args*/
-
 int cel_json_init(CelJson *json)
 {
     json->escape_cursor = 0;
@@ -52,7 +47,7 @@ int cel_json_init_buffer(CelJson *json, char *buf, size_t size)
         cel_json_deserialize_finish(json);
         cel_json_destroy(json);
     }
-    Err((_T("Json init by buffer error.(%s)"), 
+    CEL_ERR((_T("Json init by buffer error.(%s)"), 
         cel_geterrstr(cel_sys_geterrno())));
 
     return -1;
@@ -66,7 +61,7 @@ int cel_json_init_file(CelJson *json, const char *file)
             return 0;
         cel_json_destroy(json);
     }
-    Err((_T("Json init by file error.(%s)"),
+    CEL_ERR((_T("Json init by file error.(%s)"),
         cel_geterrstr(cel_sys_geterrno())));
 
     return -1;
@@ -196,7 +191,7 @@ static int cel_json_string_decode(CelJson *json, char ch)
                 case 'r': ch = '\r'; break; 
                 case 't': ch = '\t'; break; 
                 default: 
-                    Err((_T("Json string decode error, undefined escap(%c)."), 
+                    CEL_ERR((_T("Json string decode error, undefined escap(%c)."), 
                         ch));
                     json->state = CEL_JSONDS_ERROR;
                     return -1;
@@ -267,7 +262,7 @@ static int cel_json_deserialize_key(CelJson *json, char *buf, size_t size,
             return 0;
         }
     }
-    Err((_T("Json deserialize key '%c' error, parent key '%s'."),
+    CEL_ERR((_T("Json deserialize key '%c' error, parent key '%s'."),
         buf[*cursor], cur_node->parent->key));
     json->state = CEL_JSONDS_ERROR;
     return -1;
@@ -310,7 +305,7 @@ static int cel_json_deserialize_string(CelJson *json,
             cur_node->key, cur_node->strvalue, cur_node->strvalue_len);*/
         return 0;
     }
-    Err((_T("Json deserialize key '%s' value error, len %d."), 
+    CEL_ERR((_T("Json deserialize key '%s' value error, len %d."), 
         cur_node->key, cur_node->strvalue_len));
     json->state = CEL_JSONDS_ERROR;
 
@@ -406,7 +401,7 @@ static int cel_json_deserialize_value(CelJson *json,
                 return cel_json_deserialize_number(json, buf, size, cursor);
             }
             //json->state = CEL_JSONDS_ERROR;
-            Err((_T("Json deserialize key '%s' value '%c' type invaild."), 
+            CEL_ERR((_T("Json deserialize key '%s' value '%c' type invaild."), 
                 json->cur_node->key, ch));
             return -1;
         }
@@ -671,7 +666,7 @@ static int cel_json_serialize_value(CelJson *json, char *buf, size_t size,
         _cel_vstring_nappend_a(&(json->vstr), "null", 4);
         return cel_json_serialize_next(json, buf, size, cursor);
     default:
-        Err((_T("Json type %d undefined."), cur_node->type));
+        CEL_ERR((_T("Json type %d undefined."), cur_node->type));
         json->state = CEL_JSONSS_ERROR;
         return -1;
     }
@@ -729,7 +724,7 @@ int cel_json_deserialize_update(CelJson *json, char *buf, size_t size)
 
     if (json->state >= CEL_JSONDS_ERROR)
     {
-        Err((_T("Json deserialize update failed, state %d error."),
+        CEL_ERR((_T("Json deserialize update failed, state %d error."),
             json->state));
         return -1;
     }
@@ -753,10 +748,10 @@ int cel_json_deserialize_finish(CelJson *json)
         if (json->state != CEL_JSONDS_ERROR)
         {
             if (json->cur_node != NULL)
-                Err((_T("Json deserialize state %d, cur node key '%s'."), 
+                CEL_ERR((_T("Json deserialize state %d, cur node key '%s'."), 
                 json->state, json->cur_node->key));
             else
-                Err((_T("Json deserialize state %d."), json->state));
+                CEL_ERR((_T("Json deserialize state %d."), json->state));
         }
     }
     return 0;
@@ -806,7 +801,7 @@ int cel_json_serialize_update(CelJson *json, char *buf, size_t *size)
 
     if (json->state < CEL_JSONSS_ROOT)
     {
-        Err((_T("Json serialize update failed, state %d error."),
+        CEL_ERR((_T("Json serialize update failed, state %d error."),
             json->state));
         return -1;
     }

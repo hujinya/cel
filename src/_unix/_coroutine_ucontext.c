@@ -54,6 +54,7 @@ OsCoroutineScheduler *os_coroutinescheduler_new(void)
         schd->co_num = 0;
         schd->co_capacity = CEL_COROUTINE_CAP;
         schd->co_running = -1;
+        cel_list_init(&(schd->ready_list), NULL);
         if ((schd->co_entitys = (OsCoroutineEntity **)cel_calloc(1, 
             sizeof(OsCoroutineEntity *) * schd->co_capacity)) != NULL)
         {
@@ -69,6 +70,7 @@ void os_coroutinescheduler_free(OsCoroutineScheduler *schd)
     int i;
     OsCoroutineEntity *co_entity;
 
+    cel_list_destroy(&(schd->ready_list));
     for (i = 0;i < schd->co_capacity;i++) 
     {
         co_entity = schd->co_entitys[i];

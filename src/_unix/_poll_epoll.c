@@ -16,12 +16,9 @@
 #ifdef _CEL_UNIX
 #include "cel/allocator.h"
 #include "cel/error.h"
+#undef _CEL_DEBUG
+//#define _CEL_DEBUG
 #include "cel/log.h"
-
-/* Debug defines */
-#define Debug(args)   /*cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args) /*cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args) /*cel_log_err args*/
 
 int cel_eventchannel_init(CelChannel *evt_ch)
 {
@@ -125,14 +122,14 @@ int cel_poll_add(CelPoll *poll, CelChannel *channel, void *key)
 
     if (fileds <= 0 || fileds >= poll->max_fileds)
     {
-        Err((_T("Poll add %d failed."), fileds));
+        CEL_ERR((_T("Poll add %d failed."), fileds));
         return -1;
     }
     if (poll->epoll_datas[fileds] == NULL
         && (poll->epoll_datas[fileds] = 
         (CelPollData *)cel_malloc(sizeof(CelPollData))) == NULL)
     {
-        Err((_T("%s"), cel_geterrstr(cel_sys_geterrno())));
+        CEL_ERR((_T("%s"), cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
     poll_data = poll->epoll_datas[fileds];
@@ -143,7 +140,7 @@ int cel_poll_add(CelPoll *poll, CelChannel *channel, void *key)
     ctl_event.data.fd = fileds;
     if (epoll_ctl(poll->epoll_fd, EPOLL_CTL_ADD, fileds, &ctl_event) != 0)
     {
-        Err((_T("epoll_ctl():%s"), cel_geterrstr(cel_sys_geterrno())));
+        CEL_ERR((_T("epoll_ctl():%s"), cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
     //_tprintf(_T("ctl_event fd %d\r\n"), ctl_event.data.fd);
@@ -165,7 +162,7 @@ static int cel_poll_handle(CelPoll *poll,
         POLLOUT_CLR(poll_data->events);
         break;
     default:
-        Err((_T("Undfined event type \"%d\"."), ol->evt_type));
+        CEL_ERR((_T("Undfined event type \"%d\"."), ol->evt_type));
         return -1;
     }
     do
@@ -181,6 +178,7 @@ static int cel_poll_handle(CelPoll *poll,
                     ol->_ol.events = poll_data->events;
                     POLLIN_CLR(poll_data->events);
                     cel_poll_unlock(poll, &(poll->event_locker));
+                    CEL_DEBUG((_T("Poll in event")));
                     continue;
                 }
                 ol->evt_type = CEL_EVENT_CHANNELIN;
@@ -197,6 +195,7 @@ static int cel_poll_handle(CelPoll *poll,
                     ol->_ol.events = poll_data->events;
                     POLLOUT_CLR(poll_data->events);
                     cel_poll_unlock(poll, &(poll->event_locker));
+                    CEL_DEBUG((_T("Poll out event")));
                     continue;
                 }
                 ol->evt_type = CEL_EVENT_CHANNELOUT;
@@ -219,7 +218,7 @@ int cel_poll_post(CelPoll *poll, int fileds, CelOverLapped *ol)
     if (fileds <=0 || fileds >= poll->max_fileds
         || (poll_data = poll->epoll_datas[fileds]) == NULL)
     {
-        Err((_T("Poll post %d failed."), fileds));
+        CEL_ERR((_T("Poll post %d failed."), fileds));
         return -1;
     }
     ol->key = poll_data->key;
@@ -228,7 +227,7 @@ int cel_poll_post(CelPoll *poll, int fileds, CelOverLapped *ol)
         return -1;
     else if (ret == 1)
     {
-        //_tprintf(_T("fileds %d, error %d\r\n"), fileds, ol->error);
+        //CEL_DEBUG((_T("fileds %d, error %d\r\n"), fileds, ol->error));
         cel_poll_push(poll, ol);
         if (poll->max_threads <= 1 && poll->is_waited)
         {
@@ -250,21 +249,21 @@ static int cel_poll_do(CelPoll *poll, int milliseconds)
         poll->epoll_fd, poll->events, EVENTS_MAX, milliseconds)) < 0 
         && errno != EINTR)
     {
-        Err((_T("epoll_wait():%s"), cel_geterrstr(cel_sys_geterrno())));
+        CEL_ERR((_T("epoll_wait():%s"), cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
-    /* _tprintf(_T("epoll wait %d, n_events %d, pid %d\r\n"), 
-        milliseconds, n_events, cel_thread_getid()); */
+    /*CEL_DEBUG((_T("epoll wait %d, n_events %d, pid %d"), 
+        milliseconds, n_events, cel_thread_getid()));*/
     for (i = 0; i < n_events; i++)
     {
         event = &(poll->events[i]);
         if ((poll_data = poll->epoll_datas[event->data.fd]) == NULL)
         {
-            Err((_T("Epoll data is null, file descriptor \"%d\"."), 
+            CEL_ERR((_T("Epoll data is null, file descriptor \"%d\"."), 
                 event->data.fd));
             return -1;
         }
-        //_tprintf("events 0x%x, fd %d\r\n", event->events, event->data.fd);
+        //CEL_DEBUG((_T("events 0x%x, fd %d"), event->events, event->data.fd));
         if (POLLIN_CHK(event->events) || POLLERROR_CHK(event->events))
         {
             if ((ol = poll_data->in_ol) == NULL)
@@ -276,7 +275,7 @@ static int cel_poll_do(CelPoll *poll, int milliseconds)
             }
             if (ol != NULL)
             {
-                //_tprintf("Read %d %p \r\n", event->data.fd, ol);
+                //CEL_DEBUG((_T("Read %d %p"), event->data.fd, ol));
                 ol->_ol.fileds = event->data.fd;
                 ol->_ol.events = event->events;
                 poll_data->in_ol = NULL;
@@ -294,7 +293,7 @@ static int cel_poll_do(CelPoll *poll, int milliseconds)
             }
             if (ol != NULL)
             {
-                //_tprintf("Write %d %p \r\n", event->data.fd, ol);
+                //CEL_DEBUG((_T("Write %d %p"), event->data.fd, ol));
                 ol->_ol.fileds = event->data.fd;
                 ol->_ol.events = event->events;
                 poll_data->out_ol = NULL;
@@ -310,8 +309,8 @@ int cel_poll_wait(CelPoll *poll, CelOverLapped **ol, int milliseconds)
     int ret;
     CelPollData *poll_data;
 
-    /*_tprintf("Asyncqueue size %d %d\r\n", 
-        cel_asyncqueue_get_size(&(poll->async_queue)), cel_thread_getid()); */
+    CEL_DEBUG((_T("Asyncqueue size %d %d"), 
+        cel_asyncqueue_get_size(&(poll->async_queue)), cel_thread_getid()));
     if (!(poll->is_waited)
         && cel_poll_trylock(poll, &(poll->wait_locker)) == 0)
     {
@@ -341,12 +340,12 @@ int cel_poll_wait(CelPoll *poll, CelOverLapped **ol, int milliseconds)
     }
     if ((*ol) != NULL && CEL_CHECKFLAG((*ol)->evt_type, CEL_EVENT_CHANNEL))
     {
-        //_tprintf(_T("fd %d state %d\r\n"), (*ol)->_ol.fileds, (*ol)->_ol.state);
+        //CEL_DEBUG((_T("fd %d state %d\r\n"), (*ol)->_ol.fileds, (*ol)->_ol.state));
         if (!CEL_POLLSTATE_ISCOMPLETED(*ol))
         {
             if ((poll_data = poll->epoll_datas[(*ol)->_ol.fileds]) == NULL)
             {
-                Err((_T("Epoll data is null, file descriptor \"%d\"."), 
+                CEL_ERR((_T("Epoll data is null, file descriptor \"%d\"."), 
                     (*ol)->_ol.fileds));
                 return -1;
             }

@@ -17,10 +17,6 @@
 #include "cel/error.h"
 #include "cel/allocator.h"
 
-/* Debug defines */
-#define Debug(args)   /*cel_log_debug args*/
-#define Warning(args) CEL_SETERRSTR(args) /*cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args) /*cel_log_err args*/
 
 int cel_httpweblistener_accept(CelHttpWebListener *listener,
                                CelHttpWebClient *client);
@@ -58,9 +54,11 @@ void cel_httpweblistener_do_handshake(CelHttpWebClient *client,
         return ;
     }
     //puts("httpweblistener_do_handshake ok");
-    cel_httpclient_async_recv_request(&(client->http_client), 
+    if (cel_httpclient_async_recv_request(&(client->http_client), 
         &(client->req), 
-        (CelHttpRecvRequestCallbackFunc)cel_httpwebclient_do_recv_request);
+        (CelHttpRecvRequestCallbackFunc)
+        cel_httpwebclient_do_recv_request) == -1)
+        cel_httpwebclient_free(client);
 }
 
 static void cel_httpweblistener_do_accept(CelHttpWebListener *listener, 
@@ -72,7 +70,7 @@ static void cel_httpweblistener_do_accept(CelHttpWebListener *listener,
     //puts("cel_httpweblistener_do_accept");
     if (result->ret == -1)
     {
-        Err((_T("Http web request listener %s do accept %d.(%s)"), 
+        CEL_ERR((_T("Http web request listener %s do accept %d.(%s)"), 
             cel_httpweblistener_get_localaddrs(listener), 
             result->ret, cel_geterrstr(result->error)));
         cel_httpweblistener_post_accept(listener);
@@ -91,36 +89,34 @@ static void cel_httpweblistener_do_accept(CelHttpWebListener *listener,
     {
         if (listener->is_run_group)
         {
-            if (cel_eventloopgroup_add_channel(
-                listener->evt_loop_group, -1, 
+            if (cel_eventloopgroup_add_channel(listener->evt_loop_group, -1, 
                 cel_httpwebclient_get_channel(new_client), NULL) == 0)
             {
-                Debug((_T("Http web client %s connected."), 
-                    cel_httpwebclient_get_remoteaddrs(new_client)));
-                cel_httpclient_async_handshake(&(new_client->http_client), 
+                CEL_DEBUG((_T("Http web client %s connected."), 
+                    cel_httpwebclient_get_remoteaddr_str(new_client)));
+                if (cel_httpclient_async_handshake(&(new_client->http_client), 
                     (CelHttpHandshakeCallbackFunc)
-                    cel_httpweblistener_do_handshake);
+                    cel_httpweblistener_do_handshake) != -1)
                 return ;
             }
         }
         else 
         {
-            if (cel_eventloop_add_channel(
-                listener->evt_loop, 
+            if (cel_eventloop_add_channel(listener->evt_loop, 
                 cel_httpwebclient_get_channel(new_client), NULL) == 0)
             {
-                Debug((_T("Http web client %s connected."), 
-                    cel_httpwebclient_get_remoteaddrs(new_client)));
-                cel_httpclient_async_handshake(&(new_client->http_client),
+                CEL_DEBUG((_T("Http web client %s connected."), 
+                    cel_httpwebclient_get_remoteaddr_str(new_client)));
+                if (cel_httpclient_async_handshake(&(new_client->http_client),
                     (CelHttpHandshakeCallbackFunc)
-                    cel_httpweblistener_do_handshake);
-                return ;
+                    cel_httpweblistener_do_handshake) != -1)
+                    return ;
             } 
         }
     }
     cel_httpwebclient_free(new_client);
-    Err((_T("Http web request client %s init failed(%s)."), 
-        cel_httpwebclient_get_remoteaddrs(new_client), 
+    CEL_ERR((_T("Http web request client %s init failed(%s)."), 
+        cel_httpwebclient_get_remoteaddr_str(new_client), 
         cel_geterrstr(cel_sys_geterrno())));
 }
 
@@ -139,7 +135,7 @@ int cel_httpweblistener_post_accept(CelHttpWebListener *listener)
         (CelHttpAcceptCallbackFunc)cel_httpweblistener_do_accept);
 }
 
-int cel_httpweblistener_run(CelHttpWebListener *listener, 
+int cel_httpweblistener_run(CelHttpWebListener *listener,
                             CelEventLoop *evt_loop)
 {
     if (cel_httplistener_set_nonblock(listener, 1) != -1

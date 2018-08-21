@@ -107,7 +107,7 @@ CelTimerId cel_eventloopgroup_schedule_timer(CelEventLoopGroup *group,
 }
 
 static __inline 
-int cel_eventloopgroup_add_channel(CelEventLoopGroup *group,  int id,
+int cel_eventloopgroup_add_channel(CelEventLoopGroup *group, int id,
                                    CelChannel *channel, void *key)
 {
     if (group->is_shared)

@@ -16,11 +16,6 @@
 #include "cel/version.h"
 #include "cel/allocator.h"
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
-
 CelVersion cel_lib_ver = { 
     CEL_LIB_MAJOR, CEL_LIB_MINOR, CEL_LIB_REVISION, CEL_LIB_BUILD, (TCHAR *)CEL_LIB_EXTRA };
 

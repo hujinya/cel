@@ -17,11 +17,6 @@
 #include "cel/error.h"
 #include "cel/log.h"
 
-/* Debug defines */
-#define Debug(args)   /*cel_log_debug args*/
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
-
 static int cel_timerwheel_queue_init(CelQueue **tv, int max_index, 
                                      CelFreeFunc free_func)
 {
@@ -175,7 +170,7 @@ static void cel_timerwheel_add_timer(CelTimerWheel *timer_wheel,
          */
         idx = timer_wheel->tv1_spoke;
         cel_queue_push_back(timer_wheel->tv1[idx], timer);
-        Debug((_T("Add timer(%ld)to timerwheel, 1 - %d."), expries, idx));
+        CEL_DEBUG((_T("Add timer(%ld)to timerwheel, 1 - %d."), expries, idx));
     }
     else if (expries < CEL_TIMEWHEEL_BASE_SPOKE_SIZE)
     {
@@ -184,7 +179,7 @@ static void cel_timerwheel_add_timer(CelTimerWheel *timer_wheel,
             >= CEL_TIMEWHEEL_BASE_SPOKE_SIZE)
             idx -= CEL_TIMEWHEEL_BASE_SPOKE_SIZE;
         cel_queue_push_back(timer_wheel->tv1[idx], timer);
-        Debug((_T("Add timer(%ld)to timerwheel, 1 - %d."), expries, idx));
+        CEL_DEBUG((_T("Add timer(%ld)to timerwheel, 1 - %d."), expries, idx));
     }
     else if (expries < 
         (1 << (CEL_TIMEWHEEL_BASE_SPOKE_BITS + CEL_TIMEWHEEL_SPOKE_BITS)))
@@ -195,7 +190,7 @@ static void cel_timerwheel_add_timer(CelTimerWheel *timer_wheel,
         if ((idx = idx + timer_wheel->tv2_spoke) >= CEL_TIMEWHEEL_SPOKE_SIZE)
             idx -= CEL_TIMEWHEEL_SPOKE_SIZE;
         cel_queue_push_back(timer_wheel->tv2[idx], timer);
-        Debug((_T("Add timer(%ld)to timerwheel, 2 - %d."), expries, idx));
+        CEL_DEBUG((_T("Add timer(%ld)to timerwheel, 2 - %d."), expries, idx));
     }
     else if (expries < 
         (1 << (CEL_TIMEWHEEL_BASE_SPOKE_BITS + 2 * CEL_TIMEWHEEL_SPOKE_BITS)))
@@ -206,7 +201,7 @@ static void cel_timerwheel_add_timer(CelTimerWheel *timer_wheel,
         if ((idx = idx + timer_wheel->tv3_spoke) >= CEL_TIMEWHEEL_SPOKE_SIZE)
             idx -= CEL_TIMEWHEEL_SPOKE_SIZE;
         cel_queue_push_back(timer_wheel->tv3[idx], timer);
-        Debug((_T("Add timer(%ld)to timerwheel, 3 - %d."), expries, idx));
+        CEL_DEBUG((_T("Add timer(%ld)to timerwheel, 3 - %d."), expries, idx));
     }
     else if (expries < 
         (1 << (CEL_TIMEWHEEL_BASE_SPOKE_BITS + 3 * CEL_TIMEWHEEL_SPOKE_BITS)))
@@ -217,7 +212,7 @@ static void cel_timerwheel_add_timer(CelTimerWheel *timer_wheel,
         if ((idx = idx + timer_wheel->tv4_spoke) >= CEL_TIMEWHEEL_SPOKE_SIZE)
             idx -= CEL_TIMEWHEEL_SPOKE_SIZE;
         cel_queue_push_back(timer_wheel->tv4[idx], timer);
-        Debug((_T("Add timer(%ld)to timerwheel, 4 - %d."), expries, idx));
+        CEL_DEBUG((_T("Add timer(%ld)to timerwheel, 4 - %d."), expries, idx));
     }
     else
     {
@@ -233,7 +228,7 @@ static void cel_timerwheel_add_timer(CelTimerWheel *timer_wheel,
         if ((idx = idx + timer_wheel->tv5_spoke) >= CEL_TIMEWHEEL_SPOKE_SIZE)
             idx -= CEL_TIMEWHEEL_SPOKE_SIZE;
         cel_queue_push_back(timer_wheel->tv5[idx], timer);
-        Debug((_T("Add timer(%ld)to timerwheel, 5 - %d."), expries, idx));
+        CEL_DEBUG((_T("Add timer(%ld)to timerwheel, 5 - %d."), expries, idx));
     }
 }
 
@@ -311,7 +306,7 @@ int cel_timerwheel_cancel(CelTimerWheel *timer_wheel, CelTimerId timer_id)
 
     if (timer->timer_id != timer_id) 
     {
-        Err((_T("Timer(%p) id %p invaild."), timer, timer->timer_id));
+        CEL_ERR((_T("Timer(%p) id %p invaild."), timer, timer->timer_id));
         return -1;
     }
     cel_timer_stop(timer, NULL);
@@ -356,7 +351,7 @@ static int cel_timerwheel_pop_expired_intern(CelTimerWheel *timer_wheel,
                 {
                     timers[i] = (CelTimer *)cel_queue_pop_front(
                         (timer_wheel->tv1[timer_wheel->tv1_spoke]));
-                    Debug((_T("Timer expired.")));
+                    CEL_DEBUG((_T("Timer expired.")));
                     if ((i++) >= max_timers)
                         return i;
                 }
@@ -411,7 +406,7 @@ static int cel_timerwheel_pop_expired_intern(CelTimerWheel *timer_wheel,
                 while ((timer = (CelTimer *)cel_queue_pop_front(
                     (timer_wheel->tv3[timer_wheel->tv3_spoke]))) != NULL)
                 {
-                    Debug((_T("Timer cascade, 3 - %d."), 
+                    CEL_DEBUG((_T("Timer cascade, 3 - %d."), 
                         timer_wheel->tv3_spoke));
                     cel_timerwheel_add_timer(timer_wheel, timer); 
                 }
@@ -419,7 +414,7 @@ static int cel_timerwheel_pop_expired_intern(CelTimerWheel *timer_wheel,
             while ((timer = (CelTimer *)cel_queue_pop_front(
                 (timer_wheel->tv2[timer_wheel->tv2_spoke]))) != NULL)
             {
-                Debug((_T("Timer cascade, 2 - %d."), timer_wheel->tv2_spoke));
+                CEL_DEBUG((_T("Timer cascade, 2 - %d."), timer_wheel->tv2_spoke));
                 cel_timerwheel_add_timer(timer_wheel, timer);
             }
         }

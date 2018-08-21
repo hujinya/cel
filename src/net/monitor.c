@@ -17,11 +17,6 @@
 #include "cel/error.h"
 #include "cel/allocator.h"
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
-
 typedef enum _CelCheckerState
 {
     CEL_CHECKER_DISCONNECTED,
@@ -101,7 +96,7 @@ int cel_monitorcontext_init(CelMonitorContext *mntr_ctx,
 
     if (type == CEL_MONITOR_UNDEFINED)
     {
-        Err((_T("Monitor type undefined.")));
+        CEL_ERR((_T("Monitor type undefined.")));
         return -1;
     }
     len = _tcslen(name);
@@ -206,11 +201,11 @@ int cel_monitor_tcp_init(CelMonitor *mntr)
                 args->connect_args.buffer_size = 0;
                 if (cel_socket_async_connect_host(&(args->connect_args)) == 0)
                 {
-                    Debug((_T("connect post ok\r\n")));
+                    CEL_DEBUG((_T("connect post ok\r\n")));
                     mntr->checker = mntr_tcp;
                     return 0;
                 }
-                Err((_T("Load balancer %s post connect failed(%s)."), 
+                CEL_ERR((_T("Load balancer %s post connect failed(%s)."), 
                     cel_sockaddr_ntop(&(mntr_tcp->addr)), cel_geterrstr(cel_sys_geterrno())));
             }
             cel_socket_destroy(&mntr_tcp->sock);
@@ -265,7 +260,7 @@ void cel_monitor_tcp_timeout(CelMonitor *mntr)
     if (active != mntr->active)
     {
         mntr->active = active;
-        Debug((_T("Monitor %s_%s %s."), 
+        CEL_DEBUG((_T("Monitor %s_%s %s."), 
             mntr->addr, mntr->ctx->name, mntr->active ? _T("up"): _T("down")));
     }
     if (mntr_tcp->state == CEL_CHECKER_DISCONNECTED)

@@ -14,14 +14,11 @@
  */
 #include "cel/net/socket.h"
 #include "cel/allocator.h"
+#undef _CEL_DEBUG
+//#define _CEL_DEBUG
 #include "cel/log.h"
 #include "cel/error.h"
 #include "cel/convert.h"
-
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args) /* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args) /* cel_log_err args */
 
 void _cel_socket_destroy_derefed(CelSocket *sock)
 {
@@ -64,7 +61,8 @@ int cel_socket_init(CelSocket *sock, int family, int socktype, int protocol)
         sock->AcceptEx = NULL;
         sock->TransmitFile = NULL;
 #endif
-        cel_refcounted_init(&((sock)->ref_counted), (CelFreeFunc)_cel_socket_destroy_derefed);
+        cel_refcounted_init(&((sock)->ref_counted),
+            (CelFreeFunc)_cel_socket_destroy_derefed);
 
         return 0;
     }
@@ -113,7 +111,7 @@ int cel_socket_bind_host(CelSocket *sock,
     hints.ai_protocol = sock->protocol;
     if (GetAddrInfo(host, _itot(port, ports, 10), &hints, &addr_info) != 0)
     {
-        Err((_T("GetAddrInfo():%s."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_ERR((_T("GetAddrInfo():%s."), cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
     result = addr_info;
@@ -141,7 +139,7 @@ int cel_socket_listen_host(CelSocket *sock,
     hints.ai_protocol = sock->protocol;
     if (GetAddrInfo(host, _itot(port, ports, 10), &hints, &addr_info) != 0)
     {
-        Err((_T("GetAddrInfo():%s."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_ERR((_T("GetAddrInfo():%s."), cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
     result = addr_info;
@@ -174,7 +172,7 @@ int cel_socket_listen_str(CelSocket *sock, const TCHAR *str, int backlog)
     if (cel_sockaddr_str_split(addrs, &hints.ai_family, &node, &service) != 0
         || (ret = GetAddrInfo(node, service, &hints, &addr_info)) != 0)
     {
-        Err((_T("GetAddrInfo():%s."), gai_strerror(ret)));
+        CEL_ERR((_T("GetAddrInfo():%s."), gai_strerror(ret)));
         return -1;
     }
     result = addr_info;
@@ -190,6 +188,17 @@ int cel_socket_listen_str(CelSocket *sock, const TCHAR *str, int backlog)
     return 0;
 }
 
+int cel_socket_connect(CelSocket *sock, CelSockAddr *remote_addr)
+{
+    if (connect((sock)->fd, 
+        &((remote_addr)->addr), cel_sockaddr_get_len(remote_addr)) == 0)
+    {
+        sock->is_connected = TRUE;
+        return 0;
+    }
+    return -1;
+}
+
 int cel_socket_connect_host(CelSocket *sock, 
                             const TCHAR *host, unsigned short port)
 {
@@ -203,13 +212,14 @@ int cel_socket_connect_host(CelSocket *sock,
     hints.ai_protocol = sock->protocol;
     if (GetAddrInfo(host, _itot(port, ports, 10), &hints, &addr_info) != 0)
     {
-        Err((_T("GetAddrInfo():%s."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_ERR((_T("GetAddrInfo():%s."), cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
     result = addr_info;
     while (addr_info != NULL)
     {
-        if (cel_socket_connect(sock, (CelSockAddr *)addr_info->ai_addr) == 0)
+        if (cel_socket_connect(
+            sock, (CelSockAddr *)addr_info->ai_addr) == 0)
             return 0;
         else if (cel_sys_geterrno() == EINPROGRESS)
             return -1;
@@ -281,7 +291,7 @@ int cel_socket_async_connect_host(CelSocketAsyncConnectArgs *args)
     hints.ai_protocol = args->socket->protocol;
     if (GetAddrInfo(args->host, args->service, &hints, &res) != 0)
     {
-        Err((_T("Get address information \"%s:%s\" failed.(%s)"), 
+        CEL_ERR((_T("Get address information \"%s:%s\" failed.(%s)"), 
             args->host, args->service));
         return -1;
     }
@@ -308,6 +318,7 @@ int cel_socket_async_send(CelSocketAsyncSendArgs *args)
     memset(&(args->ol), 0, sizeof(args->ol));
     args->ol.evt_type = CEL_EVENT_CHANNELOUT;
     args->ol.handle_func = (int ( *)(void *))cel_socket_do_async_send;
+    CEL_DEBUG((_T("cel_socket_async_send")));
     return cel_poll_post(channel->poll, 
         channel->handle, (CelOverLapped *)args);
 }
@@ -319,6 +330,7 @@ int cel_socket_async_recv(CelSocketAsyncRecvArgs *args)
     memset(&(args->ol), 0, sizeof(args->ol));
     args->ol.evt_type = CEL_EVENT_CHANNELIN;
     args->ol.handle_func = (int ( *)(void *))cel_socket_do_async_recv;
+    CEL_DEBUG((_T("cel_socket_async_recv")));
     return cel_poll_post(channel->poll, 
         channel->handle, (CelOverLapped *)args);
 }

@@ -17,11 +17,6 @@
 #include "cel/error.h"
 #include "cel/log.h"
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
-
 int cel_queue_init(CelQueue *queue, CelFreeFunc free_func)
 {
     queue->head_index = 0;
@@ -131,7 +126,7 @@ void cel_queue_push_front(CelQueue *queue, void *item)
         && cel_queue_resize(queue, new_size) == -1)
         return ;
     queue->array_list.items[queue->head_index] = item;
-    Debug((_T("Queue push front %p[%d]."), 
+    CEL_DEBUG((_T("Queue push front %p[%d]."), 
         queue->array_list.items[queue->head_index], queue->head_index));
     if (queue->head_index > 0)
         queue->head_index--;
@@ -166,7 +161,7 @@ void *cel_queue_pop_front(CelQueue *queue)
         queue->head_index++;
     else
         queue->head_index = 0;
-    Debug((_T("Queue pop front %p[%d]."), 
+    CEL_DEBUG((_T("Queue pop front %p[%d]."), 
         queue->array_list.items[queue->head_index], queue->head_index));
     item = queue->array_list.items[queue->head_index];
     queue->array_list.size--;
@@ -189,7 +184,7 @@ void *cel_queue_pop_back(CelQueue *queue)
     else
         queue->tail_index = queue->array_list.capacity;
     item = queue->array_list.items[queue->tail_index];
-    Debug((_T("Queue pop back %p[%d]."), 
+    CEL_DEBUG((_T("Queue pop back %p[%d]."), 
         queue->array_list.items[queue->tail_index], queue->tail_index));
     queue->array_list.size--;
     if (cel_arraylist_maybe_smaller(&(queue->array_list), &new_size)

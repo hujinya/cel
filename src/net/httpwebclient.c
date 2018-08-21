@@ -13,15 +13,12 @@
  * GNU General Public License for more details.
  */
 #include "cel/net/httpwebclient.h"
+#undef _CEL_DEBUG
+//#define _CEL_DEBUG
 #include "cel/log.h"
 #include "cel/error.h"
 #include "cel/allocator.h"
 #include "cel/file.h"
-
-/* Debug defines */
-#define Debug(args)   /*cel_log_debug args*/
-#define Warning(args) CEL_SETERRSTR(args) /*cel_log_warning args*/
-#define Err(args)   CEL_SETERRSTR(args) /*cel_log_err args*/
 
 void _cel_httpwebclient_destroy_derefed(CelHttpWebClient *client)
 {
@@ -58,7 +55,7 @@ CelHttpWebClient *cel_httpwebclient_new_httpclient(CelHttpClient *http_client,
         http_client->tcp_client.sock.fd)
         : cel_malloc(sizeof(CelHttpWebClient)))) == NULL)
     {
-        Err((_T("Http web client new return null.")));
+        CEL_ERR((_T("Http web client new return null.")));
         return NULL;
     }
     memcpy(&(new_client->http_client), http_client, sizeof(CelHttpClient));
@@ -92,13 +89,13 @@ CelHttpWebClient *cel_httpwebclient_new(CelSslContext *ssl_ctx,
 void cel_httpwebclient_free(CelHttpWebClient *client)
 {
     /*_tprintf(_T("Http web client %s closed\r\n"), 
-        cel_httpwebclient_get_remoteaddrs(client));*/
+        cel_httpwebclient_get_remoteaddr_str(client));*/
     cel_refcounted_destroy(&(client->ref_counted), client);
 }
 
 void cel_httpwebclient_do_recv_request(CelHttpWebClient *client, 
-                                        CelHttpRequest *req,
-                                        CelAsyncResult *result)
+                                       CelHttpRequest *req,
+                                       CelAsyncResult *result)
 {
     size_t ver_end;
     char *url;
@@ -118,7 +115,7 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
     case CEL_HTTPREQUEST_READING_BODY:
         if (result->ret == -1)
         {
-            Err((_T("cel_httpwebclient_do_recv_request return -1")));
+            CEL_ERR((_T("cel_httpwebclient_do_recv_request return -1")));
             cel_httpwebclient_free(client);
         }
         else
@@ -128,7 +125,7 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
                 (CelHttpRecvRequestCallbackFunc)
                 cel_httpwebclient_do_recv_request) == -1)
             {
-                Err((_T("cel_httpclient_async_recv_request return -1")));
+                CEL_ERR((_T("cel_httpclient_async_recv_request return -1")));
                 cel_httpwebclient_free(client);
             }
         }
@@ -145,8 +142,7 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
             || cel_keyword_ncmp_a(
             &client->web_ctx->prefix, url, ver_end) != 0)
         {
-            printf("method %d, %s\r\n", 
-                cel_httprequest_get_method(req), url);
+            printf("method %d, %s\r\n", cel_httprequest_get_method(req), url);
             cel_httpwebclient_async_send_response_result(client, 
                 CEL_HTTPWEB_UNSUPPORTED_OPERATION_EXCEPTION, 0,
                 "Http web request prefix not supported.");
@@ -198,22 +194,14 @@ void cel_httpwebclient_do_send_response(CelHttpWebClient *client,
 {
     CelHttpConnection *connection;
 
-    if (result->ret != -1
-        && rsp->writing_state != CEL_HTTPRESPONSE_WRITING_OK)
-    {
-        //puts("cel_httpclient_async_send_response");
-        if (cel_httpclient_async_send_response(&(client->http_client), rsp,
-            (CelHttpSendResponseCallbackFunc)
-            cel_httpwebclient_do_send_response) != -1)
-            return ;
-    }
     if (client->execute_callback != NULL)
     {
         //puts("execute_callback");
         client->execute_callback(client, result);
         return;
     }
-    if ((connection = (CelHttpConnection *)cel_httprequest_get_header(
+    if (result->ret != -1
+        && (connection = (CelHttpConnection *)cel_httprequest_get_header(
         &(client->req), CEL_HTTPHDR_CONNECTION)) != NULL
         && *connection == CEL_HTTPCON_KEEPALIVE)
     {
@@ -223,9 +211,10 @@ void cel_httpwebclient_do_send_response(CelHttpWebClient *client,
         cel_httproutedata_clear(&(client->rt_data));
         client->execute_callback = NULL;
         client->file_len = 0;
-        cel_httpclient_async_recv_request(&(client->http_client), 
+        if (cel_httpclient_async_recv_request(&(client->http_client), 
             &(client->req), 
-            (CelHttpRecvRequestCallbackFunc)cel_httpwebclient_do_recv_request);
+            (CelHttpRecvRequestCallbackFunc)cel_httpwebclient_do_recv_request) == -1)
+            cel_httpwebclient_free(client);
     }
     else
     {
@@ -277,7 +266,7 @@ int cel_httpwebclient_async_send_response_result(CelHttpWebClient *client,
         cel_httpresponse_end(&(client->rsp));
         break;
     default:
-        Err((_T("cel_httpwebclient_result error")));
+        CEL_ERR((_T("cel_httpwebclient_result error")));
         cel_httpwebclient_free(client);
         return -1;
     }

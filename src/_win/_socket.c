@@ -19,12 +19,6 @@
 #include "cel/error.h"
 #include "cel/allocator.h"
 
-/* Debug defines */
-#define Debug(args)   cel_log_debug args
-#define Warning(args) /*CEL_SETERRSTR(args)*/ cel_log_warning args 
-#define Err(args)  /* CEL_SETERRSTR(args)*/ cel_log_err args
-
-
 /* https://msdn.microsoft.com/en-us/library/dd877220 */
 int os_socket_set_keepalive(CelSocket *sock, 
                             int on, int idle, int interval, int count)
@@ -66,7 +60,7 @@ int os_socket_do_async_accept(CelSocketAsyncAcceptArgs *args)
         //puts("cel_socket_init error");
         return -1;
     }
-    /*Debug((_T("acceptex fd %d, accept_fd %d, buf size %d\r\n"),
+    /*CEL_DEBUG((_T("acceptex fd %d, accept_fd %d, buf size %d\r\n"),
         args->socket->fd, args->accept_socket.fd,
         (DWORD)(args->buffer_size - ACCEPTEX_RECEIVEDATA_OFFSET)));*/
     if (!(args->socket->AcceptEx(args->socket->fd, args->accept_socket.fd, 
@@ -75,7 +69,7 @@ int os_socket_do_async_accept(CelSocketAsyncAcceptArgs *args)
         &(args->ol.result), &(args->ol._ol))) 
         && WSAGetLastError() != WSA_IO_PENDING)
     {
-        //Err((_T("AcceptEx error")));
+        //CEL_ERR((_T("AcceptEx error")));
         return -1;
     }
     args->socket->is_connected = TRUE;

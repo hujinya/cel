@@ -17,10 +17,6 @@
 #include "cel/log.h"
 #include "cel/allocator.h"
 
-/* Debug defines */
-#define Debug(args)   /*cel_log_debug args*/
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
 
 int cel_arraylist_init(CelArrayList *array_list, CelFreeFunc free_func)
 {
@@ -80,7 +76,7 @@ BOOL cel_arraylist_maybe_larger(CelArrayList *array_list, size_t *new_capacity)
             *new_capacity = cel_capacity_get_min(array_list->capacity);
             return TRUE;
         }
-        Err((_T("Number %d exceeds the maximum capacity %d."), 
+        CEL_ERR((_T("Number %d exceeds the maximum capacity %d."), 
             array_list->capacity, CEL_CAPACITY_MAX));
     }
     return FALSE;

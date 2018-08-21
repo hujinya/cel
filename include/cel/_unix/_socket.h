@@ -57,6 +57,7 @@ typedef struct _OsSocketAsyncAcceptArgs
 {
     CelOverLapped ol;
     void (* async_callback) (void *ol);
+    CelCoroutineEntity *co_entity;
     OsSocket *socket;
     OsSocket accept_socket;
     void *buffer;
@@ -67,6 +68,7 @@ typedef struct _OsSocketAsyncConnectArgs
 {
     CelOverLapped ol;
     void (* async_callback) (void *ol);
+    CelCoroutineEntity *co_entity;
     OsSocket *socket;
     union {
         CelSockAddr remote_addr;
@@ -83,6 +85,7 @@ typedef struct _OsSocketAsyncSendArgs
 {
     CelOverLapped ol;
     void (* async_callback) (void *ol);
+    CelCoroutineEntity *co_entity;
     OsSocket *socket;
     CelAsyncBuf *buffers;
     int buffer_count;
@@ -92,6 +95,7 @@ typedef struct _OsSocketAsyncSendToArgs
 {
     CelOverLapped ol;
     void (* async_callback) (void *ol);
+    CelCoroutineEntity *co_entity;
     OsSocket *socket;
     CelAsyncBuf *buffers;
     int buffer_count;
@@ -102,6 +106,7 @@ typedef struct _OsSocketAsyncSendFileArgs
 {
     CelOverLapped ol;
     void (* async_callback) (void *ol);
+    CelCoroutineEntity *co_entity;
     OsSocket *socket;
     HANDLE file;
     off_t offset;

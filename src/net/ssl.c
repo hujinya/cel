@@ -16,10 +16,6 @@
 #include "cel/log.h"
 #include "cel/error.h"
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args)/*cel_log_warning args*/
-#define Err(args)   CEL_SETERRSTR(args)/*cel_log_err args*/
 
 CelKeyword ssl_methods[] = 
 {
@@ -53,13 +49,13 @@ CelSslContext *cel_sslcontext_new(CelSslMethod method)
     if (method == CEL_SSL_METHOD_UNDEFINED
         || method >= CEL_SSL_METHOD_COUNT)
     {
-        Err((_T("Ssl method undefined.")));
+        CEL_ERR((_T("Ssl method undefined.")));
         return NULL;
     }
     //printf("method = %d\r\n", method);
     if ((ctx = SSL_CTX_new(((CelSslMethodFunc)ssl_methods[method].value)())) == NULL)
     {
-        Err((_T("(SSL_CTX_new:%s.)"), cel_ssl_get_errstr(cel_ssl_get_errno())));
+        CEL_ERR((_T("(SSL_CTX_new:%s.)"), cel_ssl_get_errstr(cel_ssl_get_errno())));
         return NULL;
     }
     //SSL_CTX_set_quiet_shutdown(ctx, 1);
@@ -80,7 +76,7 @@ int cel_sslcontext_set_own_cert(CelSslContext *ssl, char *cert_file,
     /* Load cert file */
     if (SSL_CTX_use_certificate_file(ssl, cert_file, SSL_FILETYPE_PEM) <= 0)
     {
-        Err((_T("(SSL_CTX_use_certificate_file %s:%s.)"), 
+        CEL_ERR((_T("(SSL_CTX_use_certificate_file %s:%s.)"), 
             cert_file,
             cel_ssl_get_errstr(cel_ssl_get_errno())));
         return -1;
@@ -90,7 +86,7 @@ int cel_sslcontext_set_own_cert(CelSslContext *ssl, char *cert_file,
         key_file = cert_file;
     if (SSL_CTX_use_PrivateKey_file(ssl, key_file, SSL_FILETYPE_PEM) <= 0)
     {
-        Err((_T("(SSL_CTX_use_PrivateKey_file %s:%s.)"), 
+        CEL_ERR((_T("(SSL_CTX_use_PrivateKey_file %s:%s.)"), 
             key_file,
             cel_ssl_get_errstr(cel_ssl_get_errno())));
         return -1;
@@ -98,7 +94,7 @@ int cel_sslcontext_set_own_cert(CelSslContext *ssl, char *cert_file,
     /* Check cert and key */
     if (!SSL_CTX_check_private_key(ssl))
     {
-        Err((_T("(SSL_CTX_check_private_key:%s.)"), 
+        CEL_ERR((_T("(SSL_CTX_check_private_key:%s.)"), 
             cel_ssl_get_errstr(cel_ssl_get_errno())));
         return -1;
     }
@@ -109,7 +105,7 @@ int cel_sslcontext_set_ca_chain(CelSslContext *ssl, char *ca_file, char *ca_path
 {
     if (SSL_CTX_load_verify_locations(ssl, ca_file, ca_path) <= 0)
     {
-        Err((_T("(SSL_CTX_load_verify_locations:%s.)"), 
+        CEL_ERR((_T("(SSL_CTX_load_verify_locations:%s.)"), 
             cel_ssl_get_errstr(cel_ssl_get_errno())));
         return -1;
     }

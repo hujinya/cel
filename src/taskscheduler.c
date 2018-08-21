@@ -17,11 +17,6 @@
 #include "cel/error.h"
 #include "cel/log.h"
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args) /* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args) /* cel_log_err args */
-
 void cel_task_destroy_derefed(CelTask *task)
 {
     memset(task, 0, sizeof(CelTask));
@@ -154,7 +149,7 @@ int cel_task_start(CelTask *task, CelDateTime *dt, struct tm *now)
             && (task->trigger.mdays & (1 << now->tm_mday)) != 0)
             return task->task_func(task, dt, task->user_data);
     default:
-        Err((_T("Task trigger type %d undefined."), task->trigger.type));
+        CEL_ERR((_T("Task trigger type %d undefined."), task->trigger.type));
         return -1;
     }
 

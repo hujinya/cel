@@ -16,11 +16,6 @@
 #include "cel/error.h"
 #include "cel/log.h"
 
-/* Debug defines */
-#define Debug(args)  /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args) /* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args) /* cel_log_err args */
-
 static const BYTE base64_enc_map[64] =
 {
     'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H',

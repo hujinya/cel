@@ -89,12 +89,12 @@ typedef struct _CelLogger
     CelLogLevel level[CEL_LOGFACILITY_COUNT];
     TCHAR hostname[CEL_HNLEN];
     TCHAR processname[CEL_FNLEN];
-    int styles;
     CelList *hook_list;
     BOOL is_flush;
     size_t n_bufs;
-    CelLogMsg *msg_bufs;
+    CelRingList *free_list;
     CelRingList *ring_list;
+    CelLogMsg **msg_bufs;
 }CelLogger;
 
 extern CelLogger g_logger;
@@ -217,7 +217,7 @@ do {                                                           \
   }                                                            \
 }while (0)
 
-static __inline int cel_debug(const TCHAR *fmt, ...)
+static __inline int cel_lib_debug(const TCHAR *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -226,7 +226,7 @@ static __inline int cel_debug(const TCHAR *fmt, ...)
     va_end(args);
     return 0;
 }
-static __inline int cel_err(const TCHAR *fmt, ...)
+static __inline int cel_lib_err(const TCHAR *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -235,7 +235,7 @@ static __inline int cel_err(const TCHAR *fmt, ...)
     va_end(args);
     return 0;
 }
-static __inline int cel_warning(const TCHAR *fmt, ...)
+static __inline int cel_lib_warning(const TCHAR *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
@@ -244,9 +244,9 @@ static __inline int cel_warning(const TCHAR *fmt, ...)
     va_end(args);
     return 0;
 }
-#define CEL_DEBUG(args) cel_debug args
-#define CEL_WARNING(args) cel_err args
-#define CEL_ERR(args) cel_warning args
+#define CEL_DEBUG(args) cel_lib_debug args
+#define CEL_WARNING(args) cel_lib_err args
+#define CEL_ERR(args) cel_lib_warning args
 
 #else
 #define CEL_ASSERT(cond)    ((void) 0)

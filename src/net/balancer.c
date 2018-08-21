@@ -17,11 +17,6 @@
 #include "cel/error.h"
 #include "cel/log.h"
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
-
 CelKeyword balancer_types[] = 
 {
     { sizeof(_T("hash")) - 1, _T("hash")},
@@ -325,7 +320,7 @@ int cel_balancer_init(CelBalancer *balancer,
         balancer->schedule_hash = cel_balancer_hash_schedule;
         break;
     default:
-        Err((_T("Balancer type undefined.")));
+        CEL_ERR((_T("Balancer type undefined.")));
         return -1;
     }
     balancer->cur_index = 0;

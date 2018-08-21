@@ -19,10 +19,6 @@
 #include "cel/convert.h"
 #include "cel/file.h"
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
 
 CelKeywordA g_httpversion[] =
 {
@@ -269,7 +265,7 @@ CelKeywordA g_case_httphdr[] =
     { sizeof("via") - 1,
     "via", "Via", &g_httpvstring_handler },                            /* rfc2616.14.45 */
     { sizeof("warning") - 1, 
-    "warning", "Warning", &g_httpvstring_handler },                    /* rfc2616.14.46 */
+    "warning", "CEL_WARNING", &g_httpvstring_handler },                    /* rfc2616.14.46 */
 
     { sizeof("www-authenticate") - 1, 
     "www-authenticate", "WWW-Authenticate", &g_httpvstring_handler },  /* rfc2616.14.47 */
@@ -804,7 +800,7 @@ long cel_httpchunked_reading(CelStream *s)
     chunk_size = strtol((char *)cel_stream_get_pointer(s), &ptr, 16);
     if ((BYTE *)ptr - s->buffer > (int)s->length)
     {
-        Err((_T("Http chunk decode error.")));
+        CEL_ERR((_T("Http chunk decode error.")));
         return -2;
     }
     //printf("chunk %ld %ld\r\n", (int)s->length, (BYTE *)ptr - s->buffer);
@@ -849,7 +845,7 @@ long cel_httpchunked_reading(CelStream *s)
     }
     else
     {
-        Err((_T("Http chunk decode error.")));
+        CEL_ERR((_T("Http chunk decode error.")));
         return -2;
     }
 }

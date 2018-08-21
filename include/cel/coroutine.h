@@ -49,6 +49,8 @@ typedef OsCoroutineFunc CelCoroutineFunc;
 CelCoroutineScheduler *_cel_coroutinescheduler_get();
 #define cel_coroutinescheduler_running_id os_coroutinescheduler_running_id
 #define cel_coroutinescheduler_running os_coroutinescheduler_running
+#define cel_coroutinescheduler_push_ready os_coroutinescheduler_push_ready
+#define cel_coroutinescheduler_pop_ready os_coroutinescheduler_pop_ready
 
 static __inline 
 int cel_coroutine_create(CelCoroutine *co, 

@@ -17,11 +17,6 @@
 #include "cel/error.h"
 #include "cel/log.h"
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
-
 static CelAsyncQueueClass async_queue_kclass = 
 {
     (CelAsyncQueueDestroyFunc)cel_queue_destroy,
@@ -75,13 +70,13 @@ int cel_asyncqueue_init_full(CelAsyncQueue *async_queue,
         async_queue->kclass = &async_minheap_kclass;
         break;
     default:
-        Err((_T("Asyncqueue type %d undefined."), type));
+        CEL_ERR((_T("Asyncqueue type %d undefined."), type));
         return -1;
     }
     cel_mutex_init(&(async_queue->mutex), NULL);
     cel_cond_init(&(async_queue->cond), NULL);
     async_queue->waiting_threads = 0;
-    Debug(("Asyncqueue(%p)init successed.", async_queue));
+    CEL_DEBUG(("Asyncqueue(%p)init successed.", async_queue));
 
     return 0;
 }
@@ -124,7 +119,7 @@ void cel_asyncqueue_push(CelAsyncQueue *async_queue, void *item)
 void cel_asyncqueue_push_unlocked(CelAsyncQueue *async_queue, void *item)
 {
     async_queue->kclass->push(async_queue, item);
-    Debug((_T("Asyncqueue %p push item %p."), async_queue, item));
+    CEL_DEBUG((_T("Asyncqueue %p push item %p."), async_queue, item));
     if (async_queue->waiting_threads > 0)
     {
         cel_cond_signal(&(async_queue->cond));

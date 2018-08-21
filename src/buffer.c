@@ -17,11 +17,6 @@
 #include "cel/error.h"
 #include "cel/log.h"
 
-/* Debug defines */
-#define Debug(args)  /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args) /* cel_log_warning args */
-#define Err(args)  CEL_SETERRSTR(args) /* cel_log_err args */
-
 int cel_buffer_resize(CelBuffer *buf, size_t size)
 {
     size_t rp, wp;
@@ -87,7 +82,7 @@ int cel_buffer_read(CelBuffer *buf, void *data, size_t size)
     /* Ring buffer is empty */
     if ((used_size = buf->capacity - buf->remaining) == 0)
     {
-        Warning((_T("Ring buffer is empty.")));
+        CEL_WARNING((_T("Ring buffer is empty.")));
         return 0;
     }
     if (size > used_size) size = used_size;
@@ -115,7 +110,7 @@ size_t cel_buffer_dup(CelBuffer *buf, void *data, size_t size)
     /* Ring buffer is empty */
     if ((used_size = buf->capacity - buf->remaining) == 0)
     {
-        Warning((_T("Ring buffer is empty.")));
+        CEL_WARNING((_T("Ring buffer is empty.")));
         return 0;
     }
     if (size > used_size)
@@ -141,7 +136,7 @@ int cel_buffer_write(CelBuffer *buf, void *data, size_t size)
     /* Ring buffer is full */
     if (buf->remaining <= 0)
     {
-        Warning((_T("Ring buffer is full.")));
+        CEL_WARNING((_T("Ring buffer is full.")));
         return 0;
     }
     if (size > buf->remaining)

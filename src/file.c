@@ -17,11 +17,6 @@
 #include "cel/log.h"
 #include "cel/convert.h"
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */ 
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
-
 CHAR *cel_filedir_r_a(const CHAR *path, CHAR *file_dir, size_t size)
 {
     static volatile int i = 0;
@@ -356,7 +351,7 @@ FILE *cel_fopen(const TCHAR *file_name, const TCHAR *mode)
 
     if ((fp = _tfopen(file_name, mode)) == NULL)
     {
-        Err((_T("Open file '%s' failed(%s)."), 
+        CEL_ERR((_T("Open file '%s' failed(%s)."), 
             file_name, cel_geterrstr(cel_sys_geterrno())));
         return NULL;
     }
@@ -382,7 +377,7 @@ int cel_fsync(const TCHAR *dest_file,const TCHAR *src_file)
         {
             if (_fputtc(c, fp_) == EOF)
             {
-                //Err((_T("_fputtc():%s."), cel_geterrstr(cel_sys_geterrno())));
+                //CEL_ERR((_T("_fputtc():%s."), cel_geterrstr(cel_sys_geterrno())));
                 break;
             }
         }

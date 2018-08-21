@@ -23,10 +23,10 @@ A_TARGET = ../lib/libcel.a
 SO_TARGET = ../lib/libcel.so
 BIN_TARGET = 
 
-MAJOR = 
-MINOR = 
-REVISION = 
-BUILD = 
+MAJOR = 1
+MINOR = 0
+REVISION = 9
+BUILD = 10
 EXTRA = ""
 VERSION_FILE= "../include/cel/_version.h"
 

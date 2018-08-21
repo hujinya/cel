@@ -19,11 +19,6 @@
 #include "cel/log.h"
 #include "cel/error.h"
 
-/* Debug defines */
-#define Debug(args)   cel_log_debug args 
-#define Warning(args) /*CEL_SETERRSTR(args)*/ cel_log_warning args
-#define Err(args)   /*CEL_SETERRSTR(args) */ cel_log_err args
-
 const U32 mppc_match_table[256] =
 {
     0x00000000, 0x009CCF93, 0x01399F26, 0x01D66EB9, 
@@ -155,7 +150,7 @@ int mppc_decompress(CelMppcContext *mppc, BYTE *src, U32 src_size,
 
         if (history_ptr > HistoryBufferEnd)
         {
-            Err((_T("history buffer index out of range")));
+            CEL_ERR((_T("history buffer index out of range")));
             return -1004;
         }
 
@@ -446,12 +441,12 @@ int mppc_decompress(CelMppcContext *mppc, BYTE *src, U32 src_size,
             /* Invalid LengthOfMatch Encoding */
             return -1003;
         }
-        //Debug((_T("<copy offset %d,length of match %d>"), (int)CopyOffset, (int)LengthOfMatch));
+        //CEL_DEBUG((_T("<copy offset %d,length of match %d>"), (int)CopyOffset, (int)LengthOfMatch));
 
 
         if ((history_ptr + LengthOfMatch - 1) > HistoryBufferEnd)
         {
-            Err((_T("history buffer overflow")));
+            CEL_ERR((_T("history buffer overflow")));
             return -1005;
         }
 

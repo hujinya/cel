@@ -15,12 +15,9 @@
 #include "cel/net/tcplistener.h"
 #include "cel/allocator.h"
 #include "cel/error.h"
+#undef _CEL_DEBUG
+//#define _CEL_DEBUG
 #include "cel/log.h"
-
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
 
 int cel_tcplistener_init(CelTcpListener *listener, int family, CelSslContext *ssl_ctx)
 {
@@ -70,7 +67,7 @@ int cel_tcplistener_init_str(CelTcpListener *listener,
     if (cel_sockaddr_str_split(addrs, &hints.ai_family, &node, &service) != 0
         || (ret = GetAddrInfo(node, service, &hints, &addr_info)) != 0)
     {
-        Err((_T("GetAddrInfo():%s."), gai_strerror(ret)));
+        CEL_ERR((_T("GetAddrInfo():%s."), gai_strerror(ret)));
         return -1;
     }
     result = addr_info;

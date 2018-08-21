@@ -20,11 +20,6 @@
 #include "cel/multithread.h"
 #include "cel/convert.h"
 
-/* Debug defines */
-#define Debug(args)   /*cel_log_debug args*/
-#define Warning(args) CEL_SETERRSTR(args)/*cel_log_warning args*/
-#define Err(args)   CEL_SETERRSTR(args)/*cel_log_err args*/
-
 
 CelPerf *cel_getperf(const struct timeval *now, int reset)
 {

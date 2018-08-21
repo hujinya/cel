@@ -21,10 +21,6 @@
 #include "cel/file.h"
 #include <stdarg.h>
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
 
 #define CEL_HTTP_STATUS_CODE_MAX       528
 
@@ -534,7 +530,7 @@ int cel_httpresponse_reading(CelHttpResponse *rsp, CelStream *s)
             (char *)(cel_stream_get_buffer(s) + start),
             end - start - 1)) == -1)
         {
-            Err((_T("Invalid http response version.")));
+            CEL_ERR((_T("Invalid http response version.")));
             rsp->reading_state = CEL_HTTP_ERROR;
             return -1;
         }
@@ -563,7 +559,7 @@ int cel_httpresponse_reading(CelHttpResponse *rsp, CelStream *s)
         if ((rsp->status = (CelHttpStatusCode)atoi(
             (char *)(cel_stream_get_buffer(s) + start))) <= 0)
         {
-            Err((_T("Invalid http response status code.")));
+            CEL_ERR((_T("Invalid http response status code.")));
             rsp->reading_state = CEL_HTTP_ERROR;
             return -1;
         }
@@ -610,7 +606,7 @@ int cel_httpresponse_reading(CelHttpResponse *rsp, CelStream *s)
     case CEL_HTTPRESPONSE_READING_OK:
         break;
     default:
-        Err((_T("Invalid http response state %d."), rsp->reading_state));
+        CEL_ERR((_T("Invalid http response state %d."), rsp->reading_state));
         rsp->reading_state = CEL_HTTP_ERROR;
         return -1;
     }
@@ -740,7 +736,7 @@ int cel_httpresponse_writing(CelHttpResponse *rsp, CelStream *s)
     case CEL_HTTPRESPONSE_WRITING_OK:
         break;
     default :
-        Err((_T("Invalid http response writing state %d."), 
+        CEL_ERR((_T("Invalid http response writing state %d."), 
             rsp->writing_state));
         rsp->writing_state = CEL_HTTP_ERROR;
         return -1;
@@ -756,7 +752,7 @@ void *cel_httpresponse_get_header(CelHttpResponse *rsp,
 
     if (s_httprsphdr_offset[hdr_index] == 0)
     {
-        Err((_T("Http response header(%s) unsupported."), 
+        CEL_ERR((_T("Http response header(%s) unsupported."), 
             g_case_httphdr[hdr_index].key_word));
         return NULL;
     }
@@ -778,7 +774,7 @@ int cel_httpresponse_set_header(CelHttpResponse *rsp,
     if (s_httprsphdr_offset[hdr_index] == 0)
     {
         rsp->writing_error = CEL_HTTP_ERROR;
-        Err((_T("Http response header(%s) unsupported."), 
+        CEL_ERR((_T("Http response header(%s) unsupported."), 
             g_case_httphdr[hdr_index].key_word));
         return -1;
     }

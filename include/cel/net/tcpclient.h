@@ -126,24 +126,23 @@ void cel_tcpclient_set_ssl(CelTcpClient *client, BOOL use_ssl);
 
 #define cel_tcpclient_get_localaddr(client) \
     &(((CelTcpClient *)(client))->local_addr)
-#define cel_tcpclient_get_localaddrs(client) \
+#define cel_tcpclient_get_localaddr_str(client) \
     cel_sockaddr_ntop(cel_tcpclient_get_localaddr(client))
-#define cel_tcpclient_get_remoteaddr(client) \
+#define cel_tcpclient_get_remoteaddr_str(client) \
     &(((CelTcpClient *)(client))->remote_addr)
 #define cel_tcpclient_get_remoteaddrs(client) \
-    cel_sockaddr_ntop(cel_tcpclient_get_remoteaddr(client))
+    cel_sockaddr_ntop(cel_tcpclient_get_remoteaddr_str(client))
 
-#define cel_tcpclient_connect(client, addr) \
+#define cel_tcpclient_connect(client, addr, co) \
     cel_socket_connect((CelSocket *)client, addr)
-static __inline int cel_tcpclient_handshake(CelTcpClient *client)
+static __inline 
+int cel_tcpclient_handshake(CelTcpClient *client, CelCoroutine *co)
 {
     return (client->ssl_sock.ssl != NULL 
         ? cel_sslsocket_handshake(&(client->ssl_sock)) : 0);
 }
-/* int cel_tcpclient_recv(CelTcpClient *client, CelStream *s); */
-#define cel_tcpclient_recv(client, s) 
-/* int cel_tcpclient_send(CelTcpClient *client, CelStream *s); */
-#define cel_tcpclient_send(client, s)
+int cel_tcpclient_recv(CelTcpClient *client, CelStream *s, CelCoroutine *co);
+int cel_tcpclient_send(CelTcpClient *client, CelStream *s, CelCoroutine *co);
 
 int cel_tcpclient_async_connect(CelTcpClient *client, CelSockAddr *remote_addr,
                                 CelTcpConnectCallbackFunc async_callback);

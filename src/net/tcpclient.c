@@ -13,14 +13,11 @@
  * GNU General Public License for more details.
  */
 #include "cel/net/tcpclient.h"
-#include "cel/allocator.h"
-#include "cel/error.h"
+#undef _CEL_DEBUG
+//#define _CEL_DEBUG
 #include "cel/log.h"
-
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
+#include "cel/error.h"
+#include "cel/allocator.h"
 
 void _cel_tcpclient_destroy_derefed(CelTcpClient *client)
 {
@@ -113,7 +110,7 @@ int cel_tcpclient_init_str(CelTcpClient *client,
     if (cel_sockaddr_str_split(addrs, &hints.ai_family, &node, &service) != 0
         || (ret = GetAddrInfo(node, service, &hints, &addr_info)) != 0)
     {
-        Err((_T("GetAddrInfo():%s."), gai_strerror(ret)));
+        CEL_ERR((_T("GetAddrInfo():%s."), gai_strerror(ret)));
         return -1;
     }
     result = addr_info;
@@ -208,6 +205,16 @@ void cel_tcpclient_set_ssl(CelTcpClient *client, BOOL use_ssl)
     client->ssl_sock.use_ssl = use_ssl;
 }
 
+int cel_tcpclient_recv(CelTcpClient *client, CelStream *s, CelCoroutine *co)
+{
+    return 0;
+}
+
+int cel_tcpclient_send(CelTcpClient *client, CelStream *s, CelCoroutine *co)
+{
+    return 0;
+}
+
 void cel_tcpclient_do_connect(CelTcpClientAsyncArgs *args)
 {
     CelAsyncResult _result;
@@ -241,8 +248,10 @@ int cel_tcpclient_async_connect(CelTcpClient *client, CelSockAddr *remote_addr,
     args->connect_callback = async_callback;
     args->client = client;
     args->connect_args.socket = &(client->sock);
-    args->connect_args.async_callback = (void (*) (void *))cel_tcpclient_do_connect;
-    memcpy(&(args->connect_args.remote_addr), remote_addr, sizeof(CelSockAddr));
+    args->connect_args.async_callback = 
+        (void (*) (void *))cel_tcpclient_do_connect;
+    memcpy(&(args->connect_args.remote_addr),
+        remote_addr, sizeof(CelSockAddr));
     return cel_socket_async_connect(&(args->connect_args));
 }
 
@@ -261,7 +270,8 @@ int cel_tcpclient_async_connect_host(CelTcpClient *client,
     args->connect_callback = async_callback;
     args->client = client;
     args->connect_args.socket = &(client->sock);
-    args->connect_args.async_callback = (void (*) (void *))cel_tcpclient_do_connect;
+    args->connect_args.async_callback = 
+        (void (*) (void *))cel_tcpclient_do_connect;
     _tcsncpy(args->connect_args.host, host, CEL_HNLEN);
     _tcsncpy(args->connect_args.service, _itot(port, p_str, 10), CEL_NPLEN); 
     return cel_socket_async_connect_host(&(args->connect_args));
@@ -363,7 +373,8 @@ int cel_tcpclient_async_send(CelTcpClient *client, CelStream *s,
     else
     {
         args->send_args.socket = &(client->sock);
-        args->send_args.async_callback = (void (*) (void *))cel_tcpclient_do_send;
+        args->send_args.async_callback = 
+            (void (*) (void *))cel_tcpclient_do_send;
         args->send_args.buffers = &(args->async_buf);
         args->send_args.buffer_count = 1;
         return cel_socket_async_send(&(args->send_args));

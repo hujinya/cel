@@ -25,11 +25,6 @@
 #include <sys/wait.h>
 #include <fcntl.h>
 
-/* Debug defines */
-#define Debug(args)   /*cel_log_debug args*/
-#define Warning(args) /*CEL_SETERRSTR(args)*/ cel_log_warning args
-#define Err(args)   /*CEL_SETERRSTR(args)*/ cel_log_err args
-
 int os_service_pidfile_create(const TCHAR *name)
 {
     static CelProcessStat ps1, ps2;

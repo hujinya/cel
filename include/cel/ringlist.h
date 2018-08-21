@@ -53,7 +53,8 @@ int _cel_ringlist_push_do_mp(CelRingList *ring_list, size_t n,
                              CelRingListConsFunc handle, void *user_data);
 /* int cel_ringlist_push_do_mp(CelRingList *ring_list, void *values, size_t n); */
 #define cel_ringlist_push_do_mp(ring_list, values, n) \
-    _cel_ringlist_push_do_mp(ring_list, n, cel_ringlist_push_values, &values)
+    _cel_ringlist_push_do_mp(ring_list, n, \
+    (CelRingListConsFunc)cel_ringlist_push_values, &values)
 int cel_ringlist_push_do_sp(CelRingList *ring_list, void *values, size_t n);
 
 void cel_ringlist_pop_values(CelRingList *ring_list, 
@@ -62,7 +63,8 @@ int _cel_ringlist_pop_do_mp(CelRingList *ring_list, size_t n,
                             CelRingListProdFunc handle, void *user_data);
 /* int cel_ringlist_pop_do_mp(CelRingList *ring_list, void **values, size_t n) */
 #define cel_ringlist_pop_do_mp(ring_list, values, n) \
-    _cel_ringlist_pop_do_mp(ring_list, n, cel_ringlist_pop_values, values)
+    _cel_ringlist_pop_do_mp(ring_list, n, \
+    (CelRingListProdFunc)cel_ringlist_pop_values, values)
 int cel_ringlist_pop_do_sp(CelRingList *ring_list, void **values, size_t n);
 
 #ifdef __cplusplus

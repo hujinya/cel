@@ -114,7 +114,7 @@ int cel_aes_crypt_cfb128(CelAesContext *ctx, int mode,
 /**
  * \brief               AES-CTR buffer encryption/decryption
  *
- * Warning: You have to keep the maximum use of your counter in mind!
+ * CEL_WARNING: You have to keep the maximum use of your counter in mind!
  *
  * Note: Due to the nature of CTR you should use the same key schedule for
  * both encryption and decryption. So a context initialized with

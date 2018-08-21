@@ -29,6 +29,7 @@ extern "C" {
 #endif
 
 typedef OsSocket CelSocket;
+
 typedef OsSocketAsyncAcceptArgs CelSocketAsyncAcceptArgs;
 typedef OsSocketAsyncConnectArgs CelSocketAsyncConnectArgs;
 typedef OsSocketAsyncRecvArgs CelSocketAsyncRecvArgs;
@@ -82,20 +83,9 @@ static __inline int cel_socket_listen(CelSocket *sock,
 }
 ;
 int cel_socket_listen_host(CelSocket *sock, 
-                          const TCHAR *host, unsigned short port, 
-                          int backlog);
+                          const TCHAR *host, unsigned short port, int backlog);
 int cel_socket_listen_str(CelSocket *sock, const TCHAR *str, int backlog);
-static __inline 
-int cel_socket_connect(CelSocket *sock, CelSockAddr *remote_addr)
-{
-    if (connect((sock)->fd, 
-        &((remote_addr)->addr), cel_sockaddr_get_len(remote_addr)) == 0)
-    {
-        sock->is_connected = TRUE;
-        return 0;
-    }
-    return -1;
-}
+int cel_socket_connect(CelSocket *sock, CelSockAddr *remote_addr);
 int cel_socket_connect_host(CelSocket *sock, 
                             const TCHAR *host, unsigned short port);
 

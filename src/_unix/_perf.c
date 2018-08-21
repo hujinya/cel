@@ -25,11 +25,6 @@
 #include <sys/statfs.h>
 #include <sys/times.h>
 
-/* Debug defines */
-#define Debug(args)   /*cel_log_debug args*/
-#define Warning(args) CEL_SETERRSTR(args)/*cel_log_warning args*/
-#define Err(args)   CEL_SETERRSTR(args)/*cel_log_err args*/
-
 CelPerf s_perf = { { 0 }, { 0 }, { 0 }, { 0 }};
 
 #define CPU_PROCFILE    "/proc/stat"
@@ -165,7 +160,7 @@ CelMemPerf *cel_getmemperf(void)
         }
     }
     cel_fclose(fp);
-    Err(("Read file \"%s\" error.", MEM_PROCFILE));
+    CEL_ERR(("Read file \"%s\" error.", MEM_PROCFILE));
 
     return NULL;
 }
@@ -263,7 +258,7 @@ CelNetPerf *cel_getnetperf(void)
             || (p = cel_skiptoken(p)) == NULL      /* compressed */
             || (p = cel_skiptoken(p)) == NULL)     /* multicast */
         { 
-            Err(("Skip token return null."));
+            CEL_ERR(("Skip token return null."));
             return NULL;
         }
         sent = strtoul(p, &p, 10);

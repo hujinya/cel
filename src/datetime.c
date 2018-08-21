@@ -17,11 +17,6 @@
 #include "cel/log.h"
 #include "cel/error.h"
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
-
 static long timezone_diff_secs = -1;
 
 long cel_timezone_diff_secs()
@@ -79,7 +74,7 @@ static int cel_datetime_mstr2i_a(const CHAR *month)
     case 'S':
         return (8);
     default:
-        Err((_T("Month \"%s\" format invalid."), month));
+        CEL_ERR((_T("Month \"%s\" format invalid."), month));
         return (-1);
     }
 }
@@ -107,7 +102,7 @@ static int cel_datetime_mstr2i_w(const WCHAR *month)
     case L'S':
         return (8);
     default:
-        Err((_T("Month \"%s\" format invalid."), month));
+        CEL_ERR((_T("Month \"%s\" format invalid."), month));
         return (-1);
     }
 }
@@ -132,7 +127,7 @@ int cel_datetime_init_strtime_a(CelDateTime *dt, const CHAR *strtime)
         &(_tm.tm_hour), &(_tm.tm_min), &(_tm.tm_sec), &(_tm.tm_year)) == 6);
     else
     {
-        Err((_T("Unable to resolve the time format \"%s\"."), strtime));
+        CEL_ERR((_T("Unable to resolve the time format \"%s\"."), strtime));
         return -1;
     }
     if ((_tm.tm_mon = cel_datetime_mstr2i_a(month)) == -1)
@@ -150,7 +145,7 @@ int cel_datetime_init_strtime_a(CelDateTime *dt, const CHAR *strtime)
         *dt = mkgmtime(&_tm); 
     else
     {
-        Err((_T("Invalid time zone format \"%s\""), timezone));
+        CEL_ERR((_T("Invalid time zone format \"%s\""), timezone));
         return -1;
     }
     //perror("xxx");
@@ -177,7 +172,7 @@ int cel_datetime_init_strtime_w(CelDateTime *dt, const WCHAR *strtime)
         &(_tm.tm_hour), &(_tm.tm_min), &(_tm.tm_sec), &(_tm.tm_year)) == 6);
     else
     {
-        Err((_T("Unable to resolve the time format \"%s\"."), strtime));
+        CEL_ERR((_T("Unable to resolve the time format \"%s\"."), strtime));
         return -1;
     }
     if ((_tm.tm_mon = cel_datetime_mstr2i_w(month)) == -1)
@@ -190,7 +185,7 @@ int cel_datetime_init_strtime_w(CelDateTime *dt, const WCHAR *strtime)
         *dt = mkgmtime(&_tm);
     else
     {
-        Err((_T("Invalid time zone format \"%s\""), timezone));
+        CEL_ERR((_T("Invalid time zone format \"%s\""), timezone));
         return -1;
     }
 

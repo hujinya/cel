@@ -13,7 +13,6 @@
  * GNU General Public License for more details.
  */
 #include "cel/coroutine.h"
-#include "cel/allocator.h"
 #include "cel/multithread.h"
 
 CelCoroutineScheduler *_cel_coroutinescheduler_get()

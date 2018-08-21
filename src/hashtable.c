@@ -17,11 +17,6 @@
 #include "cel/error.h"
 #include "cel/log.h"
 
-/* Debug defines */
-#define Debug(args)   /*cel_log_debug args*/
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
-
 #define HASH_COLLISION                3
 
 static __inline BOOL cel_hashtable_maybe_larger(CelHashTable *hash_table,
@@ -53,7 +48,7 @@ static int cel_hashtable_resize(CelHashTable *hash_table, size_t new_capacity)
     size_t i, hash_value;
     CelHashTableItem **new_items, *new_item, *old_item;
 
-    Debug((_T("Hash table resize, "
+    CEL_DEBUG((_T("Hash table resize, "
         "new capacity %d, old capacity %d, crruent size %d"),
         new_capacity, hash_table->capacity, hash_table->size));
     if ((new_items = (CelHashTableItem **)cel_malloc(
@@ -172,7 +167,7 @@ void cel_hashtable_insert(CelHashTable *hash_table, void *key, void *value)
                 if (hash_table->value_free_func != NULL)
                     hash_table->value_free_func(item->value);
                 item->value = value;
-                Debug((_T("Hashkey %p already exists in the hashtable %p, ")
+                CEL_DEBUG((_T("Hashkey %p already exists in the hashtable %p, ")
                     _T("replace it new value."), item->key, hash_table));
                 return;
             }
@@ -191,7 +186,7 @@ void cel_hashtable_insert(CelHashTable *hash_table, void *key, void *value)
     new_item->value = value;
     new_item->key_hash = hash_value;
     hash_table->size++;
-    /*Debug((_T("Insert a key %p and its associated value into hashtbale %p."), 
+    /*CEL_DEBUG((_T("Insert a key %p and its associated value into hashtbale %p."), 
         new_item->key, hash_table));*/
 }
 
@@ -228,13 +223,13 @@ void cel_hashtable_remove(CelHashTable *hash_table, const void *key)
         item->next = hash_table->free;
         hash_table->free = item;
         hash_table->size--;
-        Debug((_T("Removes key %p,crruent size %d,  capacity %d."), 
+        CEL_DEBUG((_T("Removes key %p,crruent size %d,  capacity %d."), 
             item->key, hash_table->size, hash_table->capacity));
         if (cel_hashtable_maybe_smaller(hash_table, &new_capacity))
             cel_hashtable_resize(hash_table, new_capacity);
         return;
     }
-    Warning((_T("Hashkey %p not found in hashtable %p."), key, hash_table));
+    CEL_WARNING((_T("Hashkey %p not found in hashtable %p."), key, hash_table));
 }
 
 void *cel_hashtable_lookup(CelHashTable *hash_table, const void *key)

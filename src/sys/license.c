@@ -87,7 +87,7 @@
 //        if ((klen += RSA_private_decrypt(blen, (const BYTE *)license + pllen, 
 //            (BYTE *)key + klen, rsa, RSA_PADDING)) <= 0)
 //        {
-//            Err(("License decrypt failed(%s).", 
+//            CEL_ERR(("License decrypt failed(%s).", 
 //                cel_ssl_get_errstr(cel_ssl_get_errno())));
 //            return -1;
 //        }
@@ -192,6 +192,6 @@
 //        cel_fsync(KEY_INSTAAL_PATH_, KEY_INSTAAL_PATH);
 //        return 0;
 //    }
-//    //Warning((_T("Licenes expired.")));
+//    //CEL_WARNING((_T("Licenes expired.")));
 //    return -1;
 //}

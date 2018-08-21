@@ -29,7 +29,7 @@ typedef struct _CelHttpSessionMap
 typedef struct _CelHttpSessionContext
 {
     long timeout;
-    CelHashTable sessions; 
+    CelHashTable sessions;
 }CelHttpSessionContext;
 
 #ifdef __cplusplus
@@ -51,7 +51,7 @@ CelHttpSessionContext *cel_httpsessioncontext_new();
 void cel_httpsessioncontext_free(CelHttpSessionContext *session_ctx);
 
 void cel_httpsessioncontext_get(CelHttpSessionContext *session_ctx, 
-                               const char *seesion_id);
+                                const char *seesion_id);
 
 #ifdef __cplusplus
 }

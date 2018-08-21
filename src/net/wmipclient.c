@@ -18,11 +18,6 @@
 #include "cel/allocator.h"
 #include "cel/file.h"
 
-/* Debug defines */
-#define Debug(args)   /*cel_log_debug args*/
-#define Warning(args) CEL_SETERRSTR(args) /*cel_log_warning args*/
-#define Err(args)   CEL_SETERRSTR(args) /*cel_log_err args*/
-
 void _cel_wmipclient_destroy_derefed(CelWmipClient *client)
 {
     if (client->wmip_msg != NULL)
@@ -59,7 +54,7 @@ CelWmipClient *cel_wmipclient_new(CelSslContext *ssl_ctx,
             wmip_ctx->new_func(sizeof(CelWmipClient), tcp_client.sock.fd)
             : cel_malloc(sizeof(CelWmipClient))) == NULL)
         {
-            Err((_T("Wmip client new return null.")));
+            CEL_ERR((_T("Wmip client new return null.")));
             cel_tcpclient_destroy(&tcp_client);
             return NULL;
         }
@@ -123,22 +118,14 @@ void cel_wmipclient_do_send_response(CelWmipClient *client,
 {
     CelHttpConnection *connection;
 
-    if (result->ret != -1
-        && rsp->writing_state != CEL_HTTPRESPONSE_WRITING_OK)
-    {
-        //puts("cel_httpclient_async_send_response");
-        if (cel_httpclient_async_send_response(&(client->http_client), rsp,
-            (CelHttpSendResponseCallbackFunc)
-            cel_wmipclient_do_send_response) != -1)
-            return ;
-    }
     if (client->wmip_msg->execute_callback != NULL)
     {
         //puts("execute_callback");
         client->wmip_msg->execute_callback(client, result);
         return;
     }
-    if ((connection = (CelHttpConnection *)cel_httprequest_get_header(
+    if (result->ret != -1
+        && (connection = (CelHttpConnection *)cel_httprequest_get_header(
         &(client->wmip_msg->req), CEL_HTTPHDR_CONNECTION)) != NULL
         && *connection == CEL_HTTPCON_KEEPALIVE)
     {
@@ -148,9 +135,10 @@ void cel_wmipclient_do_send_response(CelWmipClient *client,
         client->wmip_msg->execute_callback = NULL;
         client->op_index = -1;
         client->file_len = 0;
-        cel_httpclient_async_recv_request(&(client->http_client), 
+        if (cel_httpclient_async_recv_request(&(client->http_client), 
             &(client->wmip_msg->req), 
-            (CelHttpRecvRequestCallbackFunc)cel_wmipclient_do_recv_request);
+            (CelHttpRecvRequestCallbackFunc)cel_wmipclient_do_recv_request) == -1)
+            cel_wmipclient_free(client);
     }
     else
     {
@@ -210,7 +198,7 @@ int cel_wmipclient_async_response_send_result(CelWmipClient *client,
         cel_httpresponse_end(&(message->rsp));
         break;
     default:
-        Err((_T("cel_wmipclient_result error")));
+        CEL_ERR((_T("cel_wmipclient_result error")));
         cel_wmipclient_free(client);
         return -1;
     }
@@ -247,7 +235,7 @@ void cel_wmipclient_do_recv_request(CelWmipClient *client,
     case CEL_HTTPREQUEST_READING_BODY:
         if (result->ret == -1)
         {
-            Err((_T("cel_wmipclient_do_recv_request return -1")));
+            CEL_ERR((_T("cel_wmipclient_do_recv_request return -1")));
             cel_wmipclient_free(client);
         }
         else
@@ -257,7 +245,7 @@ void cel_wmipclient_do_recv_request(CelWmipClient *client,
                 (CelHttpRecvRequestCallbackFunc)
                 cel_wmipclient_do_recv_request) == -1)
             {
-                Err((_T("cel_httpclient_async_recv_request return -1")));
+                CEL_ERR((_T("cel_httpclient_async_recv_request return -1")));
                 cel_wmipclient_free(client);
             }
         }

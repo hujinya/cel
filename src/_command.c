@@ -18,10 +18,6 @@
 #include "cel/log.h"
 #include <stdarg.h>
 
-/* Debug defines */
-#define Debug(args)   cel_log_debug args 
-#define Warning(args) /*CEL_SETERRSTR(args)*/ cel_log_warning args 
-#define Err(args)   /*CEL_SETERRSTR(args)*/ cel_log_err args 
 
 int cel_command_init(CelCommand *cmd)
 {
@@ -143,7 +139,7 @@ next_argument:
             }
             else if (*end != _T(' '))
             {
-                Err((_T("Command line '%s' arguments init failed, token 0x%x."), 
+                CEL_ERR((_T("Command line '%s' arguments init failed, token 0x%x."), 
                     cmd_line, args->token32));
                 cel_command_args_destroy(args);
                 return -1;
@@ -369,7 +365,7 @@ next_argument:
                 }
                 else if (*cmd_str != _T(' '))
                 {
-                    Err((_T("Command line '%s' arguments init failed, token 0x%x."), 
+                    CEL_ERR((_T("Command line '%s' arguments init failed, token 0x%x."), 
                         cmd_str, token_cnt.uint32));
                     return NULL;
                 }
@@ -391,7 +387,7 @@ int cel_command_install_element(CelCommand *cmd, CelCommandElement *element)
     if ((node = cel_command_install(&(cmd->child_list), element->str)) == NULL
         || node->element != NULL)
     {
-         Err((_T("Element '%s' already exists."), element->str));
+         CEL_ERR((_T("Element '%s' already exists."), element->str));
         return -1;
     }
     node->element = element;
@@ -493,14 +489,14 @@ int cel_clisession_execute(CelCommandSession *cli_si, const TCHAR *cmd_str)
         if ((cur_node = cel_command_lookup(
             node_list, args.argv[depth])) == NULL)
         {
-            Err((_T("Command %s invalid."), cmd_str));
+            CEL_ERR((_T("Command %s invalid."), cmd_str));
             return -1;
         }
         node_list = &(cur_node->child_list); 
     }  
     if (cur_node->element == NULL)
     {
-        Err((_T("Element '%s' not exists."), cmd_str));
+        CEL_ERR((_T("Element '%s' not exists."), cmd_str));
         return -1;
     }
     ret = cur_node->element->exec_func(cli_si, args.argc, args.argv);

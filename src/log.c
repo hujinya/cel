@@ -27,6 +27,7 @@ typedef struct _CelLogSpecific
 {
     unsigned long pid;
     CelLogMsg msg;
+    CelLogMsg *msg_buf;
 }CelLogSpecific;
 
 typedef struct _CelLogerHookItem
@@ -60,12 +61,12 @@ CelLogger g_logger = {
     },  /* level */
     { '\0' }, /* hostname */
     { '\0' }, /* processname */
-    0,        /* styles */
     NULL,     /* hook_list */
     FALSE,    /* is_flush */
     CEL_LOGBUF_NUM,
-    NULL,     /* msg_bufs */
-    NULL      /* ring list */
+    NULL,     /* free list */
+    NULL,     /* ring list */
+    NULL      /* msg_bufs */
 };
 
 void cel_logger_facility_set(CelLogger *logger, CelLogFacility facility)
@@ -186,30 +187,25 @@ static int _cel_loggger_flush(CelLogger *logger)
     return 0;
 }
 
-void _cel_logger_ringlist_pop_msg(CelRingList *ring_list, 
-                                  unsigned long cons_head, size_t n,
-                                  void *user_data)
+void _cel_logger_freelist_init(CelRingList *ring_list, 
+                               unsigned long cons_head, size_t n,
+                               void *user_data)
 {
     U32 idx = (cons_head & ring_list->mask);
-    CelLogger *logger = (CelLogger *)user_data;
-    CelLogMsg *log_msg;
+    CelLogMsg *free = (CelLogMsg *)user_data;
 
     for (idx = (cons_head & ring_list->mask); n > 0; n--,idx++)
     {
         if (idx >= ring_list->size)
             idx = 0;
-        log_msg = &g_logger.msg_bufs[idx];
-        //printf("pop idx=%d\r\n", idx);
-        if (g_logger.hook_list == NULL)
-            cel_logmsg_puts(log_msg, NULL);
-        else 
-            cel_logger_write(logger, log_msg);
+        ring_list->ring[idx] = &free[idx];
     }
 }
 
 int cel_logger_flush(CelLogger *logger)
 {
-    int n_msg = 0;
+    int i, n_msg = 0;
+    CelLogMsg *msg;
 
     if (logger->msg_bufs == NULL)
     {
@@ -217,31 +213,56 @@ int cel_logger_flush(CelLogger *logger)
         if (logger->msg_bufs == NULL)
         {
             logger->n_bufs = cel_power2min(logger->n_bufs);
-            if ((logger->msg_bufs = (CelLogMsg *)_cel_sys_malloc(
-                sizeof(CelLogMsg) * logger->n_bufs)) == NULL)
+            if ((logger->msg_bufs = (CelLogMsg **)_cel_sys_malloc(
+                (sizeof(void *) + sizeof(CelLogMsg)) * logger->n_bufs)) == NULL)
             {
                 cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
                 return -1;
             }
             /*printf("size %d * %d = %d\r\n", 
-                sizeof(CelLogMsg), logger->n_bufs, sizeof(CelLogMsg) * logger->n_bufs);*/
-            if ((logger->ring_list = 
-                cel_ringlist_new(logger->n_bufs)) == NULL)
+            sizeof(CelLogMsg), logger->n_bufs, 
+            sizeof(CelLogMsg) * logger->n_bufs);*/
+            if ((logger->ring_list = cel_ringlist_new(logger->n_bufs)) == NULL)
             {
                 _cel_sys_free(logger->msg_bufs);
                 logger->msg_bufs = NULL;
                 cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
                 return -1;
             }
+            if ((logger->free_list = cel_ringlist_new(logger->n_bufs)) == NULL)
+            {
+                _cel_sys_free(logger->msg_bufs);
+                logger->msg_bufs = NULL;
+                cel_ringlist_free(logger->free_list);
+                cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
+                return -1;
+            }
+            i = _cel_ringlist_push_do_mp(logger->free_list, logger->n_bufs, 
+                (CelRingListProdFunc)_cel_logger_freelist_init,
+                logger->msg_bufs + logger->n_bufs);
+            //printf("i = %d\r\n", i);
             logger->is_flush = TRUE;
         }
         cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
     }
     //printf("n_msg %ld\r\n", cel_getticks());
-    n_msg = _cel_ringlist_pop_do_mp(logger->ring_list, logger->n_bufs, 
-        (CelRingListProdFunc)_cel_logger_ringlist_pop_msg, logger);
-    if (n_msg > 0 && logger->hook_list != NULL)
-        _cel_loggger_flush(logger);
+    if ((n_msg = cel_ringlist_pop_do_mp(
+        logger->ring_list, logger->msg_bufs, logger->n_bufs)) > 0)
+    {
+        i = 0;
+        while (i < n_msg)
+        {
+            msg = logger->msg_bufs[i];
+            if (logger->hook_list == NULL)
+                cel_logmsg_puts(msg, NULL);
+            else 
+                cel_logger_write(logger, msg);
+            cel_ringlist_push_do_mp(logger->free_list, msg, 1);
+            i++;
+        }
+        if (logger->hook_list != NULL)
+            _cel_loggger_flush(logger);
+    }
     //printf("n_msg = %d %ld\r\n", n_msg, cel_getticks());
 
     return n_msg;
@@ -258,6 +279,7 @@ static CelLogSpecific *_cel_logger_specific_get()
             (CelLogSpecific *)_cel_sys_malloc(sizeof(CelLogSpecific))) != NULL)
         {
             log_specific->pid = cel_thread_getid();
+            log_specific->msg_buf = NULL;
             if (cel_multithread_set_keyvalue(
                 CEL_MT_KEY_LOG, log_specific) != -1
                 && cel_multithread_set_keydestructor(
@@ -270,48 +292,23 @@ static CelLogSpecific *_cel_logger_specific_get()
     return log_specific;
 }
 
-typedef struct _CelLogUserData
-{
-    CelLogger *logger;
-    CelLogFacility facility;
-    CelLogLevel level;
-    int type;
-    union {
-        const TCHAR *str;
-        struct {
-            const BYTE *p;
-            size_t len;
-        };
-        struct {
-            const TCHAR *fmt;
-            va_list ap;
-        };
-    };
-}CelLogUserData;
+#define CEL_LOGMSG_SPECIFIC_GET() do { \
+    if ((log_msg = (log_specific->msg_buf)) == NULL) { \
+    if (cel_ringlist_pop_do_mp( \
+        logger->free_list, &(log_specific->msg_buf), 1) < 1) { \
+        puts("Drop message."); \
+        return -1; } \
+    log_msg = log_specific->msg_buf; }\
+}while(0)
 
 #define CEL_LOGMSG_WRITE() do { \
-    switch (user_data->type){ \
-    case 1: \
-    _tcsncpy(log_msg->content, user_data->str, CEL_LOGCONTENT_LEN); \
-    break; \
-    case 2: \
-    cel_hexdump(log_msg->content, CEL_LOGCONTENT_LEN,  \
-    user_data->p, user_data->len); \
-    break; \
-    case 3: \
-    _vsntprintf(log_msg->content, CEL_LOGCONTENT_LEN,  \
-    user_data->fmt, user_data->ap); \
-    break; \
-    default: \
-    break; \
-} \
-    log_msg->facility = user_data->facility; \
-    log_msg->level = user_data->level; \
+    log_msg->facility = facility; \
+    log_msg->level = level; \
     cel_datetime_init_now(&msg_time); \
     log_msg->timestamp = msg_time; \
     log_msg->hostname = logger->hostname; \
     log_msg->processname = logger->processname; \
-    log_msg->pid = cel_thread_getid(); \
+    log_msg->pid = log_specific->pid; \
 }while(0)
 
 #define CEL_LOG_FLUSH() do { \
@@ -322,56 +319,29 @@ typedef struct _CelLogUserData
     _cel_loggger_flush(logger); \
 }while(0)
 
-void _cel_logger_ringlist_push_msg(CelRingList *ring_list, 
-                                   unsigned long prod_head, size_t n,
-                                   CelLogUserData *user_data)
-{
-    U32 idx;
-    CelLogger *logger = user_data->logger;
-    CelLogMsg *log_msg;
-    CelDateTime msg_time;
-
-    for (idx = (prod_head & ring_list->mask); n > 0; idx++, n--)
-    {
-        if (idx >= ring_list->size)
-            idx = 0;
-        //printf("[%d]push idx=[%d]%d \r\n",
-        //    cel_thread_getid(), prod_head, idx);
-        log_msg = &(logger->msg_bufs[idx]);
-        CEL_LOGMSG_WRITE();
-        ring_list->ring[idx] = log_msg;
-    }
-}
-
 int cel_logger_puts(CelLogger *logger,
                     CelLogFacility facility, CelLogLevel level, 
                     const TCHAR *str)
 {
-    CelLogUserData _user_data, *user_data;
+    CelLogSpecific *log_specific;
     CelLogMsg *log_msg;
     CelDateTime msg_time;
 
     if (logger->level[facility] < level)
         return -1;
-    _user_data.logger = logger;
-    _user_data.facility = logger->facility;
-    _user_data.level = level;
-    _user_data.type = 1;
-    _user_data.str = str;
+    log_specific = _cel_logger_specific_get();
     if (logger->is_flush)
     {
-        if (_cel_ringlist_push_do_mp(logger->ring_list, 1, 
-            (CelRingListProdFunc)_cel_logger_ringlist_push_msg,
-            &_user_data) <= 0)
-        {
-            puts("Drop message.");
-            return -1;
-        }
+        CEL_LOGMSG_SPECIFIC_GET();
+        _tcsncpy(log_msg->content, str, CEL_LOGCONTENT_LEN);
+        CEL_LOGMSG_WRITE();
+        cel_ringlist_push_do_mp(logger->ring_list, log_msg, 1);
+        log_specific->msg_buf = NULL;
     }
     else
     {
-        log_msg = &(_cel_logger_specific_get()->msg);
-        user_data = &_user_data;
+        log_msg = &(log_specific->msg);
+        _tcsncpy(log_msg->content, str, CEL_LOGCONTENT_LEN);
         CEL_LOGMSG_WRITE();
         CEL_LOG_FLUSH();
     }
@@ -383,32 +353,25 @@ int cel_logger_hexdump(CelLogger *logger,
                        CelLogFacility facility, CelLogLevel level, 
                        const BYTE *p, size_t len)
 {
-    CelLogUserData _user_data, *user_data;
+    CelLogSpecific *log_specific;
     CelLogMsg *log_msg;
     CelDateTime msg_time;
 
     if (g_logger.level[facility] < level)
         return -1;
-    _user_data.logger = logger;
-    _user_data.facility = logger->facility;
-    _user_data.level = level;
-    _user_data.type = 2;
-    _user_data.p = p;
-    _user_data.len = len;
-    if (g_logger.is_flush)
+    log_specific = _cel_logger_specific_get();
+    if (logger->is_flush)
     {
-        if (_cel_ringlist_push_do_mp(logger->ring_list, 1, 
-            (CelRingListProdFunc)_cel_logger_ringlist_push_msg,
-            &_user_data) <= 0)
-        {
-            puts("Drop message.");
-            return -1;
-        }
+        CEL_LOGMSG_SPECIFIC_GET();
+        cel_hexdump(log_msg->content, CEL_LOGCONTENT_LEN, p, len);
+        CEL_LOGMSG_WRITE();
+        cel_ringlist_push_do_mp(logger->ring_list, log_msg, 1);
+        log_specific->msg_buf = NULL;
     }
     else
     {
-        log_msg = &(_cel_logger_specific_get()->msg);
-        user_data = &_user_data;
+        log_msg = &(log_specific->msg);
+        cel_hexdump(log_msg->content, CEL_LOGCONTENT_LEN, p, len);
         CEL_LOGMSG_WRITE();
         CEL_LOG_FLUSH();
     }
@@ -420,34 +383,26 @@ int cel_logger_vprintf(CelLogger *logger,
                        CelLogFacility facility, CelLogLevel level, 
                        const TCHAR *fmt, va_list ap)
 {
-    CelLogUserData _user_data, *user_data;
+    CelLogSpecific *log_specific;
     CelLogMsg *log_msg;
     CelDateTime msg_time;
 
     //_tprintf(_T("%d %d\r\n"), logger->level[CEL_DEFAULT_FACILITY],  level);
     if (logger->level[facility] < level)
         return -1;
-    _user_data.logger = logger;
-    _user_data.facility = logger->facility;
-    _user_data.level = level;
-    _user_data.type = 3;
-    _user_data.fmt = fmt;
-    va_copy(_user_data.ap, ap);
-
+    log_specific = _cel_logger_specific_get();
     if (logger->is_flush)
     {
-        if (_cel_ringlist_push_do_mp(logger->ring_list, 1, 
-            (CelRingListProdFunc)_cel_logger_ringlist_push_msg,
-            &_user_data) <= 0)
-        {
-            puts("Drop message.");
-            return -1;
-        }
+        CEL_LOGMSG_SPECIFIC_GET();
+        _vsntprintf(log_msg->content, CEL_LOGCONTENT_LEN, fmt, ap);
+        CEL_LOGMSG_WRITE();
+        cel_ringlist_push_do_mp(logger->ring_list, log_msg, 1);
+        log_specific->msg_buf = NULL;
     }
     else
     {
-        log_msg = &(_cel_logger_specific_get()->msg);
-        user_data = &_user_data;
+        log_msg = &(log_specific->msg);
+        _vsntprintf(log_msg->content, CEL_LOGCONTENT_LEN, fmt, ap);
         CEL_LOGMSG_WRITE();
         CEL_LOG_FLUSH();
     }
@@ -607,7 +562,7 @@ int cel_logmsg_fwrite(CelLogMsg *msg, void *path)
         if ((s_fp = cel_fopen(file_path, _T("a"))) == NULL 
             && (cel_mkdirs((TCHAR *)path, 
             S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH) == -1 
-             || (s_fp = cel_fopen(file_path, _T("a"))) == NULL))
+            || (s_fp = cel_fopen(file_path, _T("a"))) == NULL))
         {
             _putts(cel_geterrstr(cel_sys_geterrno()));
             return 0;

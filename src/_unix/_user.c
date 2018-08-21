@@ -27,11 +27,6 @@
 #include "cel/file.h"
 #include "cel/datetime.h"
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
-
 /* Group file */
 #define GROUP           "/etc/group"
 #define GROUP_          "/etc/group-"
@@ -99,7 +94,7 @@ int os_groupadd(OsGroupInfo *group)
 
     if (group->name == NULL || (len = strlen(group->name)) > CEL_GNLEN)
     {
-        Err(("Group name \"%s\" invalid.", group->name));
+        CEL_ERR(("Group name \"%s\" invalid.", group->name));
         return -1;
     }
     cel_fsync(GROUP_, GROUP);
@@ -113,7 +108,7 @@ int os_groupadd(OsGroupInfo *group)
             && buf[len] == ':')
         {
             cel_fclose(fp);
-            Err(("Group \"%s\" is already exists.", group->name));
+            CEL_ERR(("Group \"%s\" is already exists.", group->name));
             return -1;
         }
         /* Get new gid */
@@ -136,7 +131,7 @@ int os_groupadd(OsGroupInfo *group)
     {
         cel_fclose(fp);
         cel_fsync(GROUP, GROUP_);
-        Err(("Write group file \"%s\" failed", GROUP));
+        CEL_ERR(("Write group file \"%s\" failed", GROUP));
         return -1;
     }
     cel_fclose(fp);
@@ -154,7 +149,7 @@ int os_groupdel(char *groupname)
     if (groupname == NULL || (len = strlen(groupname)) > CEL_GNLEN)
     {
         endgrent();
-        Err(("Group name \"%s\" invalid.", groupname));
+        CEL_ERR(("Group name \"%s\" invalid.", groupname));
         return -1;
     }
     /* Delete group info */ 
@@ -208,7 +203,7 @@ int os_groupadduser(char *groupname, char *username)
         || (ulen = strlen(username)) > CEL_UNLEN
         || getgrnam(groupname) == NULL)
     {
-        Err(("Name is null or group \"%s\" not exists", groupname));
+        CEL_ERR(("Name is null or group \"%s\" not exists", groupname));
         return -1;
     }
     
@@ -290,7 +285,7 @@ int os_groupdeluser(char *groupname, char *username)
         || (ulen = strlen(username)) > CEL_UNLEN
         || getgrnam(groupname) == NULL)
     {
-        Err(("Name is null or group \"%s\" not exists", groupname));
+        CEL_ERR(("Name is null or group \"%s\" not exists", groupname));
         return -1;
     }
     cel_fsync(GROUP_, GROUP);
@@ -434,18 +429,18 @@ int os_useradd(OsUserInfo *user)
 
     if (user->name == NULL || (len = strlen(user->name)) > CEL_UNLEN)
     {
-        Err(("User name \"%s\" is null or user already exists",
+        CEL_ERR(("User name \"%s\" is null or user already exists",
             user->name));
         return -1;
     }
     if (user->passwd == NULL)
     {
-        Err(("User \"%s\" password is null", user->name));
+        CEL_ERR(("User \"%s\" password is null", user->name));
         return -1;
     }
     if (getgrgid(user->gid) == NULL)
     {
-        Err(("Group id \"%d\" is not exists.",user->gid));
+        CEL_ERR(("Group id \"%d\" is not exists.",user->gid));
         return -1;
     }
     /* Write passwd file */
@@ -460,7 +455,7 @@ int os_useradd(OsUserInfo *user)
             && buf[len] == ':')
         {
             cel_fclose(fp);
-            Err(("User \"%s\" is already exists.", user->name));
+            CEL_ERR(("User \"%s\" is already exists.", user->name));
             return -1;
         }
         /* Get new uid */
@@ -487,7 +482,7 @@ int os_useradd(OsUserInfo *user)
     {
         cel_fclose(fp);
         cel_fsync(PASSWD, PASSWD_);
-        Err(("Write passwd file \"%s\" failed", PASSWD));
+        CEL_ERR(("Write passwd file \"%s\" failed", PASSWD));
         return -1;
     }
     cel_fclose(fp);
@@ -506,7 +501,7 @@ int os_useradd(OsUserInfo *user)
         cel_fclose(fp);
         cel_fsync(PASSWD, PASSWD_);
         cel_fsync(SHADOW, SHADOW_);
-        Err(("Write shadow file \"%s\" failed", SHADOW));
+        CEL_ERR(("Write shadow file \"%s\" failed", SHADOW));
         return -1;
     }
     cel_fclose(fp);
@@ -518,12 +513,12 @@ int os_useradd(OsUserInfo *user)
         {
             cel_fsync(PASSWD, PASSWD_);
             cel_fsync(SHADOW, SHADOW_);
-            Err(("Create home dir \"%s\" failed", user->dir));
+            CEL_ERR(("Create home dir \"%s\" failed", user->dir));
             return -1;
         }
         if (chown(user->dir, user->uid, user->gid) == -1)
         {
-            Err(("Add user \"%s\" successed, but chown home dir failed", 
+            CEL_ERR(("Add user \"%s\" successed, but chown home dir failed", 
                 user->name));
             return -1;
         }
@@ -542,7 +537,7 @@ int os_userdel(char *username)
 
     if (username == NULL || (len = strlen(username)) > CEL_UNLEN)
     {
-        Err(("User name \"%s\" is null or user not exists", username));
+        CEL_ERR(("User name \"%s\" is null or user not exists", username));
         return -1;
     }
     /* Delete password info */ 
@@ -633,7 +628,7 @@ int os_userpswd(char *username, char *oldpassword, char *newpassword)
         || newpassword == NULL
         || getpwnam(username) == NULL)
     {
-        Err(("User name \"%s\" is null or user not exists", username));
+        CEL_ERR(("User name \"%s\" is null or user not exists", username));
         return -1;
     }
     cel_fsync(SHADOW_, SHADOW);

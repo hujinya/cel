@@ -20,10 +20,6 @@
 #include "cel/file.h"
 #include <stdarg.h>
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
 
 static CelKeywordA s_reqmethod[] = 
 {
@@ -580,7 +576,7 @@ int cel_httprequest_reading(CelHttpRequest *req, CelStream *s)
             (char *)(cel_stream_get_buffer(s) + start), 
             end - start - 1)) == -1)
         {
-            Err((_T("Invalid http request method.")));
+            CEL_ERR((_T("Invalid http request method.")));
             req->reading_state = CEL_HTTP_ERROR;
             return -1;
         }
@@ -614,7 +610,7 @@ int cel_httprequest_reading(CelHttpRequest *req, CelStream *s)
             (char *)(cel_stream_get_buffer(s) + start), 
             end - start - 2)) == -1)
         {
-            Err((_T("Invalid http version.")));
+            CEL_ERR((_T("Invalid http version.")));
             req->reading_state = CEL_HTTP_ERROR;
             return -1;
         }
@@ -680,7 +676,7 @@ int cel_httprequest_reading(CelHttpRequest *req, CelStream *s)
         //puts("CEL_HTTPREQUEST_READING_OK");
         break;
     default:
-        Err((_T("Invalid http request state %d."), req->reading_state));
+        CEL_ERR((_T("Invalid http request state %d."), req->reading_state));
         req->reading_state = CEL_HTTP_ERROR;
         return -1;
     }
@@ -845,7 +841,7 @@ int cel_httprequest_writing(CelHttpRequest *req, CelStream *s)
     case CEL_HTTPREQUEST_WRITING_OK:
         break;
     default :
-        Err((_T("Invalid http request writing state %d."), 
+        CEL_ERR((_T("Invalid http request writing state %d."), 
             req->writing_state));
         req->writing_state = CEL_HTTP_ERROR;
         return -1;
@@ -955,7 +951,7 @@ void *cel_httprequest_get_header(CelHttpRequest *req, CelHttpHeader hdr_index)
 
     if (s_httpreqhdr_offset[hdr_index] == 0)
     {
-        Err((_T("Http request header(%s) unsupported."), 
+        CEL_ERR((_T("Http request header(%s) unsupported."), 
             g_case_httphdr[hdr_index].key_word));
         return NULL;
     }
@@ -975,7 +971,7 @@ int cel_httprequest_set_header(CelHttpRequest *req,
 
     if (s_httpreqhdr_offset[hdr_index] == 0)
     {
-         Err((_T("Http request header(%s) unsupported."), 
+         CEL_ERR((_T("Http request header(%s) unsupported."), 
             g_case_httphdr[hdr_index].key_word));
         return -1;
     }

@@ -15,12 +15,9 @@
 #include "cel/eventloop.h"
 #include "cel/allocator.h"
 #include "cel/error.h"
+#undef _CEL_DEBUG
+//#define _CEL_DEBUG
 #include "cel/log.h"
-
-/* Debug defines */
-#define Debug(args)   /*cel_log_debug args*/
-#define Warning(args) CEL_SETERRSTR(args) /*cel_log_warning args*/
-#define Err(args)   CEL_SETERRSTR(args) /*cel_log_err args*/
 
 static CelQueuedEvent s_wakeupevent = { CEL_EVENT_WAKEUP, NULL, NULL };
 static CelQueuedEvent s_exitevent = { CEL_EVENT_EXIT, NULL, NULL };
@@ -127,6 +124,10 @@ static int cel_eventloop_handle(CelEventLoop *evt_loop, CelEventCtlBlock *ecb)
     case CEL_EVENT_CHANNELOUT:
         if (ecb->ole.async_callback != NULL)
             ecb->ole.async_callback(&(ecb->ole));
+        else if(ecb->ole.co_entity != NULL)
+            os_coroutineentity_resume(ecb->ole.co_entity);
+        else
+            _tprintf(_T("Event loop channel event error"));
         break;
     case CEL_EVENT_TIMER:
         /* Callback */
@@ -160,7 +161,7 @@ static int cel_eventloop_handle(CelEventLoop *evt_loop, CelEventCtlBlock *ecb)
         cel_poll_queued(&(evt_loop->poll), (CelOverLapped *)(&s_exitevent));
         break;
     default:
-        Err((_T("Event type %d undefined."), ecb->evt_type));
+        CEL_ERR((_T("Event type %d undefined."), ecb->evt_type));
         break;
     }
     return 0;
@@ -173,10 +174,8 @@ int cel_eventloop_do(CelEventLoop *evt_loop)
     CelOverLapped *ol = NULL;
     CelTimer *expireds[2];
    
-    /*
-    _tprintf(_T("wakeup_cnt = %d, %d, pid %d\r\n"), 
-        evt_loop->wakeup_cnt, evt_loop->timer_wakeup, (int)cel_thread_getid());
-        */
+    /*CEL_DEBUG((_T("wakeup_cnt = %d, %d, pid %d"), 
+        evt_loop->wakeup_cnt, evt_loop->timer_wakeup, (int)cel_thread_getid()));*/
     if (evt_loop->wakeup_cnt != evt_loop->timer_wakeup)
     {
         wakeup_cnt = evt_loop->wakeup_cnt = evt_loop->timer_wakeup;

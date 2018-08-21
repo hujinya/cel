@@ -15,11 +15,6 @@
 #include "cel/crypto/crypto.h"
 #include "cel/log.h"
 
-/* Debug defines */
-#define Debug(args) CEL_SETERRSTR(args) /*cel_log_debug args*/
-#define Warning(args) CEL_SETERRSTR(args) /*cel_log_warning args*/
-#define Err(args)   CEL_SETERRSTR(args) /*cel_log_err args*/
-
 #ifndef HAVE_OPENSSL_CRYPTO_H
 
 int  cel_mdcontext_init(CelMdContext *ctx, CelMd *md)

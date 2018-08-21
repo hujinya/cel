@@ -17,8 +17,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SolutionDir)cel\bin"
-			IntermediateDirectory="$(SolutionDir)cel\obj\$(ConfigurationName)\$(ProjectName)"
+			OutputDirectory="..\bin"
+			IntermediateDirectory="..\obj\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="1"
 			CharacterSet="2"
 			>

@@ -42,8 +42,8 @@ typedef OsAtomic CelAtomic;
 #define cel_compiler_barrier os_compiler_barrier
 
 static __inline void yield(unsigned k)
-{    
-    if (k < 4);  
+{
+    if (k < 4);
     else if (k < 16) _mm_pause();
     else if (k < 32) usleep(0); 
     else usleep(1);

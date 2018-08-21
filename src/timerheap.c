@@ -17,11 +17,6 @@
 #include "cel/error.h"
 #include "cel/log.h"
 
-/* Debug defines */
-#define Debug(args)   /*cel_log_debug args*/
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
-
 int cel_timerheap_init(CelTimerHeap *timer_heap, CelFreeFunc free_func)
 {
     timer_heap->earliest = NULL;
@@ -71,7 +66,7 @@ int cel_timerheap_cancel(CelTimerHeap *timer_heap, CelTimerId timer_id)
 
     if (timer->timer_id != timer_id) 
     {
-        Err((_T("Timer(%p) id %p invaild."), timer, timer->timer_id));
+        CEL_ERR((_T("Timer(%p) id %p invaild."), timer, timer->timer_id));
         return -1;
     }
     cel_timer_stop(timer, NULL);

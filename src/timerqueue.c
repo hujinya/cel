@@ -17,10 +17,6 @@
 #include "cel/error.h"
 #include "cel/log.h"
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */
-#define Warning(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args)/* cel_log_err args */
 
 static CelTimerQueueClass timer_heap_kclass = 
 {
@@ -70,7 +66,7 @@ int cel_timerqueue_init_full(CelTimerQueue *timer_queue,
             break;
         default:
             ret = -1;
-            Err((_T("Timerqueue type %d undefined."), type));
+            CEL_ERR((_T("Timerqueue type %d undefined."), type));
             break;
         }
         if (ret != -1)

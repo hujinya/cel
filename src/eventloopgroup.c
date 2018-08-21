@@ -85,7 +85,7 @@ int cel_eventloopgroup_init(CelEventLoopGroup *group,
             if (is_shared)
                 evt_loop_thread->evt_loop = group->evt_loop;
             else
-                evt_loop_thread->evt_loop = cel_eventloop_new(1, 1024 * 1024);
+                evt_loop_thread->evt_loop = cel_eventloop_new(1, max_fileds);
             cel_thread_create(&(evt_loop_thread->thread), NULL, 
                 cel_eventloopgroup_start, evt_loop_thread);
             cel_setcpumask(&mask, i % n_cpus);

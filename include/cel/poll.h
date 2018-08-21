@@ -16,6 +16,7 @@
 #define __CEL_POLL_H__
 
 #include "cel/config.h"
+#include "cel/coroutine.h"
 #if defined(_CEL_UNIX)
 #include "cel/_unix/_poll_epoll.h"
 #elif defined(_CEL_WIN)
@@ -36,6 +37,7 @@ typedef struct _CelOverLappedEntry
 {
     CelOverLapped ol;
     void (* async_callback) (struct _CelOverLappedEntry *ole);
+    CelCoroutineEntity *co_entity;
 }CelOverLappedEntry;
 
 typedef void (* CelAsyncCallbackFunc)(void *user_data, CelAsyncResult *ret);

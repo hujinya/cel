@@ -19,11 +19,6 @@
 #include "cel/log.h"
 #include "cel/error.h"
 
-/* Debug defines */
-#define Debug(args)   /* cel_log_debug args */ 
-#define Warning(args) CEL_SETERRSTR(args) /* cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args) /* cel_log_err args */
-
 int cel_process_getbypid(CelProcessStat *proc_stat, CelProcessId pid)
 {
     int i;

@@ -17,11 +17,6 @@
 #include "cel/error.h"
 #include "cel/allocator.h"
 
-/* Debug defines */
-#define Debug(args)   /*cel_log_debug args*/
-#define Warning(args) CEL_SETERRSTR(args) /*cel_log_warning args */
-#define Err(args)   CEL_SETERRSTR(args) /*cel_log_err args*/
-
 int cel_wmiplistener_init(CelWmipListener *listener, 
                           CelSockAddr *addr, CelSslContext *ssl_ctx, 
                           CelWmipContext *wmip_ctx)
@@ -53,9 +48,10 @@ void wmiplistener_do_handshake(CelWmipClient *client, CelAsyncResult *result)
         return ;
     }
     //puts("wmiplistener_do_handshake ok");
-    cel_httpclient_async_recv_request(&(client->http_client), 
+    if (cel_httpclient_async_recv_request(&(client->http_client), 
         &(client->wmip_msg->req), 
-        (CelHttpRecvRequestCallbackFunc)cel_wmipclient_do_recv_request);
+        (CelHttpRecvRequestCallbackFunc)cel_wmipclient_do_recv_request) == -1)
+        cel_wmipclient_free(client);
 }
 
 void wmiplistener_do_accept(CelWmipListener *listener, 
@@ -65,7 +61,7 @@ void wmiplistener_do_accept(CelWmipListener *listener,
 
     if (result->ret == -1)
     {
-        Err((_T("Wmip listener %s do accept %d.(%s)"), 
+        CEL_ERR((_T("Wmip listener %s do accept %d.(%s)"), 
             cel_wmiplistener_get_localaddrs(listener), 
             result->ret, cel_geterrstr(result->error)));
         return ;
@@ -75,7 +71,7 @@ void wmiplistener_do_accept(CelWmipListener *listener,
         http_client->tcp_client.sock.fd)
         : cel_malloc(sizeof(CelWmipClient))) == NULL)
     {
-        Err((_T("Wmip client %s new return null."), 
+        CEL_ERR((_T("Wmip client %s new return null."), 
             cel_httpclient_get_remoteaddrs(http_client)));
         cel_httpclient_destroy(http_client);
         return ;
@@ -96,11 +92,11 @@ void wmiplistener_do_accept(CelWmipListener *listener,
                 listener->evt_loop_group, -1, 
                 cel_wmipclient_get_channel(new_client), NULL) == 0)
             {
-                Debug((_T("Wmip2 client %s connected."), 
+                CEL_DEBUG((_T("Wmip2 client %s connected."), 
                     cel_wmipclient_get_remoteaddrs(new_client)));
-                cel_httpclient_async_handshake(&(new_client->http_client), 
-                    (CelHttpHandshakeCallbackFunc)wmiplistener_do_handshake);
-                return ;
+                if (cel_httpclient_async_handshake(&(new_client->http_client), 
+                    (CelHttpHandshakeCallbackFunc)wmiplistener_do_handshake) != -1)
+                    return ;
             }
         }
         else 
@@ -109,16 +105,16 @@ void wmiplistener_do_accept(CelWmipListener *listener,
                 listener->evt_loop, 
                 cel_wmipclient_get_channel(new_client), NULL) == 0)
             {
-                Debug((_T("Wmip2 client %s connected."), 
+                CEL_DEBUG((_T("Wmip2 client %s connected."), 
                     cel_wmipclient_get_remoteaddrs(new_client)));
-                cel_httpclient_async_handshake(&(new_client->http_client), 
-                    (CelHttpHandshakeCallbackFunc)wmiplistener_do_handshake);
-                return ;
+                if (cel_httpclient_async_handshake(&(new_client->http_client), 
+                    (CelHttpHandshakeCallbackFunc)wmiplistener_do_handshake) != -1)
+                    return ;
             } 
         }
     }
     cel_wmipclient_free(new_client);
-    Err((_T("Wmip client %s init failed(%s)."), 
+    CEL_ERR((_T("Wmip client %s init failed(%s)."), 
         cel_wmipclient_get_remoteaddrs(new_client), cel_geterrstr(cel_sys_geterrno())));
 }
 
