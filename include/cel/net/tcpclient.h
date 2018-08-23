@@ -36,16 +36,7 @@ typedef void (* CelTcpSendCallbackFunc) (
 
 typedef struct _CelTcpClientAsyncArgs
 {
-    union {
-        CelSocketAsyncConnectArgs connect_args;
-        CelSocketAsyncSendArgs send_args;
-        CelSocketAsyncRecvArgs recv_args;
-        CelSslAsyncHandshakeArgs ssl_handshake_args;
-        CelSslAsyncSendArgs ssl_send_args;
-        CelSslAsyncRecvArgs ssl_recv_args;
-    };
     CelAsyncBuf async_buf;
-    CelTcpClient *client;
     CelStream *s;
     union {
         CelTcpConnectCallbackFunc connect_callback;
@@ -63,7 +54,7 @@ struct _CelTcpClient
     };
     CelSockAddr local_addr;
     CelSockAddr remote_addr;
-    CelTcpClientAsyncArgs *in, *out;
+    CelTcpClientAsyncArgs in, out;
     void *user_data;
     CelRefCounted ref_counted;
 };
@@ -128,13 +119,16 @@ void cel_tcpclient_set_ssl(CelTcpClient *client, BOOL use_ssl);
     &(((CelTcpClient *)(client))->local_addr)
 #define cel_tcpclient_get_localaddr_str(client) \
     cel_sockaddr_ntop(cel_tcpclient_get_localaddr(client))
-#define cel_tcpclient_get_remoteaddr_str(client) \
+#define cel_tcpclient_get_remoteaddr(client) \
     &(((CelTcpClient *)(client))->remote_addr)
-#define cel_tcpclient_get_remoteaddrs(client) \
-    cel_sockaddr_ntop(cel_tcpclient_get_remoteaddr_str(client))
+#define cel_tcpclient_get_remoteaddr_str(client) \
+    cel_sockaddr_ntop(cel_tcpclient_get_remoteaddr(client))
 
-#define cel_tcpclient_connect(client, addr, co) \
-    cel_socket_connect((CelSocket *)client, addr)
+int cel_tcpclient_connect(CelTcpClient *client, 
+                          CelSockAddr *remote_addr, CelCoroutine *co);
+int cel_tcpclient_connect_host(CelTcpClient *client, 
+                               const TCHAR *host, unsigned short port, 
+                               CelCoroutine *co);
 static __inline 
 int cel_tcpclient_handshake(CelTcpClient *client, CelCoroutine *co)
 {

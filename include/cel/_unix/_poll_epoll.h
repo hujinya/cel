@@ -57,6 +57,13 @@ typedef struct _CelAsyncBuf
 #define CEL_EVENT_CHANNELIN    0x11
 #define CEL_EVENT_CHANNELOUT   0x12
 
+typedef struct _CelAsyncResult
+{
+    void *key;
+    int error;
+    long ret;
+}CelAsyncResult;
+
 typedef struct _CelOverLapped
 {
     BYTE evt_type;
@@ -64,16 +71,15 @@ typedef struct _CelOverLapped
         int fileds, events, state;
     }_ol;
     int (* handle_func) (void *ol);
-    void *key;
-    long result;
-    int error;
+    CelAsyncResult result;
+    void (* async_callback) (void *ol);
+    CelCoroutineEntity *co_entity;
 }CelOverLapped;
 
 typedef struct _CelEventReadAsyncArgs
 {
     CelOverLapped ol;
-    void (* async_callback) (void *ol);
-    CelChannel evt_ch;
+    CelChannel *evt_ch;
     eventfd_t value;
 }CelEventReadAsyncArgs;
 
@@ -111,8 +117,9 @@ typedef struct _CelPoll
     CelMutex wait_locker;
     CelMutex event_locker;
     struct epoll_event events[EVENTS_MAX];
-    CelPollData **epoll_datas;
+    CelPollData *epoll_datas;
     CelAsyncQueue async_queue;
+
     CelChannel wakeup_ch;
     CelEventReadAsyncArgs wakeup_args;
 }CelPoll;

@@ -27,19 +27,6 @@
 extern "C" {
 #endif
 
-typedef struct _CelAsyncResult
-{
-    int error;
-    long ret;
-}CelAsyncResult;
-
-typedef struct _CelOverLappedEntry
-{
-    CelOverLapped ol;
-    void (* async_callback) (struct _CelOverLappedEntry *ole);
-    CelCoroutineEntity *co_entity;
-}CelOverLappedEntry;
-
 typedef void (* CelAsyncCallbackFunc)(void *user_data, CelAsyncResult *ret);
 
 CelPoll *cel_poll_new(int max_threads, int max_fileds);

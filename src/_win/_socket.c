@@ -52,7 +52,7 @@ int os_socket_do_async_accept(CelSocketAsyncAcceptArgs *args)
         //puts("WSAIoctl error");
         return -1;
     }
-    if (cel_socket_init(&(args->accept_socket), 
+    if (cel_socket_init(args->accept_socket, 
         args->socket->family, 
         args->socket->socktype, 
         args->socket->protocol) == -1)
@@ -63,10 +63,10 @@ int os_socket_do_async_accept(CelSocketAsyncAcceptArgs *args)
     /*CEL_DEBUG((_T("acceptex fd %d, accept_fd %d, buf size %d\r\n"),
         args->socket->fd, args->accept_socket.fd,
         (DWORD)(args->buffer_size - ACCEPTEX_RECEIVEDATA_OFFSET)));*/
-    if (!(args->socket->AcceptEx(args->socket->fd, args->accept_socket.fd, 
-        args->buffer, (DWORD)(args->buffer_size - ACCEPTEX_RECEIVEDATA_OFFSET),
+    if (!(args->socket->AcceptEx(args->socket->fd, args->accept_socket->fd, 
+        args->addr_buf, 0,
         ACCEPTEX_LOCALADDRESS_LEN, ACCEPTEX_REMOTEADDRESS_LEN, 
-        &(args->ol.result), &(args->ol._ol))) 
+        &(args->ol.result.ret), &(args->ol._ol))) 
         && WSAGetLastError() != WSA_IO_PENDING)
     {
         //CEL_ERR((_T("AcceptEx error")));
@@ -99,8 +99,8 @@ int os_socket_do_async_connect(CelSocketAsyncConnectArgs *args)
         || !ConnectEx(args->socket->fd, 
         (struct sockaddr *)(&args->remote_addr), 
         cel_sockaddr_get_len(&args->remote_addr),
-        args->buffer, (DWORD)args->buffer_size, 
-        &(args->ol.result), &(args->ol._ol))
+        /*args->buffer, (DWORD)args->buffer_size,*/ NULL, 0,
+        &(args->ol.result.ret), &(args->ol._ol))
         && WSAGetLastError() != WSA_IO_PENDING)
     {
         //_tprintf(_T("WSAIoctl error %d\r\n"), WSAGetLastError());

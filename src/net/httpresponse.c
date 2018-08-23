@@ -639,6 +639,7 @@ static int cel_httpresponse_writing_header(CelHttpResponse *rsp, CelStream *s)
     cel_rbtree_foreach(
         &(rsp->ext_hdrs), (CelKeyValuePairEachFunc)cel_httpextheader_writing, s);
     cel_stream_write(s, "\r\n", 2);
+    cel_stream_seal_length(s);
     //puts((char *)s->buffer);
     return 0;
 }
@@ -656,6 +657,7 @@ static int cel_httpresponse_writing_body(CelHttpResponse *rsp, CelStream *s)
             if (cel_stream_get_remaining_capacity(s) < 7 + 2 + 2 + 1)
             {
                 rsp->writing_error = CEL_HTTP_WANT_WRITE;
+                cel_stream_seal_length(s);
                 return -1;
             }
             /* Chunk data */
@@ -668,9 +670,11 @@ static int cel_httpresponse_writing_body(CelHttpResponse *rsp, CelStream *s)
                     rsp, s, rsp->body_writing_user_data)) <= 0)
                 {
                     rsp->writing_error = CEL_HTTP_WANT_WRITE;
+                    cel_stream_seal_length(s);
                     return -1;
                 }
                 cel_httpchunked_send_seek(&(rsp->chunked), _size);
+                cel_stream_seal_length(s);
                 rsp->writing_body_offset += _size;
                 rsp->content_length += _size;
                 rsp->writing_error = CEL_HTTP_WANT_WRITE;
@@ -680,6 +684,7 @@ static int cel_httpresponse_writing_body(CelHttpResponse *rsp, CelStream *s)
             {
                 /* Last chunk */
                 cel_httpchunked_writing_last(&(rsp->chunked), s);
+                cel_stream_seal_length(s);
                 return 0;
             }
         }
@@ -698,11 +703,13 @@ static int cel_httpresponse_writing_body(CelHttpResponse *rsp, CelStream *s)
                     rsp, s, rsp->body_writing_user_data)) == 0)
                 {
                     rsp->writing_error = CEL_HTTP_WANT_WRITE;
+                    cel_stream_seal_length(s);
                     return -1;
                 }
                 rsp->writing_body_offset += _size;
             }
         }
+        cel_stream_seal_length(s);
         return 0;
     }
 }
@@ -745,7 +752,7 @@ int cel_httpresponse_writing(CelHttpResponse *rsp, CelStream *s)
     return 0;
 }
 
-void *cel_httpresponse_get_header(CelHttpResponse *rsp, 
+void *cel_httpresponse_get_header(CelHttpResponse *rsp,
                                   CelHttpHeader hdr_index)
 {
     CelHttpHeaderHandler *handler;
@@ -824,6 +831,7 @@ void cel_httpresponse_seek_send_buffer(CelHttpResponse *rsp, int offset)
     {
         cel_httpchunked_send_seek(&(rsp->chunked), offset);
         cel_stream_seek(&(rsp->s), offset);
+        cel_stream_seal_length(&(rsp->s));
         rsp->writing_body_offset += offset;
     }
 }

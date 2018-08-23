@@ -25,6 +25,16 @@ void _cel_socket_destroy_derefed(CelSocket *sock)
     SOCKET sock_fd;
 
     sock->is_connected = FALSE;
+    if (sock->in != NULL)
+    {
+        cel_free(sock->in);
+        sock->in = NULL;
+    }
+    if (sock->out != NULL)
+    {
+        cel_free(sock->out);
+        sock->out = NULL;
+    }
     if ((sock_fd = sock->fd) != INVALID_SOCKET)
     {
         //puts("xx");
@@ -61,6 +71,7 @@ int cel_socket_init(CelSocket *sock, int family, int socktype, int protocol)
         sock->AcceptEx = NULL;
         sock->TransmitFile = NULL;
 #endif
+        sock->in = sock->out = NULL;
         cel_refcounted_init(&((sock)->ref_counted),
             (CelFreeFunc)_cel_socket_destroy_derefed);
 
@@ -253,43 +264,102 @@ int cel_socket_accept(CelSocket *sock,
     return 0;
 }
 
-int cel_socket_async_accept(CelSocketAsyncAcceptArgs *args)
+void cel_socket_do_accept(CelSocketAsyncAcceptArgs *args)
 {
-    CelChannel *channel = &(args->socket->channel);
+#ifdef _CEL_WIN
+    if (args->ol.result.ret == 0)
+        cel_socket_update_acceptcontext(args->accept_socket, args->socket);
+#endif
+    args->async_callback(args->socket,
+        args->accept_socket, &(args->ol.result));
+}
 
+int cel_socket_async_accept(CelSocket *sock, CelSocket *new_sock, 
+                            CelSocketAcceptCallbackFunc callback)
+{
+    CelSocketAsyncArgs *args;
+
+    if (sock->in == NULL
+        && (sock->in = (CelSocketAsyncArgs *)
+        cel_calloc(1, sizeof(CelSocketAsyncArgs))) == NULL)
+        return -1;
+    args = sock->in;
     memset(&(args->ol), 0, sizeof(args->ol));
     args->ol.evt_type = CEL_EVENT_CHANNELIN;
     args->ol.handle_func = (int ( *)(void *))cel_socket_do_async_accept;
-    return cel_poll_post(channel->poll, 
-        channel->handle, (CelOverLapped *)args);
+    args->ol.async_callback = (void (*)(void *))cel_socket_do_accept;
+
+    args->accept_args.async_callback = callback;
+    args->accept_args.socket = sock;
+    args->accept_args.accept_socket = new_sock;
+    //args->accept_args.buffer = NULL;
+    //args->accept_args.buffer_size = 0;
+    return cel_poll_post(
+        sock->channel.poll, sock->channel.handle, (CelOverLapped *)args);
 }
 
-int cel_socket_async_connect(CelSocketAsyncConnectArgs *args)
+void cel_socket_do_connect(CelSocketAsyncConnectArgs *args)
 {
-    CelChannel *channel = &(args->socket->channel);
+#ifdef _CEL_WIN
+    if (args->ol.result.ret == 0)
+        cel_socket_update_connectcontext(args->socket);
+#endif
+    args->async_callback(args->socket, &(args->ol.result));
+}
 
+int cel_socket_async_connect(CelSocket *sock, CelSockAddr *addr, 
+                             CelSocketConnectCallbackFunc callback)
+{
+    CelSocketAsyncArgs *args;
+
+    if (sock->out == NULL
+        && (sock->out = (CelSocketAsyncArgs *)
+        cel_calloc(1, sizeof(CelSocketAsyncArgs))) == NULL)
+        return -1;
+    args = sock->out;
     memset(&(args->ol), 0, sizeof(args->ol));
     args->ol.evt_type = CEL_EVENT_CHANNELOUT;
     args->ol.handle_func = (int ( *)(void *))cel_socket_do_async_connect;
-    return cel_poll_post(channel->poll, 
-        channel->handle, (CelOverLapped *)args);
+    args->ol.async_callback = (void (*)(void *))cel_socket_do_connect;
+
+    args->connect_args.async_callback = callback;
+    args->connect_args.socket = sock;
+    memcpy(&(args->connect_args.remote_addr), addr, sizeof(CelSockAddr));
+    //args->connect_args.buffer = NULL;
+    //args->connect_args.buffer_size = 0;
+    return cel_poll_post(
+        sock->channel.poll, sock->channel.handle, (CelOverLapped *)args);
 }
 
-int cel_socket_async_connect_host(CelSocketAsyncConnectArgs *args)
+int cel_socket_async_connect_host(CelSocket *sock, 
+                                  const TCHAR *host, unsigned short port, 
+                                  CelSocketConnectCallbackFunc callback)
 {
-    CelChannel *channel = &(args->socket->channel);
     ADDRINFOT *res, *result, hints;
+    TCHAR ports[CEL_NPLEN];
+    CelSocketAsyncArgs *args;
 
+    if (sock->out == NULL
+        && (sock->out = (CelSocketAsyncArgs *)
+        cel_calloc(1, sizeof(CelSocketAsyncArgs))) == NULL)
+        return -1;
+    args = sock->out;
     memset(&(args->ol), 0, sizeof(args->ol));
     args->ol.evt_type = CEL_EVENT_CHANNELOUT;
     args->ol.handle_func = (int ( *)(void *))cel_socket_do_async_connect;
+    args->ol.async_callback = (void (*)(void *))cel_socket_do_connect;
+
+    args->connect_args.async_callback = callback;
+    args->connect_args.socket = sock;
+    //args->connect_args.buffer = NULL;
+    //args->connect_args.buffer_size = 0;
 
     memset(&hints, 0, sizeof(hints));
     hints.ai_flags = AI_PASSIVE;
-    hints.ai_family =  args->socket->family;
-    hints.ai_socktype = args->socket->socktype;
-    hints.ai_protocol = args->socket->protocol;
-    if (GetAddrInfo(args->host, args->service, &hints, &res) != 0)
+    hints.ai_family =  sock->family;
+    hints.ai_socktype = sock->socktype;
+    hints.ai_protocol = sock->protocol;
+    if (GetAddrInfo(host, _itot(port, ports, 10), &hints, &res) != 0)
     {
         CEL_ERR((_T("Get address information \"%s:%s\" failed.(%s)"), 
             args->host, args->service));
@@ -298,9 +368,10 @@ int cel_socket_async_connect_host(CelSocketAsyncConnectArgs *args)
     result = res;
     while (res != NULL)
     {
-        memcpy(&(args->remote_addr), res->ai_addr, res->ai_addrlen); 
-        if (cel_poll_post(channel->poll,
-            channel->handle, (CelOverLapped *)args) == 0)
+        memcpy(&(args->connect_args.remote_addr), res->ai_addr, res->ai_addrlen);
+        //printf("channel handle %d\r\n", sock->channel.handle);
+        if (cel_poll_post(
+            sock->channel.poll, sock->channel.handle, (CelOverLapped *)args) == 0)
         {
             FreeAddrInfo(result);
             return 0;
@@ -311,59 +382,159 @@ int cel_socket_async_connect_host(CelSocketAsyncConnectArgs *args)
     return -1;
 }
 
-int cel_socket_async_send(CelSocketAsyncSendArgs *args)
+void cel_socket_do_send(CelSocketAsyncSendArgs *args)
 {
-    CelChannel *channel = &(args->socket->channel);
+   args->async_callback(args->socket, args->buffers, args->buffer_count, 
+        &(args->ol.result));
+}
 
+int cel_socket_async_send(CelSocket *sock, 
+                          CelAsyncBuf *buffers, int buffer_count, 
+                          CelSocketSendCallbackFunc callback)
+{
+    CelSocketAsyncArgs *args;
+
+    if (sock->out == NULL
+        && (sock->out = (CelSocketAsyncArgs *)
+        cel_calloc(1, sizeof(CelSocketAsyncArgs))) == NULL)
+        return -1;
+    args = sock->out;
     memset(&(args->ol), 0, sizeof(args->ol));
     args->ol.evt_type = CEL_EVENT_CHANNELOUT;
     args->ol.handle_func = (int ( *)(void *))cel_socket_do_async_send;
+    args->ol.async_callback = (void (*)(void *))cel_socket_do_send;
+
+    args->send_args.async_callback = callback;
+    args->send_args.socket = sock;
+    args->send_args.buffers = buffers;
+    args->send_args.buffer_count = buffer_count;
     CEL_DEBUG((_T("cel_socket_async_send")));
-    return cel_poll_post(channel->poll, 
-        channel->handle, (CelOverLapped *)args);
+    return cel_poll_post(
+        sock->channel.poll, sock->channel.handle, (CelOverLapped *)args);
 }
 
-int cel_socket_async_recv(CelSocketAsyncRecvArgs *args)
+void cel_socket_do_recv(CelSocketAsyncRecvArgs *args)
 {
-    CelChannel *channel = &(args->socket->channel);
+    args->async_callback(args->socket, args->buffers, args->buffer_count, 
+        &(args->ol.result));
+}
 
+int cel_socket_async_recv(CelSocket *sock, 
+                          CelAsyncBuf *buffers, int buffer_count, 
+                          CelSocketRecvCallbackFunc callback)
+{
+    CelSocketAsyncArgs *args;
+
+    if (sock->in == NULL
+        && (sock->in = (CelSocketAsyncArgs *)
+        cel_calloc(1, sizeof(CelSocketAsyncArgs))) == NULL)
+        return -1;
+    args = sock->in;
     memset(&(args->ol), 0, sizeof(args->ol));
     args->ol.evt_type = CEL_EVENT_CHANNELIN;
     args->ol.handle_func = (int ( *)(void *))cel_socket_do_async_recv;
+    args->ol.async_callback = (void (*)(void *))cel_socket_do_recv;
+
+    args->recv_args.async_callback = callback;
+    args->recv_args.socket = sock;
+    args->recv_args.buffers = buffers;
+    args->recv_args.buffer_count = buffer_count;
     CEL_DEBUG((_T("cel_socket_async_recv")));
-    return cel_poll_post(channel->poll, 
-        channel->handle, (CelOverLapped *)args);
+    return cel_poll_post(
+        sock->channel.poll, sock->channel.handle, (CelOverLapped *)args);
 }
 
-int cel_socket_async_sendto(CelSocketAsyncSendToArgs *args)
+void cel_socket_do_sendto(CelSocketAsyncSendToArgs *args)
 {
-    CelChannel *channel = &(args->socket->channel);
+    args->async_callback(args->socket, args->buffers, args->buffer_count, 
+        args->addr, &(args->ol.result));
+}
 
+int cel_socket_async_sendto(CelSocket *sock, 
+                            CelAsyncBuf *buffers, int buffer_count, 
+                            CelSockAddr *to, 
+                            CelSocketSendToCallbackFunc callback)
+{
+    CelSocketAsyncArgs *args;
+
+    if (sock->out == NULL
+        && (sock->out = (CelSocketAsyncArgs *)
+        cel_calloc(1, sizeof(CelSocketAsyncArgs))) == NULL)
+        return -1;
+    args = sock->out;
     memset(&(args->ol), 0, sizeof(args->ol));
     args->ol.evt_type = CEL_EVENT_CHANNELOUT;
     args->ol.handle_func = (int ( *)(void *))cel_socket_do_async_sendto;
-    return cel_poll_post(channel->poll, 
-        channel->handle, (CelOverLapped *)args);
+    args->ol.async_callback = (void (*)(void *))cel_socket_do_sendto;
+
+    args->sendto_args.async_callback = callback;
+    args->sendto_args.socket = sock;
+    args->sendto_args.buffers = buffers;
+    args->sendto_args.buffer_count = buffer_count;
+    args->sendto_args.addr = to;
+    return cel_poll_post(
+        sock->channel.poll, sock->channel.handle, (CelOverLapped *)args);
 }
 
-int cel_socket_async_recvfrom(CelSocketAsyncRecvFromArgs *args)
+void cel_socket_do_recvfrom(CelSocketAsyncRecvFromArgs *args)
 {
-    CelChannel *channel = &(args->socket->channel);
+    args->async_callback(args->socket, args->buffers, args->buffer_count, 
+        args->addr, &(args->ol.result));
+}
 
+int cel_socket_async_recvfrom(CelSocket *sock, 
+                              CelAsyncBuf *buffers, int buffer_count, 
+                              CelSockAddr *from, 
+                              CelSocketRecvFromCallbackFunc callback)
+{
+    CelSocketAsyncArgs *args;
+
+    if (sock->in == NULL
+        && (sock->in = (CelSocketAsyncArgs *)
+        cel_calloc(1, sizeof(CelSocketAsyncArgs))) == NULL)
+        return -1;
+    args = sock->in;
     memset(&(args->ol), 0, sizeof(args->ol));
     args->ol.evt_type = CEL_EVENT_CHANNELIN;
     args->ol.handle_func = (int ( *)(void *))cel_socket_do_async_recvfrom;
-    return cel_poll_post(channel->poll, 
-        channel->handle, (CelOverLapped *)args);
+    args->ol.async_callback = (void (*)(void *))cel_socket_do_recvfrom;
+
+    args->recvfrom_args.async_callback = callback;
+    args->recvfrom_args.socket = sock;
+    args->recvfrom_args.buffers = buffers;
+    args->recvfrom_args.buffer_count = buffer_count;
+    args->recvfrom_args.addr = from;
+    return cel_poll_post(
+        sock->channel.poll, sock->channel.handle, (CelOverLapped *)args);
 }
 
-int cel_socket_async_sendfile(CelSocketAsyncSendFileArgs *args)
+void cel_socket_do_sendfile(CelSocketAsyncSendFileArgs *args)
 {
-    CelChannel *channel = &(args->socket->channel);
+    args->async_callback(args->socket, &(args->ol.result));
+}
 
+int cel_socket_async_sendfile(CelSocket *sock, 
+                              const TCHAR *path, 
+                              long long first, long long last, 
+                              CelSocketSendFileCallbackFunc callback)
+{
+    CelSocketAsyncArgs *args;
+
+    if (sock->out == NULL
+        && (sock->out = (CelSocketAsyncArgs *)
+        cel_calloc(1, sizeof(CelSocketAsyncArgs))) == NULL)
+        return -1;
+    args = sock->out;
     memset(&(args->ol), 0, sizeof(args->ol));
     args->ol.evt_type = CEL_EVENT_CHANNELOUT;
     args->ol.handle_func = (int ( *)(void *))cel_socket_do_async_sendfile;
-    return cel_poll_post(channel->poll, 
-        channel->handle, (CelOverLapped *)args);
+    args->ol.async_callback = (void (*)(void *))cel_socket_do_sendfile;
+
+    args->sendfile_args.async_callback = callback;
+    args->sendfile_args.socket = sock;
+    //args->sendfile_args. = NULL;
+    //args->sendfile_args. = 0;
+    //args->sendfile_args. = ;
+    return cel_poll_post(
+        sock->channel.poll, sock->channel.handle, (CelOverLapped *)args);
 }

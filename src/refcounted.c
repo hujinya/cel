@@ -27,6 +27,7 @@ void cel_refcounted_destroy(CelRefCounted *ref_counted, void *ptr)
 {
     if (cel_atomic_add(&(ref_counted->cnt), -1) <= 0)
     {
+        //printf("ref_counted->cnt = %d\r\n", ref_counted->cnt);
         if (ref_counted->free_func != NULL)
             ref_counted->free_func(ptr);
     }
@@ -48,6 +49,7 @@ void cel_refcounted_deref(CelRefCounted *ref_counted, void *ptr)
 {
     if (cel_atomic_add(&(ref_counted->cnt), -1) <= 0)
     {
+        //printf("ref_counted->cnt = %d\r\n", ref_counted->cnt);
         if (ref_counted->free_func != NULL)
             ref_counted->free_func(ptr);
     }

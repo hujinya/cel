@@ -41,7 +41,7 @@ typedef int SOCKET;
  */
 #define ioctlsocket(sockfd, cmd, argp) ioctl(sockfd, cmd, argp)
 
-typedef struct OsSocket
+typedef struct _OsSocket
 {
     union {
         SOCKET fd;
@@ -49,80 +49,20 @@ typedef struct OsSocket
     };
     int family, socktype, protocol;
     BOOL is_connected;
+    CelSocketAsyncArgs *in, *out;
     CelRefCounted ref_counted;
 }OsSocket;
-
-/* Async socket */
-typedef struct _OsSocketAsyncAcceptArgs
-{
-    CelOverLapped ol;
-    void (* async_callback) (void *ol);
-    CelCoroutineEntity *co_entity;
-    OsSocket *socket;
-    OsSocket accept_socket;
-    void *buffer;
-    size_t buffer_size;
-}OsSocketAsyncAcceptArgs;
-
-typedef struct _OsSocketAsyncConnectArgs
-{
-    CelOverLapped ol;
-    void (* async_callback) (void *ol);
-    CelCoroutineEntity *co_entity;
-    OsSocket *socket;
-    union {
-        CelSockAddr remote_addr;
-        struct {
-            TCHAR host[CEL_HNLEN];
-            TCHAR service[CEL_NPLEN];
-        };
-    };
-    void *buffer;
-    size_t buffer_size;
-}OsSocketAsyncConnectArgs;
-
-typedef struct _OsSocketAsyncSendArgs
-{
-    CelOverLapped ol;
-    void (* async_callback) (void *ol);
-    CelCoroutineEntity *co_entity;
-    OsSocket *socket;
-    CelAsyncBuf *buffers;
-    int buffer_count;
-}OsSocketAsyncSendArgs, OsSocketAsyncRecvArgs;
-
-typedef struct _OsSocketAsyncSendToArgs
-{
-    CelOverLapped ol;
-    void (* async_callback) (void *ol);
-    CelCoroutineEntity *co_entity;
-    OsSocket *socket;
-    CelAsyncBuf *buffers;
-    int buffer_count;
-    CelSockAddr *addr;
-}OsSocketAsyncSendToArgs, OsSocketAsyncRecvFromArgs;
-
-typedef struct _OsSocketAsyncSendFileArgs
-{
-    CelOverLapped ol;
-    void (* async_callback) (void *ol);
-    CelCoroutineEntity *co_entity;
-    OsSocket *socket;
-    HANDLE file;
-    off_t offset;
-    size_t count;
-}OsSocketAsyncSendFileArgs;
 
 int os_socket_set_keepalive(OsSocket *sock, int on, 
                             int idle_seconds, int interval_seconds, int count);
 
-int os_socket_do_async_accept(OsSocketAsyncAcceptArgs *args);
-int os_socket_do_async_connect(OsSocketAsyncConnectArgs *args);
-int os_socket_do_async_send(OsSocketAsyncSendArgs *args);
-int os_socket_do_async_recv(OsSocketAsyncRecvArgs *args);
-int os_socket_do_async_sendto(OsSocketAsyncSendToArgs *args);
-int os_socket_do_async_recvfrom(OsSocketAsyncRecvFromArgs *args);
-int os_socket_do_async_sendfile(OsSocketAsyncSendFileArgs *args);
+int os_socket_do_async_accept(CelSocketAsyncAcceptArgs *args);
+int os_socket_do_async_connect(CelSocketAsyncConnectArgs *args);
+int os_socket_do_async_send(CelSocketAsyncSendArgs *args);
+int os_socket_do_async_recv(CelSocketAsyncRecvArgs *args);
+int os_socket_do_async_sendto(CelSocketAsyncSendToArgs *args);
+int os_socket_do_async_recvfrom(CelSocketAsyncRecvFromArgs *args);
+int os_socket_do_async_sendfile(CelSocketAsyncSendFileArgs *args);
 
 #ifdef __cplusplus
 }

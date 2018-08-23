@@ -712,6 +712,7 @@ static int cel_httprequest_writing_header(CelHttpRequest *req, CelStream *s)
     cel_rbtree_foreach(
         &(req->ext_hdrs), (CelKeyValuePairEachFunc)cel_httpextheader_writing, s);
     cel_stream_write(s, "\r\n", 2);
+    cel_stream_seal_length(s);
     //puts((char *)s->buffer);
 
     return 0;
@@ -730,6 +731,7 @@ static int cel_httprequest_writing_body(CelHttpRequest *req, CelStream *s)
             if (cel_stream_get_remaining_capacity(s) < 7 + 2 + 2 + 1)
             {
                 req->writing_error = CEL_HTTP_WANT_WRITE;
+                cel_stream_seal_length(s);
                 return -1;
             }
             /* Chunk data */
@@ -742,18 +744,21 @@ static int cel_httprequest_writing_body(CelHttpRequest *req, CelStream *s)
                     req, s, req->body_writing_user_data)) <= 0)
                 {
                     req->writing_error = CEL_HTTP_WANT_WRITE;
+                    cel_stream_seal_length(s);
                     return -1;
                 }
                 cel_httpchunked_send_seek(&(req->chunked), _size);
                 req->writing_body_offset += _size;
                 req->content_length += _size;
                 req->writing_error = CEL_HTTP_WANT_WRITE;
+                cel_stream_seal_length(s);
                 return -1;
             }
             else
             {
                 /* Last chunk */
                 cel_httpchunked_writing_last(&(req->chunked), s);
+                cel_stream_seal_length(s);
                 return 0;
             }
         }
@@ -771,6 +776,7 @@ static int cel_httprequest_writing_body(CelHttpRequest *req, CelStream *s)
                     req, s, req->body_writing_user_data)) == 0)
                 {
                     req->writing_error = CEL_HTTP_WANT_WRITE;
+                    cel_stream_seal_length(s);
                     return -1;
                 }
                 req->writing_body_offset += _size;
@@ -1019,6 +1025,7 @@ void cel_httprequest_seek_send_buffer(CelHttpRequest *req, int offset)
     {
         cel_httpchunked_send_seek(&(req->chunked), offset);
         cel_stream_seek(&(req->s), offset);
+        cel_stream_seal_length(&(req->s));
         req->writing_body_offset += offset;
     }
 }

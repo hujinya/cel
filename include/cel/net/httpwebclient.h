@@ -87,7 +87,7 @@ void cel_httpwebclient_free(CelHttpWebClient *client);
     cel_httpclient_get_remoteaddr(client)
 #define cel_httpwebclient_get_remoteaddr_str(client) \
     cel_sockaddr_ntop(cel_httpclient_get_remoteaddr(client))
-#define cel_httpwebclient_get_localaddrs(client) \
+#define cel_httpwebclient_get_localaddr_str(client) \
     cel_sockaddr_ntop(cel_httpclient_get_localaddr(client))
 
 #define cel_httpwebclient_get_request(client)  &((client)->req)

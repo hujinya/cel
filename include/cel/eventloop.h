@@ -44,7 +44,7 @@ typedef union _CelEventCtlBlock
 {
     BYTE evt_type;
     CelTimer timer;
-    CelOverLappedEntry ole;
+    CelOverLapped ol;
     CelQueuedEvent queued;
 }CelEventCtlBlock;
 

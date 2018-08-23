@@ -77,7 +77,7 @@ CelWmipClient *cel_wmipclient_new(CelSslContext *ssl_ctx,
 void cel_wmipclient_free(CelWmipClient *client)
 {
     /*_tprintf(_T("Wmip2 client %s closed\r\n"), 
-        cel_wmipclient_get_remoteaddrs(client));*/
+        cel_wmipclient_get_remoteaddr_str(client));*/
     cel_refcounted_destroy(&(client->ref_counted), client);
 }
 

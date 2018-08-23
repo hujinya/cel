@@ -21,9 +21,15 @@
 extern "C" {
 #endif
 
+typedef struct _CelPoll
+{
+    HANDLE CompletionPort;
+}CelPoll;
+
 typedef struct _CelChannel
 {
     HANDLE handle;
+    CelPoll *poll;
 }CelChannel;
 
 typedef struct _CelAsyncBuf
@@ -31,6 +37,13 @@ typedef struct _CelAsyncBuf
     ULONG len;          /**< WSABUF */
     __field_bcount(len)CHAR FAR *buf;
 }CelAsyncBuf;
+
+typedef struct _CelAsyncResult
+{
+    void *key;
+    int error;
+    long ret;
+}CelAsyncResult;
 
 #define CEL_EVENT_CHANNEL      0x10
 #define CEL_EVENT_CHANNELIN    0x11
@@ -41,15 +54,10 @@ typedef struct _CelOverLapped
     BYTE evt_type;
     OVERLAPPED _ol;
     int (* handle_func) (void *ol);
-    void *key;
-    long result;
-    int error;
+    CelAsyncResult result;
+    void (* async_callback) (void *ol);
+    CelCoroutineEntity *co_entity;
 }CelOverLapped;
-
-typedef struct _CelPoll
-{
-    HANDLE CompletionPort;
-}CelPoll;
 
 int cel_poll_init(CelPoll *poll, int max_threads, int max_fileds);
 void cel_poll_destroy(CelPoll *poll);

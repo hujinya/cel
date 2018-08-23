@@ -18,25 +18,91 @@
 #include "cel/types.h"
 #include "cel/poll.h"
 #include "cel/net/sockaddr.h"
+
+#define ACCEPTEX_LOCALADDRESS_LEN (sizeof(CelSockAddr) + 16)
+#define ACCEPTEX_REMOTEADDRESS_LEN (sizeof(CelSockAddr) + 16)
+#define ACCEPTEX_RECEIVEDATA_OFFSET \
+    (ACCEPTEX_LOCALADDRESS_LEN + ACCEPTEX_REMOTEADDRESS_LEN)
+
+typedef struct _OsSocket CelSocket;
+
+typedef void (* CelSocketAcceptCallbackFunc)(
+    CelSocket *sock, CelSocket *new_socket, CelAsyncResult *result);
+typedef void (* CelSocketConnectCallbackFunc)(
+    CelSocket *sock, CelAsyncResult *result);
+typedef void (* CelSocketRecvCallbackFunc)(
+    CelSocket *sock, CelAsyncBuf *buffers, int count, CelAsyncResult *result);
+typedef void (* CelSocketSendCallbackFunc)(
+    CelSocket *sock, CelAsyncBuf *buffers, int count, CelAsyncResult *result);
+typedef void (* CelSocketRecvFromCallbackFunc)(
+    CelSocket *sock, CelAsyncBuf *buffers, int count, 
+    CelSockAddr *addr, CelAsyncResult *result);
+typedef void (* CelSocketSendToCallbackFunc)(
+    CelSocket *sock, CelAsyncBuf *buffers, int count,
+    CelSockAddr *addr, CelAsyncResult *result);
+typedef void (* CelSocketSendFileCallbackFunc)(
+    CelSocket *sock, CelAsyncResult *result);
+
+/* Async socket */
+typedef struct _CelSocketAsyncAcceptArgs
+{
+    CelOverLapped ol;
+    CelSocket *socket;
+    CelSocket *accept_socket;
+    char addr_buf[ACCEPTEX_RECEIVEDATA_OFFSET];
+    //void *buffer;
+    //size_t buffer_size;
+    CelSocketAcceptCallbackFunc async_callback;
+}CelSocketAsyncAcceptArgs;
+
+typedef struct _CelSocketAsyncConnectArgs
+{
+    CelOverLapped ol;
+    CelSocket *socket;
+    union {
+        CelSockAddr remote_addr;
+        struct {
+            TCHAR host[CEL_HNLEN];
+            TCHAR service[CEL_NPLEN];
+        };
+    };
+    //void *buffer;
+    //size_t buffer_size;
+    CelSocketConnectCallbackFunc async_callback;
+}CelSocketAsyncConnectArgs;
+
+typedef struct _CelSocketAsyncSendArgs
+{
+    CelOverLapped ol;
+    CelSocket *socket;
+    CelAsyncBuf *buffers;
+    int buffer_count;
+    CelSocketRecvCallbackFunc async_callback;
+}CelSocketAsyncSendArgs, CelSocketAsyncRecvArgs;
+
+typedef struct _CelSocketAsyncSendToArgs
+{
+    CelOverLapped ol;
+    CelSocket *socket;
+    CelAsyncBuf *buffers;
+    int buffer_count;
+    CelSockAddr *addr;
+    CelSocketRecvFromCallbackFunc async_callback;
+}CelSocketAsyncSendToArgs, CelSocketAsyncRecvFromArgs;
+
+typedef struct _CelSocketAsyncSendFileArgs
+{
+    CelOverLapped ol;
+    CelSocket *socket;
+    HANDLE file;
 #ifdef _CEL_UNIX
-#include "cel/_unix/_socket.h"
+    off_t offset;
 #elif defined(_CEL_WIN)
-#include "cel/_win/_socket.h"
+    unsigned long long offset;
 #endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-typedef OsSocket CelSocket;
-
-typedef OsSocketAsyncAcceptArgs CelSocketAsyncAcceptArgs;
-typedef OsSocketAsyncConnectArgs CelSocketAsyncConnectArgs;
-typedef OsSocketAsyncRecvArgs CelSocketAsyncRecvArgs;
-typedef OsSocketAsyncSendArgs CelSocketAsyncSendArgs;
-typedef OsSocketAsyncRecvFromArgs CelSocketAsyncRecvFromArgs;
-typedef OsSocketAsyncSendToArgs CelSocketAsyncSendToArgs;
-typedef OsSocketAsyncSendFileArgs CelSocketAsyncSendFileArgs;
+    unsigned long count;
+    CelSocketSendFileCallbackFunc async_callback;
+}CelSocketAsyncSendFileArgs;
 
 typedef union _CelSocketAsyncArgs
 {
@@ -50,11 +116,15 @@ typedef union _CelSocketAsyncArgs
     CelSocketAsyncSendFileArgs sendfile_args;
 }CelSocketAsyncArgs;
 
-#define ACCEPTEX_LOCALADDRESS_LEN (sizeof(CelSockAddr) + 16)
-#define ACCEPTEX_REMOTEADDRESS_LEN (sizeof(CelSockAddr) + 16)
-#define ACCEPTEX_RECEIVEDATA_OFFSET \
-    (sizeof(CelSocket) \
-    +  ACCEPTEX_LOCALADDRESS_LEN + ACCEPTEX_REMOTEADDRESS_LEN)
+#ifdef _CEL_UNIX
+#include "cel/_unix/_socket.h"
+#elif defined(_CEL_WIN)
+#include "cel/_win/_socket.h"
+#endif
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define cel_wsastartup() os_wsastartup()
 #define cel_wsacleanup() os_wsacleanup()
@@ -207,14 +277,31 @@ static __inline int cel_socket_set_sndtimeout(CelSocket *sock, int milliseconds)
 /* int cel_socket_do_async_sendfile(CelSocketAsyncSendFileArgs *args); */
 #define cel_socket_do_async_sendfile os_socket_do_async_sendfile
 
-int cel_socket_async_accept(CelSocketAsyncAcceptArgs *args);
-int cel_socket_async_connect(CelSocketAsyncConnectArgs *args);
-int cel_socket_async_connect_host(CelSocketAsyncConnectArgs *args);
-int cel_socket_async_send(CelSocketAsyncSendArgs *args);
-int cel_socket_async_recv(CelSocketAsyncRecvArgs *args);
-int cel_socket_async_sendto(CelSocketAsyncSendToArgs *args);
-int cel_socket_async_recvfrom(CelSocketAsyncRecvFromArgs *args);
-int cel_socket_async_sendfile(CelSocketAsyncSendFileArgs *args);
+int cel_socket_async_accept(CelSocket *sock, CelSocket *new_sock, 
+                            CelSocketAcceptCallbackFunc callback);
+int cel_socket_async_connect(CelSocket *sock, CelSockAddr *addr, 
+                             CelSocketConnectCallbackFunc callback);
+int cel_socket_async_connect_host(CelSocket *sock, 
+                                  const TCHAR *host, unsigned short port, 
+                                  CelSocketConnectCallbackFunc callback);
+int cel_socket_async_send(CelSocket *sock, 
+                          CelAsyncBuf *buffers, int buffer_count, 
+                          CelSocketSendCallbackFunc callback);
+int cel_socket_async_recv(CelSocket *sock, 
+                          CelAsyncBuf *buffers, int buffer_count, 
+                          CelSocketRecvCallbackFunc callback);
+int cel_socket_async_sendto(CelSocket *sock, 
+                            CelAsyncBuf *buffers, int buffer_count, 
+                            CelSockAddr *to, 
+                            CelSocketSendToCallbackFunc callback);
+int cel_socket_async_recvfrom(CelSocket *sock, 
+                              CelAsyncBuf *buffers, int buffer_count, 
+                              CelSockAddr *from, 
+                              CelSocketRecvFromCallbackFunc callback);
+int cel_socket_async_sendfile(CelSocket *sock, 
+                              const TCHAR *path, 
+                              long long first, long long last, 
+                              CelSocketSendFileCallbackFunc callback);
 
 #ifdef __cplusplus
 }

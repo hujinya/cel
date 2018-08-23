@@ -31,7 +31,8 @@ typedef volatile S32 OsAtomic;
 /* if ptr == oldval , ptr = oldval, return oldval */
 #define os_atomic_cmp_and_swap(ptr, oldval, newval, mem_order) \
     _InterlockedCompareExchange(ptr, newval, oldval)
-#define os_atomic_add(ptr, increment) _InterlockedExchangeAdd(ptr, increment)
+#define os_atomic_add(ptr, increment) \
+    (_InterlockedExchangeAdd(ptr, increment) + (increment))
 
 // In msvc8/vs2005, winnt.h already contains a definition for
 // MemoryBarrier in the global namespace.  Add it there for earlier

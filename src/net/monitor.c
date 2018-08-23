@@ -173,46 +173,46 @@ void cel_monitor_tcp_check(void *checker)
 
 int cel_monitor_tcp_init(CelMonitor *mntr)
 {
-    CelMonitorTcpChecker *mntr_tcp;
-    CelSocketAsyncArgs *args;
+    //CelMonitorTcpChecker *mntr_tcp;
+    //CelSocketAsyncArgs *args;
 
-    if ((mntr_tcp = (CelMonitorTcpChecker *)
-        cel_malloc(sizeof(CelMonitorTcpChecker))) != NULL)
-    {
-        mntr_tcp->state = CEL_CHECKER_CONNECTING;
-        if (cel_socket_init(&mntr_tcp->sock, AF_INET, SOCK_STREAM, IPPROTO_TCP) == 0)
-        {
-            if (cel_socket_set_reuseaddr(&mntr_tcp->sock, 1) == 0
-                && cel_socket_set_nonblock(&mntr_tcp->sock, 1) == 0
-                && cel_socket_set_keepalive(&mntr_tcp->sock, 1, 360, 6, 3) == 0
-                && cel_eventloop_add_channel(
-                mntr->evt_loop, &(mntr_tcp->sock.channel), NULL) == 0)
-            {
-                args = &(mntr_tcp->args);
-                memset(&(args->connect_args.ol), 0, sizeof(sizeof(CelOverLapped)));
-                args->connect_args.async_callback = 
-                    (void (*) (void *))cel_monitor_tcp_check;
-                args->connect_args.socket = &(mntr_tcp->sock);
-                //memset(args->connect_args.host, 0, CEL_HNLEN);
-                //memset(args->connect_args.service, 0, CEL_NPLEN);
-                _tcscpy(args->connect_args.host, _T("192.168.0.177"));
-                _tcscpy(args->connect_args.service, _T("9005"));
-                args->connect_args.buffer = NULL;
-                args->connect_args.buffer_size = 0;
-                if (cel_socket_async_connect_host(&(args->connect_args)) == 0)
-                {
-                    CEL_DEBUG((_T("connect post ok\r\n")));
-                    mntr->checker = mntr_tcp;
-                    return 0;
-                }
-                CEL_ERR((_T("Load balancer %s post connect failed(%s)."), 
-                    cel_sockaddr_ntop(&(mntr_tcp->addr)), cel_geterrstr(cel_sys_geterrno())));
-            }
-            cel_socket_destroy(&mntr_tcp->sock);
-        }
-        cel_free(mntr_tcp);
-    }
-    mntr_tcp->state = CEL_CHECKER_DISCONNECTED;
+    //if ((mntr_tcp = (CelMonitorTcpChecker *)
+    //    cel_malloc(sizeof(CelMonitorTcpChecker))) != NULL)
+    //{
+    //    mntr_tcp->state = CEL_CHECKER_CONNECTING;
+    //    if (cel_socket_init(&mntr_tcp->sock, AF_INET, SOCK_STREAM, IPPROTO_TCP) == 0)
+    //    {
+    //        if (cel_socket_set_reuseaddr(&mntr_tcp->sock, 1) == 0
+    //            && cel_socket_set_nonblock(&mntr_tcp->sock, 1) == 0
+    //            && cel_socket_set_keepalive(&mntr_tcp->sock, 1, 360, 6, 3) == 0
+    //            && cel_eventloop_add_channel(
+    //            mntr->evt_loop, &(mntr_tcp->sock.channel), NULL) == 0)
+    //        {
+    //            args = &(mntr_tcp->args);
+    //            memset(&(args->connect_args.ol), 0, sizeof(sizeof(CelOverLapped)));
+    //            args->connect_args.async_callback = 
+    //                (void (*) (void *))cel_monitor_tcp_check;
+    //            args->connect_args.socket = &(mntr_tcp->sock);
+    //            //memset(args->connect_args.host, 0, CEL_HNLEN);
+    //            //memset(args->connect_args.service, 0, CEL_NPLEN);
+    //            _tcscpy(args->connect_args.host, _T("192.168.0.177"));
+    //            _tcscpy(args->connect_args.service, _T("9005"));
+    //            args->connect_args.buffer = NULL;
+    //            args->connect_args.buffer_size = 0;
+    //            if (cel_socket_async_connect_host(&(args->connect_args)) == 0)
+    //            {
+    //                CEL_DEBUG((_T("connect post ok\r\n")));
+    //                mntr->checker = mntr_tcp;
+    //                return 0;
+    //            }
+    //            CEL_ERR((_T("Load balancer %s post connect failed(%s)."), 
+    //                cel_sockaddr_ntop(&(mntr_tcp->addr)), cel_geterrstr(cel_sys_geterrno())));
+    //        }
+    //        cel_socket_destroy(&mntr_tcp->sock);
+    //    }
+    //    cel_free(mntr_tcp);
+    //}
+    //mntr_tcp->state = CEL_CHECKER_DISCONNECTED;
 
     return -1;
 }

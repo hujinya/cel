@@ -50,9 +50,9 @@ int cel_poll_wait(CelPoll *poll, CelOverLapped **ol, int milliseconds)
         *ol = (CelOverLapped *)((char *)*ol - CEL_OFFSET(CelOverLapped, _ol));
         if (CEL_CHECKFLAG((*ol)->evt_type, CEL_EVENT_CHANNEL))
         {
-            (*ol)->result = nbytes;
-            (*ol)->key = (void *)key;
-            (*ol)->error = WSAGetLastError();
+            (*ol)->result.ret = nbytes;
+            (*ol)->result.key = (void *)key;
+            (*ol)->result.error = WSAGetLastError();
         }
         return 0;
     }

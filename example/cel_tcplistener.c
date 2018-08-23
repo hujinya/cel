@@ -26,9 +26,9 @@ static void tcpclient_accept_completion(CelTcpListener *listener,
 
 void tcpclient_send_completion(CelTcpClient *client, CelStream *s, CelAsyncResult *async_result)
 {
-    /*_tprintf("Client %s send %ld, error %d, remaining %d.\r\n",
+    _tprintf("Client %s send %ld, error %d, remaining %d.\r\n",
         cel_sockaddr_ntop(&(client->remote_addr)),
-        async_result->result, async_result->error, cel_stream_get_remaining_length(s));*/
+        async_result->ret, async_result->error, cel_stream_get_remaining_length(s));
     if (async_result->ret > 0)
     {
         if (cel_stream_get_remaining_length(s) > 0)
@@ -53,9 +53,9 @@ void tcpclient_recv_completion(CelTcpClient *client, CelStream *s, CelAsyncResul
 {
     if (async_result->ret > 0)
     {
-        /*_tprintf("Client %s recv %ld, %s.\r\n",
-        cel_sockaddr_ntop(&(client->remote_addr)), async_result->result,
-        cel_stream_get_buffer(s));*/
+        _tprintf("Client %s recv %ld, %s.\r\n",
+            cel_sockaddr_ntop(&(client->remote_addr)), async_result->ret,
+        cel_stream_get_buffer(s));
         cel_stream_set_position(s, 0);
         cel_stream_write(s, rsp, strlen(rsp));
         cel_stream_zero(s, 4096);
@@ -77,10 +77,10 @@ void tcpclient_handshake_completion(CelTcpClient *client, CelAsyncResult *async_
 
     if (async_result->ret == 1)
     {
-        /*_tprintf(_T("Client %s %d handshake successed, protocol \"%s, %s\".\r\n"), 
+        _tprintf(_T("Client %s %d handshake successed, protocol \"%s, %s\".\r\n"), 
             cel_sockaddr_ntop(&(client->remote_addr)), client->sock.fd,
             SSL_get_cipher_version(client->ssl_sock.ssl), 
-            SSL_get_cipher(client->ssl_sock.ssl));*/
+            SSL_get_cipher(client->ssl_sock.ssl));
         cel_stream_init(s);
         cel_stream_resize(s, 81920); 
         cel_tcpclient_async_recv(client, s, &tcpclient_recv_completion);
@@ -103,14 +103,14 @@ void tcpclient_accept_completion(CelTcpListener *listener,
     new_client = &s_client[client->sock.fd];
     memcpy(new_client, client, sizeof(CelTcpClient));
     _tprintf(_T("Accept %s fd %d\r\n"), 
-        cel_tcpclient_get_remoteaddrs(new_client), client->sock.fd);
+        cel_tcpclient_get_remoteaddr_str(new_client), new_client->sock.fd);
     cel_tcplistener_async_accept(&s_listener, client, &tcpclient_accept_completion);
     cel_tcpclient_set_nonblock(&new_client, 1);
     cel_eventloop_add_channel(&evt_loop, &(new_client->sock.channel), NULL);
     if (cel_tcpclient_async_handshake(new_client, &tcpclient_handshake_completion) == -1)
     {
         _tprintf("Client %s %d post handshake failed\r\n", 
-            cel_sockaddr_ntop(&(client->remote_addr)), client->sock.fd);
+            cel_sockaddr_ntop(&(new_client->remote_addr)), new_client->sock.fd);
         cel_tcpclient_destroy(new_client);
     }
 }
@@ -167,7 +167,8 @@ int tcplistener_test(int argc, TCHAR *argv[])
         printf("Ssl context init failed.(%s)\r\n", cel_geterrstr(cel_geterrno()));
         return -1;
     }
-    if (cel_tcplistener_init_str(&s_listener, _T("0.0.0.0:9443"), NULL) != 0)
+
+    if (cel_tcplistener_init_str(&s_listener, _T("0.0.0.0:9443"), sslctx) != 0)
         return -1;
     cel_socket_set_nonblock(&(s_listener.sock), 1);
     cel_eventloop_add_channel(&evt_loop, &(s_listener.sock.channel), NULL);

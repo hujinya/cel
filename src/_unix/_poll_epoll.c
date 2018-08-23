@@ -30,31 +30,22 @@ void cel_eventchannel_destroy(CelChannel *evt_ch)
     close(evt_ch->handle);
 }
 
-static int _cel_eventchannel_read_async(CelEventReadAsyncArgs *args)
+static int cel_eventchannel_do_async_read(CelEventReadAsyncArgs *args)
 {
     //puts("event channel read");
-    if (eventfd_read(args->evt_ch.handle, &(args->value)) == -1)
+    if (eventfd_read(args->evt_ch->handle, &(args->value)) == -1)
     {
-        if ((args->ol.error = errno) == EAGAIN 
-            || args->ol.error == EWOULDBLOCK)
+        if ((args->ol.result.error = errno) == EAGAIN 
+            || args->ol.result.error == EWOULDBLOCK)
             CEL_POLLSTATE_SET(&(args->ol), CEL_POLLSTATE_WANTIN);
         else
             CEL_POLLSTATE_SET(&(args->ol), CEL_POLLSTATE_ERROR);
         return -1;
     }
+    //_tprintf(_T("**event channel read %lld\r\n"), args->value);
     CEL_POLLSTATE_SET(&(args->ol), CEL_POLLSTATE_OK);
-    args->ol.result = sizeof(eventfd_t);
+    args->ol.result.ret = sizeof(eventfd_t);
     return 0;
-}
-
-int cel_eventchannel_read_async(CelEventReadAsyncArgs *args)
-{
-    CelChannel *channel = &(args->evt_ch);
-
-    memset(&(args->ol), 0, sizeof(args->ol));
-    args->ol.evt_type = CEL_EVENT_CHANNELIN;
-    args->ol.handle_func = (int ( *)(void *))_cel_eventchannel_read_async;
-    return cel_poll_post(channel->poll, channel->handle, (CelOverLapped *)args);
 }
 
 static void cel_eventchannel_do_read(CelEventReadAsyncArgs *args)
@@ -63,12 +54,23 @@ static void cel_eventchannel_do_read(CelEventReadAsyncArgs *args)
     cel_eventchannel_read_async(args);
 }
 
+int cel_eventchannel_read_async(CelEventReadAsyncArgs *args)
+{
+    CelChannel *channel = args->evt_ch;
+
+    memset(&(args->ol), 0, sizeof(args->ol));
+    args->ol.evt_type = CEL_EVENT_CHANNELIN;
+    args->ol.handle_func = (int ( *)(void *))cel_eventchannel_do_async_read;
+    args->ol.async_callback = (void ( *)(void *))cel_eventchannel_do_read;
+    return cel_poll_post(channel->poll, channel->handle, (CelOverLapped *)args);
+}
+
 int cel_poll_init(CelPoll *poll, int max_threads, int max_fileds)
 {
     if (max_fileds < 1024)
         max_fileds = 1024;
-    if ((poll->epoll_datas = (struct _CelPollData **)
-        cel_calloc(max_fileds, sizeof(CelPollData *))) != NULL)
+    if ((poll->epoll_datas = (struct _CelPollData *)
+        cel_calloc(max_fileds, sizeof(CelPollData))) != NULL)
     {
         if ((poll->epoll_fd = epoll_create(max_fileds)) > 0)
         {
@@ -81,10 +83,7 @@ int cel_poll_init(CelPoll *poll, int max_threads, int max_fileds)
                 cel_mutex_init(&(poll->wait_locker), NULL);
                 cel_eventchannel_init(&(poll->wakeup_ch));
                 cel_poll_add(poll, &(poll->wakeup_ch), NULL);
-                poll->wakeup_args.async_callback = 
-                    (void ( *)(void *))cel_eventchannel_do_read;
-                memcpy(&(poll->wakeup_args.evt_ch), 
-                    &(poll->wakeup_ch), sizeof(CelChannel));
+                poll->wakeup_args.evt_ch = &(poll->wakeup_ch);
                 cel_eventchannel_read_async(&(poll->wakeup_args));
                 return 0;
             }
@@ -99,14 +98,6 @@ void cel_poll_destroy(CelPoll *poll)
 {
     close(poll->epoll_fd);
     cel_eventchannel_destroy(&(poll->wakeup_ch));
-    while ((--poll->max_fileds) >= 0)
-    {
-        if (poll->epoll_datas[poll->max_fileds] != NULL)
-        {
-            cel_free(poll->epoll_datas[poll->max_fileds]);
-            poll->epoll_datas[poll->max_fileds] = NULL;
-        }
-    }
     cel_asyncqueue_destroy(&poll->async_queue);
     cel_mutex_destroy(&(poll->event_locker));
     cel_mutex_destroy(&(poll->wait_locker));
@@ -125,14 +116,7 @@ int cel_poll_add(CelPoll *poll, CelChannel *channel, void *key)
         CEL_ERR((_T("Poll add %d failed."), fileds));
         return -1;
     }
-    if (poll->epoll_datas[fileds] == NULL
-        && (poll->epoll_datas[fileds] = 
-        (CelPollData *)cel_malloc(sizeof(CelPollData))) == NULL)
-    {
-        CEL_ERR((_T("%s"), cel_geterrstr(cel_sys_geterrno())));
-        return -1;
-    }
-    poll_data = poll->epoll_datas[fileds];
+    poll_data = &(poll->epoll_datas[fileds]);
     poll_data->key = key;
     poll_data->events = 0;
     poll_data->out_ol = poll_data->in_ol = NULL;
@@ -215,13 +199,13 @@ int cel_poll_post(CelPoll *poll, int fileds, CelOverLapped *ol)
     int ret;
     CelPollData *poll_data;
 
-    if (fileds <=0 || fileds >= poll->max_fileds
-        || (poll_data = poll->epoll_datas[fileds]) == NULL)
+    if (fileds <=0 || fileds >= poll->max_fileds)
     {
         CEL_ERR((_T("Poll post %d failed."), fileds));
         return -1;
     }
-    ol->key = poll_data->key;
+    poll_data = &(poll->epoll_datas[fileds]);
+    ol->result.key = poll_data->key;
     ret = cel_poll_handle(poll, ol, poll_data);
     if (ret == -1)
         return -1;
@@ -257,12 +241,7 @@ static int cel_poll_do(CelPoll *poll, int milliseconds)
     for (i = 0; i < n_events; i++)
     {
         event = &(poll->events[i]);
-        if ((poll_data = poll->epoll_datas[event->data.fd]) == NULL)
-        {
-            CEL_ERR((_T("Epoll data is null, file descriptor \"%d\"."), 
-                event->data.fd));
-            return -1;
-        }
+        poll_data = &(poll->epoll_datas[event->data.fd]);
         //CEL_DEBUG((_T("events 0x%x, fd %d"), event->events, event->data.fd));
         if (POLLIN_CHK(event->events) || POLLERROR_CHK(event->events))
         {
@@ -343,12 +322,7 @@ int cel_poll_wait(CelPoll *poll, CelOverLapped **ol, int milliseconds)
         //CEL_DEBUG((_T("fd %d state %d\r\n"), (*ol)->_ol.fileds, (*ol)->_ol.state));
         if (!CEL_POLLSTATE_ISCOMPLETED(*ol))
         {
-            if ((poll_data = poll->epoll_datas[(*ol)->_ol.fileds]) == NULL)
-            {
-                CEL_ERR((_T("Epoll data is null, file descriptor \"%d\"."), 
-                    (*ol)->_ol.fileds));
-                return -1;
-            }
+            poll_data = &(poll->epoll_datas[(*ol)->_ol.fileds]);
             if ((ret = cel_poll_handle(poll, *ol, poll_data)) == -1)
             {
                 return -1;

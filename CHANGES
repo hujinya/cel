@@ -1,6 +1,8 @@
 * Tue Aug 21 2018 Hu Jinya <hjy@gzsunrun.cn> 1.0.9.10
 - 修改CEL_DEBUG宏定义。
-- 修改ringlist原子比较赋值返回值BUG。
+- 修改ringlist原子比较赋值返回值BUG;
+  修改Windows下cel_atomic_add返回值BUG。
+- 修改SslSocket, Socket底层异步接口封装。
 
 * Wed Jul 11 2018 Hu Jinya <hjy@gzsunrun.cn> 1.0.8.9
 - 增加httpwebclient,httpweblistener,httproute。

@@ -78,12 +78,12 @@ void cel_httpclient_free(CelHttpClient *client);
 
 #define cel_httpclient_get_localaddr(client) \
     cel_tcpclient_get_localaddr(client)
-#define cel_httpclient_get_localaddrs(client) \
+#define cel_httpclient_get_localaddr_str(client) \
     cel_sockaddr_ntop(cel_tcpclient_get_localaddr(client))
 #define cel_httpclient_get_remoteaddr(client) \
-    cel_tcpclient_get_remoteaddr_str(client)
-#define cel_httpclient_get_remoteaddrs(client) \
-    cel_sockaddr_ntop(cel_tcpclient_get_remoteaddr_str(client))
+    cel_tcpclient_get_remoteaddr(client)
+#define cel_httpclient_get_remoteaddr_str(client) \
+    cel_sockaddr_ntop(cel_tcpclient_get_remoteaddr(client))
 
 int cel_httpclient_reading_recv_request(CelHttpClient *client, 
                                         CelStream *s, CelHttpRequest *req);
@@ -93,6 +93,13 @@ int cel_httpclient_connect(CelHttpClient *client,
                            CelSockAddr *remote_addr, CelCoroutine *co)
 {
     return cel_tcpclient_connect(&(client->tcp_client), remote_addr, co);
+}
+static __inline 
+int cel_httpclient_connect_host(CelHttpClient *client, 
+                                const TCHAR *host, unsigned short port,
+                                CelCoroutine *co)
+{
+    return cel_tcpclient_connect_host(&(client->tcp_client), host, port, co);
 }
 static __inline 
 int cel_httpclient_handshake(CelHttpClient *client, CelCoroutine *co)
@@ -107,6 +114,7 @@ int cel_httpclient_recv_response(CelHttpClient *client,
                                  CelHttpResponse *rsp, CelCoroutine *co);
 int cel_httpclient_send_response(CelHttpClient *client, 
                                  CelHttpResponse *rsp, CelCoroutine *co);
+
 int cel_httpclient_execute(CelHttpClient *client,
                            CelHttpRequest *req, CelHttpResponse *rsp, 
                            CelCoroutine *co);

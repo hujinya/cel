@@ -36,7 +36,7 @@ int readline_test(int argc, TCHAR *argv[])
             cel_tcpclient_set_nonblock(&client, 1);
             client_active = TRUE;
             _tprintf(_T("Client %s:%d connect.\r\n"), 
-                cel_tcpclient_get_remoteaddrs(&client), client.sock.fd);
+                cel_tcpclient_get_remoteaddr_str(&client), client.sock.fd);
             cel_readline_init(&vty);
         }
         if (client_active)
@@ -47,7 +47,7 @@ int readline_test(int argc, TCHAR *argv[])
                     || (r_size < 0 && cel_geterrno() != EWOULDBLOCK && cel_geterrno() != EAGAIN))
                 {
                     _tprintf(_T("Client %s disconnect,read(%s).\r\n"), 
-                        cel_tcpclient_get_remoteaddrs(&client), 
+                        cel_tcpclient_get_remoteaddr_str(&client), 
                         cel_geterrstr(cel_geterrno()));
                     cel_tcpclient_destroy(&client);
                     client_active = FALSE;
@@ -68,7 +68,7 @@ int readline_test(int argc, TCHAR *argv[])
                         || (w_size < 0 && cel_geterrno() != EWOULDBLOCK && cel_geterrno() != EAGAIN))
                     {
                         _tprintf(_T("Client %s disconnect,write(%s).\r\n"), 
-                            cel_tcpclient_get_remoteaddrs(&client),
+                            cel_tcpclient_get_remoteaddr_str(&client),
                             cel_geterrstr(cel_geterrno()));
                         cel_tcpclient_destroy(&client);
                         client_active = FALSE;
