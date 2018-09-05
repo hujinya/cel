@@ -68,8 +68,10 @@ extern CelKeyword ssl_methods[];
 
 #define cel_ssllibrary_init() \
     CRYPTO_set_mem_functions(cel_malloc, cel_realloc, cel_free),\
-    SSL_load_error_strings(),\
+    SSL_load_error_strings(), \
     SSL_library_init()
+/* SSL_library_init include OpenSSL_add_all_algorithms */
+    
 #define cel_ssl_get_error(ssl, ret) SSL_get_error(ssl, ret)
 
 #define cel_ssl_get_errno() ERR_get_error()

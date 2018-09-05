@@ -17,13 +17,15 @@
 #include "cel/allocator.h"
 #include "cel/convert.h"
 
-int cel_ringlist_init(CelRingList *ring_list, size_t size)
+int cel_ringlist_init(CelRingList *ring_list, size_t size, 
+                      CelFreeFunc value_free)
 {
     size = cel_power2min((int)size);
     //printf("size = %d\r\n", size);
     if ((ring_list->ring = (void **)cel_malloc(sizeof(void *) * size)) == NULL)
         return -1;
     ring_list->size = size;
+    ring_list->value_free = value_free;
     ring_list->mask = size -1;
     ring_list->p_head = 0;
     ring_list->p_tail = 0;
@@ -35,17 +37,18 @@ int cel_ringlist_init(CelRingList *ring_list, size_t size)
 
 void cel_ringlist_destroy(CelRingList *ring_list)
 {
+    cel_ringlist_clear(ring_list);
     cel_free(ring_list->ring);
 }
 
-CelRingList *cel_ringlist_new(size_t size)
+CelRingList *cel_ringlist_new(size_t size, CelFreeFunc value_free)
 {
     CelRingList *ring_list;
 
     if ((ring_list = (CelRingList *)cel_malloc(
         sizeof(CelRingList))) != NULL)
     {
-        if (cel_ringlist_init(ring_list, size) == 0)
+        if (cel_ringlist_init(ring_list, size, value_free) == 0)
             return ring_list;
         cel_free(ring_list);
     }
@@ -59,6 +62,12 @@ void cel_ringlist_free(CelRingList *ring_list)
     cel_free(ring_list);
 }
 
+void cel_ringlist_clear(CelRingList *ring_list)
+{
+    puts("cel_ringlist_clear is null");
+}
+
+static __inline 
 void cel_ringlist_push_values(CelRingList *ring_list, 
                               unsigned long prod_head, size_t n, void **values)
 { 
@@ -90,8 +99,8 @@ void cel_ringlist_push_values(CelRingList *ring_list,
     } 
 }
 
-int _cel_ringlist_push_do_mp(CelRingList *ring_list, size_t n,
-                             CelRingListConsFunc handle, void *user_data)
+int _cel_ringlist_push_do(CelRingList *ring_list, BOOL is_sp, size_t n,
+                          CelRingListConsFunc handle, void *user_data)
 {
     U32 prod_head, prod_next;
     U32 cons_tail, free_entries;
@@ -120,33 +129,40 @@ int _cel_ringlist_push_do_mp(CelRingList *ring_list, size_t n,
             n = free_entries;
         }
         prod_next = prod_head + n;
+        if (is_sp)
+        {
+            ring_list->p_head = prod_next;
+            break;
+        }
     }while (cel_atomic_cmp_and_swap(
         &(ring_list->p_head), prod_head, prod_next, 0) != prod_head);
     /* write entries in ring */
-    handle(ring_list, prod_head, n, user_data);
+    if (handle == NULL)
+        cel_ringlist_push_values(ring_list, prod_head, n, user_data);
+    else
+        handle(ring_list, prod_head, n, user_data);
     cel_compiler_barrier();
-    /*
-    * If there are other enqueues in progress that preceded us,
-    * we need to wait for them to complete
-    */
-    while (ring_list->p_tail != prod_head)
+    if (!is_sp)
     {
-        yield(rep++);
-        /*if (rep > 4)
+        /*
+        * If there are other enqueues in progress that preceded us,
+        * we need to wait for them to complete
+        */
+        while (ring_list->p_tail != prod_head)
+        {
+            yield(rep++);
+            /*if (rep > 4)
             printf("push yield, rep = %d, "
             "size %d, p_tail %d, prod_head %d\r\n",
             rep, ring_list->size, ring_list->p_tail, prod_head);*/
+        }
     }
     ring_list->p_tail = prod_next;
     
     return n;
 }
 
-int cel_ringlist_push_do_sp(CelRingList *ring_list, void *values, size_t n)
-{
-    return 0;
-}
-
+static __inline 
 void cel_ringlist_pop_values(CelRingList *ring_list, 
                              unsigned long cons_head, size_t n, void **values)
 {
@@ -156,7 +172,7 @@ void cel_ringlist_pop_values(CelRingList *ring_list,
     if (idx + n < ring_list->size) 
     { 
         for (i = 0; i < (n & ((~(unsigned)0x3))); i+=4, idx+=4) 
-        { 
+        {
             values[i] = ring_list->ring[idx]; 
             values[i + 1] = ring_list->ring[idx + 1]; 
             values[i + 2] = ring_list->ring[idx + 2]; 
@@ -178,8 +194,8 @@ void cel_ringlist_pop_values(CelRingList *ring_list,
     }
 }
 
-int _cel_ringlist_pop_do_mp(CelRingList *ring_list, size_t n, 
-                            CelRingListProdFunc handle, void *user_data)
+int _cel_ringlist_pop_do(CelRingList *ring_list, BOOL is_sp, size_t n, 
+                         CelRingListProdFunc handle, void *user_data)
 {
     U32 cons_head, prod_tail;
     U32 cons_next, entries;
@@ -213,28 +229,34 @@ int _cel_ringlist_pop_do_mp(CelRingList *ring_list, size_t n,
             n = entries;
         }
         cons_next = cons_head + n;
+        if (is_sp)
+        {
+            ring_list->c_head = cons_next;
+            break;
+        }
     }while(cel_atomic_cmp_and_swap(
         &(ring_list->c_head), cons_head, cons_next, 0) != cons_head);
     /* copy in table */
-    handle(ring_list, cons_head, n, user_data);
+    if (handle == NULL)
+        cel_ringlist_pop_values(ring_list, cons_head, n, user_data);
+    else
+        handle(ring_list, cons_head, n, user_data);
     cel_compiler_barrier();
     /*
     * If there are other dequeues in progress that preceded us,
     * we need to wait for them to complete
     */
-    while (ring_list->c_tail != cons_head)
+    if (!is_sp)
     {
-        yield(rep++);
-        /*if (rep > 4)
+        while (ring_list->c_tail != cons_head)
+        {
+            yield(rep++);
+            /*if (rep > 4)
             printf("pop yield, rep = %d c_tail %d c_head %d\r\n", 
             rep, ring_list->c_tail, cons_head);*/
+        }
     }
     ring_list->c_tail = cons_next;
 
     return n;
-}
-
-int cel_ringlist_pop_do_sp(CelRingList *ring_list, void **values, size_t n)
-{
-    return 0;
 }

@@ -89,35 +89,28 @@ int cel_httpclient_reading_recv_request(CelHttpClient *client,
                                         CelStream *s, CelHttpRequest *req);
 
 static __inline 
-int cel_httpclient_connect(CelHttpClient *client, 
-                           CelSockAddr *remote_addr, CelCoroutine *co)
+int cel_httpclient_connect(CelHttpClient *client, CelSockAddr *remote_addr)
 {
-    return cel_tcpclient_connect(&(client->tcp_client), remote_addr, co);
+    return cel_tcpclient_connect(&(client->tcp_client), remote_addr);
 }
 static __inline 
 int cel_httpclient_connect_host(CelHttpClient *client, 
-                                const TCHAR *host, unsigned short port,
-                                CelCoroutine *co)
+                                const TCHAR *host, unsigned short port)
 {
-    return cel_tcpclient_connect_host(&(client->tcp_client), host, port, co);
+    return cel_tcpclient_connect_host(&(client->tcp_client), host, port);
 }
 static __inline 
-int cel_httpclient_handshake(CelHttpClient *client, CelCoroutine *co)
+int cel_httpclient_handshake(CelHttpClient *client)
 {
-    return cel_tcpclient_handshake(&(client->tcp_client), co);
+    return cel_tcpclient_handshake(&(client->tcp_client));
 }
-int cel_httpclient_recv_request(CelHttpClient *client, 
-                                CelHttpRequest *req, CelCoroutine *co);
-int cel_httpclient_send_request(CelHttpClient *client, 
-                                CelHttpRequest *req, CelCoroutine *co);
-int cel_httpclient_recv_response(CelHttpClient *client, 
-                                 CelHttpResponse *rsp, CelCoroutine *co);
-int cel_httpclient_send_response(CelHttpClient *client, 
-                                 CelHttpResponse *rsp, CelCoroutine *co);
+int cel_httpclient_recv_request(CelHttpClient *client, CelHttpRequest *req);
+int cel_httpclient_send_request(CelHttpClient *client, CelHttpRequest *req);
+int cel_httpclient_recv_response(CelHttpClient *client, CelHttpResponse *rsp);
+int cel_httpclient_send_response(CelHttpClient *client, CelHttpResponse *rsp);
 
 int cel_httpclient_execute(CelHttpClient *client,
-                           CelHttpRequest *req, CelHttpResponse *rsp, 
-                           CelCoroutine *co);
+                           CelHttpRequest *req, CelHttpResponse *rsp);
 
 static __inline 
 int cel_httpclient_async_connect(CelHttpClient *client, 

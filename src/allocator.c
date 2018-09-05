@@ -16,8 +16,6 @@
 #include "cel/thread.h"
 #include "cel/multithread.h"
 #include "cel/error.h"
-#undef _CEL_DEBUG
-//#define _CEL_DEBUG
 #include "cel/log.h"
 #include "cel/list.h"
 #include "cel/freelist.h"

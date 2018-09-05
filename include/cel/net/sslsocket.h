@@ -30,7 +30,7 @@ typedef void (*CelSslSocketConnectCallbackFunc)(
 typedef void (*CelSslSocketHandshakeCallbackFunc)(
     CelSslSocket *ssl_sock, CelAsyncResult *result);
 typedef void (*CelSslSocketSendCallbackFunc)(
-    CelSslSocket *ssl_sock, CelAsyncBuf *buffers, int count, 
+    CelSslSocket *ssl_sock, CelAsyncBuf *buffers, int count,
     CelAsyncResult *result);
 typedef void (*CelSslSocketRecvCallbackFunc)(
     CelSslSocket *ssl_sock, CelAsyncBuf *buffers, int count,
@@ -75,18 +75,20 @@ void cel_sslsocket_free(CelSslSocket *ssl_sock);
     cel_refcounted_deref(&(ssl_sock->ref_counted), ssl_sock)
 
 int cel_sslsocket_handshake(CelSslSocket *ssl_sock);
-static __inline int cel_sslsocket_accept(CelSslSocket *ssl_sock)
+static __inline 
+int cel_sslsocket_accept(CelSslSocket *ssl_sock)
 {
     cel_ssl_set_endpoint(ssl_sock->ssl, CEL_SSLEP_SERVER);
     return cel_sslsocket_handshake(ssl_sock);
 }
-static __inline int cel_sslsocket_connect(CelSslSocket *ssl_sock)
+static __inline 
+int cel_sslsocket_connect(CelSslSocket *ssl_sock)
 {
     cel_ssl_set_endpoint(ssl_sock->ssl, CEL_SSLEP_CLIENT);
     return cel_sslsocket_handshake(ssl_sock);
 }
-int cel_sslsocket_send(CelSslSocket *ssl_sock, void *buf, size_t size);
-int cel_sslsocket_recv(CelSslSocket *ssl_sock, void *buf, size_t size);
+int cel_sslsocket_send(CelSslSocket *ssl_sock, CelAsyncBuf *buffers, int count);
+int cel_sslsocket_recv(CelSslSocket *ssl_sock, CelAsyncBuf *buffers, int count);
 
 int cel_sslsocket_async_handshake(CelSslSocket *ssl_sock,
                                   CelSslSocketHandshakeCallbackFunc callback);
@@ -104,7 +106,7 @@ int cel_sslsocket_async_connect(CelSslSocket *ssl_sock,
     cel_ssl_set_endpoint(ssl_sock->ssl, CEL_SSLEP_CLIENT);
     return cel_sslsocket_async_handshake(ssl_sock, callback);
 }
-int cel_sslsocket_async_send(CelSslSocket *ssl_sock, 
+int cel_sslsocket_async_send(CelSslSocket *ssl_sock,
                              CelAsyncBuf *buffers, int count,
                              CelSslSocketSendCallbackFunc callback);
 int cel_sslsocket_async_recv(CelSslSocket *ssl_sock, 

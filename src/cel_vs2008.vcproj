@@ -1093,19 +1093,23 @@
 				Name="sql"
 				>
 				<File
-					RelativePath=".\sql\dbcon.c"
-					>
-				</File>
-				<File
-					RelativePath=".\sql\dbconpool.c"
-					>
-				</File>
-				<File
 					RelativePath=".\sql\mssql.c"
 					>
 				</File>
 				<File
 					RelativePath=".\sql\mysql.c"
+					>
+				</File>
+				<File
+					RelativePath=".\sql\sqlcon.c"
+					>
+				</File>
+				<File
+					RelativePath=".\sql\sqlconpool.c"
+					>
+				</File>
+				<File
+					RelativePath=".\sql\sqllite.c"
 					>
 				</File>
 			</Filter>
@@ -1495,19 +1499,23 @@
 				Name="sql"
 				>
 				<File
-					RelativePath="..\include\cel\sql\_dbcon.h"
-					>
-				</File>
-				<File
-					RelativePath="..\include\cel\sql\_dbconpool.h"
-					>
-				</File>
-				<File
 					RelativePath="..\include\cel\sql\mssql.h"
 					>
 				</File>
 				<File
 					RelativePath="..\include\cel\sql\mysql.h"
+					>
+				</File>
+				<File
+					RelativePath="..\include\cel\sql\sqlcon.h"
+					>
+				</File>
+				<File
+					RelativePath="..\include\cel\sql\sqlconpool.h"
+					>
+				</File>
+				<File
+					RelativePath="..\include\cel\sql\sqlite.h"
 					>
 				</File>
 			</Filter>

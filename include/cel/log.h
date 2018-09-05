@@ -202,12 +202,7 @@ int cel_logmsg_puts(CelLogMsg *msg, void *user_data);
 int cel_logmsg_dbinsert(CelLogMsg *msg, void *user_data);
 
 // Like assert(), but executed even in _CEL_DEBUG mode
-#undef CEL_ASSERT
-#undef CEL_DEBUG
-#undef CEL_WARNING
-#undef CEL_ERR
-#ifdef _CEL_DEBUG
-
+#ifdef _CEL_ASSERT
 #define CEL_ASSERT(cond)  \
 do {                                                           \
   if (!(cond)) {                                               \
@@ -216,46 +211,53 @@ do {                                                           \
     abort();                                                   \
   }                                                            \
 }while (0)
+#else
+#define CEL_ASSERT(cond)    ((void) 0)
+#endif /* _CEL_ASSERT */
 
+#ifdef _CEL_DEBUG
 static __inline int cel_lib_debug(const TCHAR *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    cel_logger_vprintf(
-        &g_logger, CEL_LOGFACILITY_LOCAL0, CEL_LOGLEVEL_DEBUG, fmt, args);
+    cel_logger_vprintf(&g_logger, 
+        CEL_LOGFACILITY_LOCAL0, CEL_LOGLEVEL_DEBUG, fmt, args);
     va_end(args);
     return 0;
 }
-static __inline int cel_lib_err(const TCHAR *fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-    cel_logger_vprintf(
-        &g_logger, CEL_LOGFACILITY_LOCAL0, CEL_LOGLEVEL_WARNING, fmt, args);
-    va_end(args);
-    return 0;
-}
+#else
+#define CEL_DEBUG(cond)    ((void) 0)
+#endif /* _CEL_DEBUG */
+
+#ifdef _CEL_WARNING
 static __inline int cel_lib_warning(const TCHAR *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
-    cel_logger_vprintf(
-        &g_logger, CEL_LOGFACILITY_LOCAL0, CEL_LOGLEVEL_ERR, fmt, args);
+    cel_logger_vprintf(&g_logger, 
+        CEL_LOGFACILITY_LOCAL0, CEL_LOGLEVEL_ERR, fmt, args);
     va_end(args);
     return 0;
 }
-#define CEL_DEBUG(args) cel_lib_debug args
 #define CEL_WARNING(args) cel_lib_err args
-#define CEL_ERR(args) cel_lib_warning args
-
 #else
-#define CEL_ASSERT(cond)    ((void) 0)
-
-#define CEL_DEBUG(args)     ((void) 0)
 #define CEL_WARNING(args)   ((void) 0)
-#define CEL_ERR(args)       ((void) 0)
+#endif /* _CEL_WARNING */
 
-#endif /* _CEL_DEBUG */
+#ifdef _CEL_ERR
+static __inline int cel_lib_err(const TCHAR *fmt, ...)
+{
+    va_list args;
+    va_start(args, fmt);
+    cel_logger_vprintf(&g_logger, 
+        CEL_LOGFACILITY_LOCAL0, CEL_LOGLEVEL_WARNING, fmt, args);
+    va_end(args);
+    return 0;
+}
+#define CEL_ERR(args) cel_lib_warning args
+#else
+#define CEL_ERR(args)  ((void) 0)
+#endif /* _CEL_ERR */
 
 #ifdef __cplusplus
 }

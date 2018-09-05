@@ -125,6 +125,12 @@ static __inline WCHAR *cel_wcsdup(const WCHAR *str)
 #define cel_tcsdup cel_wcsdup
 #endif
 
+#define CEL_PTR_STRDUP(ptr, value)  if ((ptr) != value) { \
+    if ((ptr) != NULL) { cel_free(ptr); } ptr = cel_strdup(value); }
+#define CEL_PTR_TCSDUP(ptr, value) if ((ptr) != value) { \
+    if ((ptr) != NULL) { cel_free(ptr); } ptr = cel_tcsdup(value); }
+#define CEL_PTR_FREE(ptr) if ((ptr) != NULL) { cel_free(ptr); (ptr) = NULL; }
+
 #ifdef __cplusplus
 }
 #endif

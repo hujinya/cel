@@ -14,6 +14,8 @@
  */
 #include "cel/sql/mysql.h"
 #include "cel/allocator.h"
+#undef _CEL_DEBUG
+//#define _CEL_DEBUG
 #include "cel/log.h"
 #include "cel/error.h"
 #include "cel/thread.h"
@@ -30,51 +32,28 @@
 #endif
 #include <mysql/mysql.h>
 
-struct st_mysql_ex
+int cel_mysqlcon_init(CelMysqlCon *con,
+                      const char *dbhost, unsigned int dbport, 
+                      const char *dbname, 
+                      const char *dbuser, const char *dbpswd)
 {
-    struct st_mysql mysql;
-    char *host, *user, *passwd, *db;
-    unsigned int port;
-};
-
-#define CEL_MYSQL_STRDUP(ptr, value)  if ((ptr) != value) { \
-        if ((ptr) != NULL) { cel_free(ptr); } ptr = cel_strdup(value); }
-#define CEL_MYSQL_TCSDUP(ptr, value) if ((ptr) != value) { \
-        if ((ptr) != NULL) { cel_free(ptr); } ptr = cel_tcsdup(value); }
-#define CEL_MYSQL_FREE(ptr) if ((ptr) != NULL) { cel_free(ptr); (ptr) = NULL; }
-
-CelMysqlCon *cel_mysqlcon_new(const char *dbhost, unsigned int dbport, 
-                              const char *dbname, 
-                              const char *dbuser, const char *dbpswd)
-{
-    CelMysqlCon *con;
-
-    if ((con = (CelMysqlCon *)cel_malloc(sizeof(CelMysqlCon))) == NULL)
-    {
-        return NULL;
-    }
     memset(con, 0, sizeof(CelMysqlCon));
-    CEL_MYSQL_STRDUP(con->host, dbhost);
-    CEL_MYSQL_STRDUP(con->user, dbuser);
-    CEL_MYSQL_STRDUP(con->passwd, dbpswd);
-    CEL_MYSQL_STRDUP(con->db, dbname);
+    CEL_PTR_STRDUP(con->host, dbhost);
+    CEL_PTR_STRDUP(con->user, dbuser);
+    CEL_PTR_STRDUP(con->passwd, dbpswd);
+    CEL_PTR_STRDUP(con->db, dbname);
     con->port = dbport;
 
-    return (cel_mysqlcon_open(con) == 0 ? con : NULL);
+    return cel_mysqlcon_open(con);
 }
 
-void cel_mysqlcon_free(CelMysqlCon *con)
+void cel_mysqlcon_destroy(CelMysqlCon *con)
 {
-    if (con == NULL) 
-        return;
     mysql_close(&con->mysql);
-
-    CEL_MYSQL_FREE(con->host);
-    CEL_MYSQL_FREE(con->user);
-    CEL_MYSQL_FREE(con->passwd);
-    CEL_MYSQL_FREE(con->db);
-
-    cel_free(con);
+    CEL_PTR_FREE(con->host);
+    CEL_PTR_FREE(con->user);
+    CEL_PTR_FREE(con->passwd);
+    CEL_PTR_FREE(con->db);
 }
 
 int cel_mysqlcon_open(CelMysqlCon *con)
@@ -185,16 +164,6 @@ CelMysqlRes *cel_mysqlcon_execute_query(CelMysqlCon *con, const char *sqlstr)
     return mysql_store_result(&con->mysql);
 }
 
-long cel_mysqlres_rows(CelMysqlRes *res)
-{
-    return (long)mysql_num_rows(res);
-}
-
-int cel_mysqlres_cols(CelMysqlRes *res)
-{
-    return mysql_num_fields(res);
-}
-
 int cel_mysqlres_get_int(CelMysqlRes *res, int col_index, int *value)
 {
     if (res->lengths[col_index] != 0) {
@@ -224,21 +193,6 @@ int cel_mysqlres_get_string(CelMysqlRes *res, int col_index,
     }
     value[0] = '\0';
     return -1;
-}
-
-unsigned long *cel_mysqlres_fetch_lengths(CelMysqlRes *res)
-{
-    return mysql_fetch_lengths(res);
-}
-
-CelMysqlRow cel_mysqlres_fetch_row(CelMysqlRes *res)
-{
-    return mysql_fetch_row(res);
-}
-
-CelMysqlField *cel_mysqlres_fetch_field(CelMysqlRes *res)
-{
-    return mysql_fetch_field(res);
 }
 
 const char *cel_mysqlres_field_name(CelMysqlRes *res, 
@@ -282,69 +236,4 @@ int cel_mysqlres_rows_seek(CelMysqlRes *res,
     return -1;
 }
 
-void cel_mysqlres_free(CelMysqlRes *res)
-{
-    if (res == NULL) 
-        return;
-    mysql_free_result(res);
-    res = NULL;
-}
 
-int cel_mysqlcon_execute_onequery_results(CelMysqlCon *con, 
-                                          const char *sqlstr, 
-                                          CelMysqlRowEachFunc each_func, 
-                                          void *user_data)
-{
-    int ret, cols;
-    CelMysqlRes *res;
-    CelMysqlRow row;
-
-    if ((res = cel_mysqlcon_execute_onequery(con, sqlstr)) == NULL)
-        return -1;
-    cols = cel_mysqlres_cols(res);
-    if ((row = cel_mysqlres_fetch_row(res)) == NULL)
-    {
-        if ((ret = each_func((void **)row, cols, user_data)) == 1)
-        {
-            cel_mysqlres_free(res);
-            return 0;
-        }
-        else if (ret == -1)
-        {
-            cel_mysqlres_free(res);
-            return -1;
-        }
-    }
-    cel_mysqlres_free(res);
-
-    return 0;
-}
-
-int cel_mysqlcon_execute_query_results(CelMysqlCon *con, const char *sqlstr, 
-                                       CelMysqlRowEachFunc each_func, 
-                                       void *user_data)
-{
-    int ret, cols;
-    CelMysqlRes *res;
-    CelMysqlRow row;
-
-    if ((res = cel_mysqlcon_execute_query(con, sqlstr)) == NULL)
-        return -1;
-    cols = cel_mysqlres_cols(res);
-    while ((row = cel_mysqlres_fetch_row(res)) == NULL)
-    {
-        if ((ret = each_func((void **)row, cols, user_data)) == 1)
-        {
-            cel_mysqlres_free(res);
-            return 0;
-        }
-        else if (ret == -1)
-        {
-            cel_mysqlres_free(res);
-            return -1;
-        }
-    }
-    cel_mysqlres_free(res);
-
-    return 0;
-}

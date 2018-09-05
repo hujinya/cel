@@ -13,6 +13,7 @@
  * GNU General Public License for more details.
  */
 #include "cel/_unix/_rand.h"
+#include "cel/log.h"
 
 #ifdef _CEL_UNIX
 void os_rand_bytes(void *out, size_t out_len)
@@ -22,8 +23,8 @@ void os_rand_bytes(void *out, size_t out_len)
     memset(out, 0, out_len);
     if ((urandom_fd = open("/dev/urandom", O_RDONLY | O_CLOEXEC)) < 0)
     {
-        _tprintf(_T("Could not read from /dev/urandom: %s"),
-            strerror(errno));
+        CEL_ERR((_T("Could not read from /dev/urandom: %s"),
+            strerror(errno)));
     }
     read(urandom_fd, out, out_len);
     //puts((char *)out);

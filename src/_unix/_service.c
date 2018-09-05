@@ -153,8 +153,8 @@ void _os_service_signal_handler(int signo)
     pid_t pid;
     int status;
 
-    _tprintf(_T("singal_process = %d, signo = %d\r\n"), 
-        singal_process, signo);
+    /*_tprintf(_T("singal_process = %d, signo = %d\r\n"), 
+        singal_process, signo);*/
     switch (singal_process)
     {
     case 0:
@@ -173,7 +173,7 @@ void _os_service_signal_handler(int signo)
             singal_child = 1;
             while((pid = waitpid(0, &status, WNOHANG)) > 0)
             {
-                _tprintf(_T("Child %d exit, status = %d.\r\n"), pid, status);
+                //_tprintf(_T("Child %d exit, status = %d.\r\n"), pid, status);
                 if (WIFEXITED(status) && WEXITSTATUS(status) == 1)
                 {
                     //_tprintf(_T("Child %d quit.\r\n"), pid);

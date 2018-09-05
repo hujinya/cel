@@ -143,8 +143,8 @@ void cel_tcplistener_free(CelTcpListener *listener)
 
 int cel_tcplistener_accept(CelTcpListener *listener, CelTcpClient *client)
 {
-    if (cel_socket_accept(
-        (CelSocket *)listener, (CelSocket *)client, &((client)->remote_addr)) == 0)
+    if (cel_socket_accept((CelSocket *)listener,
+        (CelSocket *)client, &((client)->remote_addr)) == 0)
     {
         if (listener->ssl_ctx == NULL
             || cel_sslsocket_init(

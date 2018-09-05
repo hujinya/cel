@@ -28,7 +28,8 @@ void tcpclient_send_completion(CelTcpClient *client, CelStream *s, CelAsyncResul
 {
     _tprintf("Client %s send %ld, error %d, remaining %d.\r\n",
         cel_sockaddr_ntop(&(client->remote_addr)),
-        async_result->ret, async_result->error, cel_stream_get_remaining_length(s));
+        async_result->ret, async_result->error, 
+        (int)cel_stream_get_remaining_length(s));
     if (async_result->ret > 0)
     {
         if (cel_stream_get_remaining_length(s) > 0)

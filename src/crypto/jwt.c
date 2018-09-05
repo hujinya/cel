@@ -15,6 +15,7 @@
 
 #include "cel/crypto/jwt.h"
 #include "cel/allocator.h"
+#include "cel/log.h"
 #include "cel/keyword.h"
 #include "cel/crypto/base64.h"
 #include "cel/crypto/crypto.h"
@@ -98,21 +99,21 @@ static int cel_jwt_verify_sha_hmac(const EVP_MD *alg,
     if (HMAC(alg, key, key_len, 
         (const unsigned char *)head, head_len, md, &md_len) == NULL)
     {
-        puts("HMAC return NULL");
+        CEL_ERR((_T("HMAC return NULL")));
         return -1;
     }
     new_sig_len = cel_base64url_encode_size(md_len);
     new_sig = (BYTE *)alloca(new_sig_len);
     if (cel_base64url_encode(new_sig, &new_sig_len, md, md_len) != 0)
     {
-        puts("cel_jwt_verify_sha_hmac->cel_base64url_encode return -1");
+        CEL_ERR((_T("cel_jwt_verify_sha_hmac->cel_base64url_encode return -1")));
         return -1;
     }
     if (sig_len != new_sig_len
         || memcmp(new_sig, sig, sig_len) != 0)
     {
-        printf("new sig(%d) %s not match sig(%d) %s\r\n", 
-            (int)new_sig_len, new_sig, (int)sig_len, sig);
+        CEL_ERR((_T("new sig(%d) %s not match sig(%d) %s"), 
+            (int)new_sig_len, new_sig, (int)sig_len, sig));
         return -1;
     }
     return 0;
@@ -489,7 +490,7 @@ static int cel_jwt_verify_head(CelJwt *jwt, const char *head, size_t head_len)
     if ((head_json = cel_json_new()) == NULL
         || cel_jwt_base64url_decode_json(head_json, head, head_len) == -1)
     {
-        puts("cel_jwt_base64url_decode_json return error");
+        CEL_ERR((_T("cel_jwt_base64url_decode_json return error")));
         ret = -1;
         goto verify_head_done;
     }
@@ -497,7 +498,7 @@ static int cel_jwt_verify_head(CelJwt *jwt, const char *head, size_t head_len)
         || (jwt->alg = cel_keyword_binary_search_a(
         s_jwtalg, CEL_JWT_ALG_COUNT, val, strlen(val))) == -1)
     {
-        puts("alg cmp error");
+        CEL_ERR((_T("alg cmp error")));
         ret = -1;
         goto verify_head_done;
     }

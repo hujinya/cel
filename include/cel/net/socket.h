@@ -46,18 +46,17 @@ typedef void (* CelSocketSendFileCallbackFunc)(
 /* Async socket */
 typedef struct _CelSocketAsyncAcceptArgs
 {
-    CelOverLapped ol;
+    CelOverLapped _ol;
     CelSocket *socket;
     CelSocket *accept_socket;
     char addr_buf[ACCEPTEX_RECEIVEDATA_OFFSET];
-    //void *buffer;
-    //size_t buffer_size;
+    CelCoroutineEntity *co_entity;
     CelSocketAcceptCallbackFunc async_callback;
 }CelSocketAsyncAcceptArgs;
 
 typedef struct _CelSocketAsyncConnectArgs
 {
-    CelOverLapped ol;
+    CelOverLapped _ol;
     CelSocket *socket;
     union {
         CelSockAddr remote_addr;
@@ -66,14 +65,12 @@ typedef struct _CelSocketAsyncConnectArgs
             TCHAR service[CEL_NPLEN];
         };
     };
-    //void *buffer;
-    //size_t buffer_size;
     CelSocketConnectCallbackFunc async_callback;
 }CelSocketAsyncConnectArgs;
 
 typedef struct _CelSocketAsyncSendArgs
 {
-    CelOverLapped ol;
+    CelOverLapped _ol;
     CelSocket *socket;
     CelAsyncBuf *buffers;
     int buffer_count;
@@ -82,7 +79,7 @@ typedef struct _CelSocketAsyncSendArgs
 
 typedef struct _CelSocketAsyncSendToArgs
 {
-    CelOverLapped ol;
+    CelOverLapped _ol;
     CelSocket *socket;
     CelAsyncBuf *buffers;
     int buffer_count;
@@ -92,7 +89,7 @@ typedef struct _CelSocketAsyncSendToArgs
 
 typedef struct _CelSocketAsyncSendFileArgs
 {
-    CelOverLapped ol;
+    CelOverLapped _ol;
     CelSocket *socket;
     HANDLE file;
 #ifdef _CEL_UNIX
@@ -106,7 +103,7 @@ typedef struct _CelSocketAsyncSendFileArgs
 
 typedef union _CelSocketAsyncArgs
 {
-    CelOverLapped ol;
+    CelOverLapped _ol;
     CelSocketAsyncAcceptArgs accept_args;
     CelSocketAsyncConnectArgs connect_args;
     CelSocketAsyncRecvArgs recv_args;
@@ -148,6 +145,7 @@ int cel_socket_bind_host(CelSocket *sock,
 static __inline int cel_socket_listen(CelSocket *sock, 
                                       CelSockAddr *addr, int backlog)
 {
+    //_tprintf(_T("back log %d\r\n"), backlog);
     return ((cel_socket_bind(sock, addr) == -1 
         || listen((sock)->fd, backlog) == -1) ? -1 : 0);
 }
@@ -155,24 +153,18 @@ static __inline int cel_socket_listen(CelSocket *sock,
 int cel_socket_listen_host(CelSocket *sock, 
                           const TCHAR *host, unsigned short port, int backlog);
 int cel_socket_listen_str(CelSocket *sock, const TCHAR *str, int backlog);
+
 int cel_socket_connect(CelSocket *sock, CelSockAddr *remote_addr);
 int cel_socket_connect_host(CelSocket *sock, 
                             const TCHAR *host, unsigned short port);
-
 int cel_socket_accept(CelSocket *sock, 
                       CelSocket *accept_sock, CelSockAddr *addr);
-#define cel_socket_send(sock, buf, size) send((sock)->fd, buf, size, 0)
-#define cel_socket_recv(sock, buf, size) recv((sock)->fd, buf, size, 0)
-#define cel_socket_sendto(sock, buf, size, to) \
-    sendto((sock)->fd, buf, size, 0, \
-    (struct sockaddr *)to, cel_sockaddr_get_len(to))
-static __inline 
-int cel_socket_recvfrom(CelSocket *sock, char *buf, int size, 
-                        CelSockAddr *from)
-{
-    socklen_t len = sizeof(CelSockAddr);
-    return recvfrom((sock)->fd, buf, size, 0, (struct sockaddr *)from, &len);
-}
+int cel_socket_send(CelSocket *sock, CelAsyncBuf *buffers, int buffer_count);
+int cel_socket_recv(CelSocket *sock, CelAsyncBuf *buffers, int buffer_count);
+int cel_socket_sendto(CelSocket *sock, CelAsyncBuf *buffers, int buffer_count,
+                      CelSockAddr *to);
+int cel_socket_recvfrom(CelSocket *sock, CelAsyncBuf *buffers, int buffer_count, 
+                        CelSockAddr *from);
 
 static __inline BOOL cel_socket_is_connected(CelSocket *sock)
 {

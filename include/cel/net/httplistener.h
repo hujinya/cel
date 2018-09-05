@@ -64,8 +64,7 @@ int cel_httplistener_start(CelHttpListener *listener, CelSockAddr *addr);
 #define cel_httplistener_get_localaddr(listener) \
     cel_tcplistener_get_localaddr(listener)
 
-int cel_httplistener_accept(CelHttpListener *listener, 
-                            CelHttpClient *new_client);
+int cel_httplistener_accept(CelHttpListener *listener, CelHttpClient *new_client);
 int cel_httplistener_async_accept(CelHttpListener *listener, 
                                   CelHttpClient *new_client,
                                   CelHttpAcceptCallbackFunc async_callback);

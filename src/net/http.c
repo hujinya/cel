@@ -948,7 +948,7 @@ int cel_httpbodycache_reading(CelHttpBodyCache *cache,
                 || (cache->fp = fopen(
                 cel_vstring_str_a(&(cache->file_path)), "wb+")) == NULL))
             {
-                puts("Open body cache file failed.");
+                CEL_ERR((_T("Open body cache file failed.")));
                 return -1;
             }
             cache->clear_file = TRUE;
@@ -1032,15 +1032,15 @@ long long cel_httpbodycache_save_file(CelHttpBodyCache *cache,
     if (first >= cache->size 
         || last >= cache->size)
     {
-        printf("first %lld or last %lld offset %lld.\r\n", 
-            first, last, cache->size);
+        CEL_ERR((_T("first %lld or last %lld offset %lld.\r\n"), 
+            first, last, cache->size));
         return -1;
     }
     if ((fp = fopen(file_path, "wb+")) == NULL 
         && (cel_mkdirs_a(cel_filedir_a(file_path), S_IRUSR|S_IWUSR) == -1
         || (fp = fopen(file_path, "wb+")) == NULL))
     {
-        puts("cel_httprequest_save_body_data failed");
+        CEL_ERR((_T("cel_httprequest_save_body_data failed")));
         return -1;
     }
     if (cache->fp != NULL)
@@ -1080,15 +1080,15 @@ int cel_httpbodycache_move_file(CelHttpBodyCache *cache, const char *file_path)
             cel_fullpath_a(file_path));*/
         cel_fclose(cache->fp);
         cache->fp = NULL;
-        cache->clear_file = FALSE;
         if (cel_fmove(cel_vstring_str_a(&(cache->file_path)),
             cel_fullpath_a(file_path)) == 0)
         {
+            cache->clear_file = FALSE;
             cel_vstring_clear(&(cache->file_path));
             cache->size = 0;
             return 0;
         }
-        puts(cel_geterrstr(cel_sys_geterrno()));
+        CEL_ERR((cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
 }

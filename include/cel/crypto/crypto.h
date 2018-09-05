@@ -170,8 +170,8 @@ typedef void (* CelCryptoThreadLockingFunc) (int mode, int type,
  */
 #define cel_cryptomutex_num() CRYPTO_num_locks()
 
-void cel_cryptomutex_register(CelCryptoThreadIdFunc threadidfunc, 
-                              CelCryptoThreadLockingFunc threadlockingfunc);
+int cel_cryptomutex_register(CelCryptoThreadIdFunc threadidfunc, 
+                             CelCryptoThreadLockingFunc threadlockingfunc);
 void cel_cryptomutex_unregister(void);
 
 

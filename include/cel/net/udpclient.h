@@ -45,13 +45,13 @@ void cel_udpclient_free(CelUdpClient *client);
     cel_socket_bind_host(&((client)->sock), host, port)
 
 /* 
- * int cel_udpclient_sendto(CelUdpClient *client, void *buf, size_t size, 
+ * int cel_udpclient_sendto(CelUdpClient *client, void *buf, size_t size,
  *                          CelSockAddr *sock_addr);
  */
 #define cel_udpclient_sendo(client, buf, size, sock_addr) \
     cel_udpclient_sendto(&((client)->sock), buf, size, sock_addr)
 /*
- * int cel_udpclient_recvfrom(CelUdpClient *client, void *buf, size_t size, 
+ * int cel_udpclient_recvfrom(CelUdpClient *client, void *buf, size_t size,
  *                            CelSockAddr *sock_addr);
  */
 #define cel_udpclient_recvfrom(client, buf, size, sock_addr) \

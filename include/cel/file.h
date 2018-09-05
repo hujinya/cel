@@ -108,8 +108,8 @@ static __inline BOOL cel_fexists_w(const WCHAR *file_name)
 FILE *cel_fopen(const TCHAR *file_name, const TCHAR *mode);
 #define cel_fclose(fp) fclose(fp)
 #define cel_fflush(fp) fflush(fp)
-#define cel_fmove(old_file, new_file) rename(old_file, new_file)
-int cel_fsync(const TCHAR *dest_file, const TCHAR *src_file);
+int cel_fsync(const TCHAR *old_file, const TCHAR *new_file);
+int cel_fmove(const TCHAR *dest_file, const TCHAR *src_file);
 int cel_fforeach(const TCHAR *file_name, 
                  CelFileLineEachFunc each_func, void *user_data);
 

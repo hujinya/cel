@@ -18,7 +18,7 @@
 #ifdef _CEL_UNIX
 
 OsCoroutineEntity *_coroutineentity_new(OsCoroutineScheduler *schd, 
-                                        OsCoroutineFunc func, void *user_data) 
+                                        OsCoroutineFunc func, void *user_data)
 {
     OsCoroutineEntity *co_entity;
 
@@ -152,7 +152,7 @@ static void main_ctxfunc(uint32_t low32, uint32_t hi32)
     schd->co_running = -1;
 }
 
-void os_coroutineentity_resume(OsCoroutineEntity *co_entity) 
+void os_coroutineentity_resume(OsCoroutineEntity *co_entity)
 {
     OsCoroutineScheduler *schd = co_entity->schd;
     uintptr_t ptr;

@@ -13,8 +13,6 @@
  * GNU General Public License for more details.
  */
 #include "cel/net/httpclient.h"
-#undef _CEL_DEBUG
-//#define _CEL_DEBUG
 #include "cel/log.h"
 #include "cel/error.h"
 
@@ -112,7 +110,7 @@ int cel_httpclient_reading_recv_request(CelHttpClient *client,
         {
             if (req->reading_error == CEL_HTTP_ERROR)
             {
-                puts("cel_httprequest_reading error");
+                CEL_ERR((_T("cel_httprequest_reading error")));
                 return -1;
             }
         }
@@ -130,15 +128,13 @@ int cel_httpclient_reading_recv_request(CelHttpClient *client,
     return 1;
 }
 
-int cel_httpclient_recv_request(CelHttpClient *client,
-                                CelHttpRequest *req, CelCoroutine *co)
+int cel_httpclient_recv_request(CelHttpClient *client, CelHttpRequest *req)
 {
     int ret;
 
     do
     {
-        if ((ret = cel_tcpclient_recv(
-            &(client->tcp_client), &(req->s), co) <= 0)
+        if ((ret = cel_tcpclient_recv(&(client->tcp_client), &(req->s)) <= 0)
             || (ret = cel_httpclient_reading_recv_request(
             client, &(req->s), req)) == -1)
             return ret;
@@ -198,7 +194,7 @@ int cel_httpclient_writing_send_requset(CelHttpClient *client,
         {
             if (req->writing_error == CEL_HTTP_ERROR)
             {
-                puts("cel_httprequest_writing error");
+                CEL_ERR((_T("cel_httprequest_writing error")));
                 return -1;
             }
         }
@@ -207,8 +203,7 @@ int cel_httpclient_writing_send_requset(CelHttpClient *client,
     return 0;
 }
 
-int cel_httpclient_send_request(CelHttpClient *client, 
-                                CelHttpRequest *req, CelCoroutine *co)
+int cel_httpclient_send_request(CelHttpClient *client, CelHttpRequest *req)
 {
     int ret;
     CelStream *s = cel_httprequest_get_stream(req);
@@ -220,7 +215,7 @@ int cel_httpclient_send_request(CelHttpClient *client,
             return -1;
         if (ret == 1)
             break;
-    }while(cel_tcpclient_send(&(client->tcp_client), &(req->s), co) > 0);
+    }while(cel_tcpclient_send(&(client->tcp_client), &(req->s)) > 0);
     return 0;
 }
 
@@ -236,7 +231,7 @@ void cel_httpclient_do_send_requset(CelHttpClient *client,
     if (result->ret <= 0
         || (ret = cel_httpclient_writing_send_requset(client, s, req)) == -1)
     {
-        puts("cel_httpclient_do_send_requset return -1");
+        CEL_ERR((_T("cel_httpclient_do_send_requset return -1")));
         result->ret = -1;
         send_req_callback(client, req, result);
         return;
@@ -293,7 +288,7 @@ int cel_httpclient_reading_recv_response(CelHttpClient *client,
         {
             if (rsp->reading_error == CEL_HTTP_ERROR)
             {
-                puts("cel_httpresponse_reading error");
+                CEL_ERR((_T("cel_httpresponse_reading error")));
                 return -1;
             }
         }
@@ -311,15 +306,13 @@ int cel_httpclient_reading_recv_response(CelHttpClient *client,
     return 1;
 }
 
-int cel_httpclient_recv_response(CelHttpClient *client,
-                                 CelHttpResponse *rsp, CelCoroutine *co)
+int cel_httpclient_recv_response(CelHttpClient *client, CelHttpResponse *rsp)
 {
     int ret;
 
     do
     {
-        if ((ret = cel_tcpclient_recv(
-            &(client->tcp_client), &(rsp->s), co)) <= 0
+        if ((ret = cel_tcpclient_recv(&(client->tcp_client), &(rsp->s))) <= 0
             || (ret = cel_httpclient_reading_recv_response(
             client, &(rsp->s), rsp)) == -1)
             return ret;
@@ -382,7 +375,7 @@ int cel_httpclient_writing_send_response(CelHttpClient *client,
         {
             if (rsp->writing_error == CEL_HTTP_ERROR)
             {
-                puts("cel_httpresponse_writing error");
+                CEL_ERR((_T("cel_httpresponse_writing error")));
                 return -1;
             }
         }
@@ -392,8 +385,7 @@ int cel_httpclient_writing_send_response(CelHttpClient *client,
     return 0;
 }
 
-int cel_httpclient_send_response(CelHttpClient *client, 
-                                 CelHttpResponse *rsp, CelCoroutine *co)
+int cel_httpclient_send_response(CelHttpClient *client, CelHttpResponse *rsp)
 {
     int ret;
     CelStream *s = cel_httpresponse_get_stream(rsp);
@@ -405,7 +397,7 @@ int cel_httpclient_send_response(CelHttpClient *client,
             return -1;
         if (ret == 1)
             break;
-    }while(cel_tcpclient_send(&(client->tcp_client), &(rsp->s), co) > 0);
+    }while(cel_tcpclient_send(&(client->tcp_client), &(rsp->s)) > 0);
     return 0;
 }
 
@@ -467,8 +459,7 @@ int cel_httpclient_async_send_response(CelHttpClient *client,
 }
 
 int cel_httpclient_execute(CelHttpClient *client,
-                           CelHttpRequest *req, CelHttpResponse *rsp,
-                           CelCoroutine *co)
+                           CelHttpRequest *req, CelHttpResponse *rsp)
 {
     char *host;
     unsigned short port;
@@ -483,15 +474,15 @@ int cel_httpclient_execute(CelHttpClient *client,
         if ((host = cel_httprequest_get_url_host(req)) == NULL
             || (port = cel_httprequest_get_url_port(req)) == 0)
         {
-            puts("cel_httpclient_execute error");
+            CEL_ERR((_T("cel_httpclient_execute error")));
             return -1;
         }
-        if ((ret = cel_httpclient_connect_host(client, host, port, co)) != 0
-            || (ret = cel_httpclient_handshake(client, co)) != 0)
+        if ((ret = cel_httpclient_connect_host(client, host, port)) != 0
+            || (ret = cel_httpclient_handshake(client)) != 0)
             return ret;
     }
-    if ((ret = cel_httpclient_send_request(client, req, co)) != 0
-        || (ret = cel_httpclient_recv_response(client, rsp, co)) != 0)
+    if ((ret = cel_httpclient_send_request(client, req)) != 0
+        || (ret = cel_httpclient_recv_response(client, rsp)) != 0)
         return ret;
     return 0;
 }
@@ -505,7 +496,7 @@ static void cel_httpclient_response_async_callback(CelHttpClient *client,
 
     if (result->ret <= 0)
     {
-        puts("cel_httpclient_do_recv_response failed############1");
+        CEL_ERR((_T("cel_httpclient_do_recv_response failed############1")));
         result->ret = -1;
         execute_callback(client, req, rsp, result);
         return;
@@ -524,7 +515,7 @@ static void cel_httpclient_send_callback(CelHttpClient *client,
 
     if (result->ret <= 0)
     {
-        puts("cel_httpclient_do_send_request failed############1");
+        CEL_ERR((_T("cel_httpclient_do_send_request failed############1")));
         result->ret = -1;
         execute_callback(client, req, rsp, result);
         return;
@@ -533,7 +524,7 @@ static void cel_httpclient_send_callback(CelHttpClient *client,
     if (cel_httpclient_async_recv_response(
         client, rsp, cel_httpclient_response_async_callback) == -1)
     {
-        puts("cel_httpclient_do_send_request failed############3");
+        CEL_ERR((_T("cel_httpclient_do_send_request failed############3")));
         result->ret = -1;
         execute_callback(client, req, rsp, result);
     }
@@ -548,7 +539,7 @@ static void cel_httpclient_handshake_callback(CelHttpClient *client,
 
     if (result->ret != 1)
     {
-        puts("cel_httpclient_do_handshake failed############1");
+        CEL_ERR((_T("cel_httpclient_do_handshake failed############1")));
         result->ret = -1;
         execute_callback(client, req, rsp, result);
         return;
@@ -559,7 +550,7 @@ static void cel_httpclient_handshake_callback(CelHttpClient *client,
     if (cel_httpclient_async_send_request(
         client, req, cel_httpclient_send_callback) == -1)
     {
-        puts("cel_httpclient_do_handshake failed############2");
+        CEL_ERR((_T("cel_httpclient_do_handshake failed############2")));
         result->ret = -1;
         execute_callback(client, req, rsp, result);
     }
@@ -574,7 +565,7 @@ static void cel_httpclient_connect_callback(CelHttpClient *client,
 
     if (result->ret != 0)
     {
-        puts("cel_httpclient_do_conenct failed############1");
+        CEL_ERR((_T("cel_httpclient_do_conenct failed############1")));
         result->ret = -1;
         execute_callback(client, req, rsp, result);
         return;
@@ -583,7 +574,7 @@ static void cel_httpclient_connect_callback(CelHttpClient *client,
     if (cel_httpclient_async_handshake(client, 
         cel_httpclient_handshake_callback) == -1)
     {
-        puts("cel_httpclient_do_conenct failed############2");
+        CEL_ERR((_T("cel_httpclient_do_conenct failed############2")));
         result->ret = -1;
         execute_callback(client, req, rsp, result);
     }
@@ -610,7 +601,7 @@ int cel_httpclient_async_execute(CelHttpClient *client,
         if ((host = cel_httprequest_get_url_host(req)) == NULL
             || (port = cel_httprequest_get_url_port(req)) == 0)
         {
-            puts("cel_httpclient_async_execute error");
+            CEL_ERR((_T("cel_httpclient_async_execute error")));
             return -1;
         }
         return cel_httpclient_async_connect_host(client,

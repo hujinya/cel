@@ -56,7 +56,6 @@ typedef struct _CelOverLapped
     int (* handle_func) (void *ol);
     CelAsyncResult result;
     void (* async_callback) (void *ol);
-    CelCoroutineEntity *co_entity;
 }CelOverLapped;
 
 int cel_poll_init(CelPoll *poll, int max_threads, int max_fileds);

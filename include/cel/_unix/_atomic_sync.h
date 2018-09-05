@@ -42,7 +42,7 @@ static __inline OsAtomic os_atomic_exchange(OsAtomic *ptr, OsAtomic newval)
 }
 #define os_atomic_cmp_and_swap(ptr, oldval, newval, mem_order) \
     __sync_val_compare_and_swap(ptr, oldval, newval)
-#define os_atomic_add(ptr, increment) __sync_add_and_fetch(ptr, increment)
+#define os_atomic_increment(ptr, increment) __sync_add_and_fetch(ptr, increment)
 
 #ifdef __cplusplus
 extern "C" {

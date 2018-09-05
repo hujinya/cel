@@ -73,7 +73,6 @@ typedef struct _CelOverLapped
     int (* handle_func) (void *ol);
     CelAsyncResult result;
     void (* async_callback) (void *ol);
-    CelCoroutineEntity *co_entity;
 }CelOverLapped;
 
 typedef struct _CelEventReadAsyncArgs
@@ -107,7 +106,7 @@ typedef struct _CelPollData
     struct _CelOverLapped *in_ol, *out_ol;
 }CelPollData;
 
-#define EVENTS_MAX 1024
+#define EVENTS_MAX 256
 
 typedef struct _CelPoll
 {

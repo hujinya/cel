@@ -31,7 +31,7 @@ static int cel_command_remove(CelCommandNodeList *node_list)
 
     while ((node = node_list->head) != NULL)
     {
-        _tprintf(_T("Uninstall %s.\r\n"), node->str);
+        CEL_DEBUG((_T("Uninstall %s"), node->str));
         if (node->str != NULL)
             cel_free(node->str);
         cel_command_remove(&(node->child_list));
@@ -330,7 +330,7 @@ next_argument:
                     {
                         memcpy(buf, start, len * sizeof(TCHAR));
                         buf[len] = _T('\0');
-                        _tprintf(_T("Type: %d, %s\r\n"), type, buf);
+                        CEL_DEBUG((_T("Type: %d, %s"), type, buf));
                         if ((node = cel_command_lookup(node_list, buf)) == NULL)
                         {
                             if ((node = (CelCommandNode *)

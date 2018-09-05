@@ -377,7 +377,8 @@ int cel_fsync(const TCHAR *dest_file,const TCHAR *src_file)
         {
             if (_fputtc(c, fp_) == EOF)
             {
-                //CEL_ERR((_T("_fputtc():%s."), cel_geterrstr(cel_sys_geterrno())));
+                CEL_ERR((_T("_fputtc():%s."), 
+                    cel_geterrstr(cel_sys_geterrno())));
                 break;
             }
         }
@@ -385,6 +386,16 @@ int cel_fsync(const TCHAR *dest_file,const TCHAR *src_file)
     fclose(fp_);
     fclose(fp);
 
+    return 0;
+}
+
+int cel_fmove(const TCHAR *old_file, const TCHAR *new_file)
+{
+    if (rename(old_file, new_file) == 0)
+        return 0;
+    if (cel_fsync(new_file, old_file) == -1)
+        return -1;
+    cel_fremove(old_file);
     return 0;
 }
 

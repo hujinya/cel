@@ -21,12 +21,11 @@
 typedef struct _CelRingList
 {
     U32 size;
+    CelFreeFunc value_free;
     U32 mask;
     U32 watermark;
-    CelAtomic p_head;
-    CelAtomic p_tail;
-    CelAtomic c_head;
-    CelAtomic c_tail;
+    CelAtomic p_head, p_tail;
+    CelAtomic c_head, c_tail;
     void **ring;
 }CelRingList;
 
@@ -41,31 +40,48 @@ typedef void (*CelRingListConsFunc)(CelRingList *ring_list,
 extern "C" {
 #endif
 
-int cel_ringlist_init(CelRingList *ring_list, size_t n_size);
+int cel_ringlist_init(CelRingList *ring_list, size_t n_size, 
+                      CelFreeFunc value_free);
 void cel_ringlist_destroy(CelRingList *ring_list);
 
-CelRingList *cel_ringlist_new(size_t n_size);
+CelRingList *cel_ringlist_new(size_t n_size, CelFreeFunc value_free);
 void cel_ringlist_free(CelRingList *ring_list);
 
-void cel_ringlist_push_values(CelRingList *ring_list, 
-                              unsigned long prod_head, size_t n, void **values);
-int _cel_ringlist_push_do_mp(CelRingList *ring_list, size_t n,
-                             CelRingListConsFunc handle, void *user_data);
+void cel_ringlist_clear(CelRingList *ring_list);
+
+static __inline int cel_ringlist_get_size(CelRingList *ring_list)
+{
+    return ring_list->size;
+}
+static __inline int cel_ringlist_get_used(CelRingList *ring_list)
+{
+    U32 prod_tail = ring_list->p_tail;
+    U32 cons_tail = ring_list->c_tail;
+    U32 count = ((prod_tail - cons_tail) & ring_list->mask);
+    return (count > ring_list->size) ? ring_list->size : count;
+}
+static __inline int cel_ringlist_get_free(CelRingList *ring_list)
+{
+    return ring_list->size - cel_ringlist_get_used(ring_list);
+}
+
+int _cel_ringlist_push_do(CelRingList *ring_list, BOOL is_sp, size_t n,
+                          CelRingListConsFunc handle, void *user_data);
 /* int cel_ringlist_push_do_mp(CelRingList *ring_list, void *values, size_t n); */
 #define cel_ringlist_push_do_mp(ring_list, values, n) \
-    _cel_ringlist_push_do_mp(ring_list, n, \
-    (CelRingListConsFunc)cel_ringlist_push_values, &values)
-int cel_ringlist_push_do_sp(CelRingList *ring_list, void *values, size_t n);
+    _cel_ringlist_push_do(ring_list, FALSE, n, NULL, &values)
+/* int cel_ringlist_push_do_sp(CelRingList *ring_list, void *values, size_t n); */
+#define cel_ringlist_push_do_sp(ring_list, values, n) \
+    _cel_ringlist_push_do(ring_list, TRUE, n, NULL, &values)
 
-void cel_ringlist_pop_values(CelRingList *ring_list, 
-                             unsigned long cons_head, size_t n, void **values);
-int _cel_ringlist_pop_do_mp(CelRingList *ring_list, size_t n, 
-                            CelRingListProdFunc handle, void *user_data);
+int _cel_ringlist_pop_do(CelRingList *ring_list, BOOL is_sp, size_t n, 
+                         CelRingListProdFunc handle, void *user_data);
 /* int cel_ringlist_pop_do_mp(CelRingList *ring_list, void **values, size_t n) */
 #define cel_ringlist_pop_do_mp(ring_list, values, n) \
-    _cel_ringlist_pop_do_mp(ring_list, n, \
-    (CelRingListProdFunc)cel_ringlist_pop_values, values)
-int cel_ringlist_pop_do_sp(CelRingList *ring_list, void **values, size_t n);
+    _cel_ringlist_pop_do(ring_list, FALSE, n, NULL, values)
+/* int cel_ringlist_pop_do_sp(CelRingList *ring_list, void **values, size_t n); */
+#define cel_ringlist_pop_do_sp(ring_list, values, n) \
+    _cel_ringlist_pop_do(ring_list, TRUE, n, NULL, values)
 
 #ifdef __cplusplus
 }

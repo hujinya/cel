@@ -62,6 +62,9 @@ int cel_coroutine_create(CelCoroutine *co,
         _cel_coroutinescheduler_get(), attr, func, user_data)) == -1 ? -1 : 0);
 }
 
+#define cel_coroutineentity_get(co) \
+    _cel_coroutinescheduler_get()->co_entitys[*co]
+
 static __inline void cel_coroutine_resume(CelCoroutine *co)
 {
     CelCoroutineEntity *co_entity;

@@ -33,7 +33,7 @@ typedef OsAtomic CelAtomic;
 
 #define cel_atomic_exchange os_atomic_exchange
 #define cel_atomic_cmp_and_swap os_atomic_cmp_and_swap
-#define cel_atomic_add os_atomic_add
+#define cel_atomic_increment os_atomic_increment
 
 #define cel_atomic_store os_atomic_store
 #define cel_atomic_load os_atomic_load

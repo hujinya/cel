@@ -116,7 +116,7 @@ static void cel_cryptothread_locking_callback(int mode, int type,
     if (mode & CRYPTO_LOCK)
     {
         if (cel_mutex_lock(&(s_cryptomutex[type])) != 0)
-            _tprintf(_T("Crypto mutex %d lock failed.\r\n"), type);
+            CEL_ERR((_T("Crypto mutex %d lock failed.\r\n"), type));
         s_cryptomutex_count[type]++;
         /*_tprintf(_T("Type %d lock %ld, thread %d\r\n"), 
             type, s_cryptomutex_count[type], (int)cel_thread_getid());*/
@@ -130,8 +130,8 @@ static void cel_cryptothread_locking_callback(int mode, int type,
 }
 #endif
 
-void cel_cryptomutex_register(CelCryptoThreadIdFunc threadidfunc, 
-                              CelCryptoThreadLockingFunc threadlockingfunc)
+int cel_cryptomutex_register(CelCryptoThreadIdFunc threadidfunc, 
+                             CelCryptoThreadLockingFunc threadlockingfunc)
 {
 #ifdef _CEL_MULTITHREAD
     int i;
@@ -148,20 +148,23 @@ void cel_cryptomutex_register(CelCryptoThreadIdFunc threadidfunc,
         {
             s_cryptomutex_count[i] = 0;
             if (cel_mutex_init(&(s_cryptomutex[i]), NULL) != 0)
-                _tprintf(_T("Crypto mutex %d init failed.\r\n"), i);
+            {
+                CEL_ERR((_T("Crypto mutex %d init failed"), i));
+                return -1;
+            }
         }
         CRYPTO_set_id_callback(cel_cryptothread_id);
         CRYPTO_set_locking_callback(cel_cryptothread_locking_callback);
 
-        return;
+        return 0;
 #else
-        return;
+        return -1;
 #endif
     }
     CRYPTO_set_id_callback(threadidfunc);
     CRYPTO_set_locking_callback(threadlockingfunc);
 
-    return;
+    return 0;
 }
 
 void cel_cryptomutex_unregister(void)

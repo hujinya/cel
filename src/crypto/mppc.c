@@ -117,14 +117,14 @@ int mppc_decompress(CelMppcContext *mppc, BYTE *src, U32 src_size,
 
     if (flags & PACKET_AT_FRONT)
     {
-        puts("PACKET_AT_FRONT");
+        //puts("PACKET_AT_FRONT");
         mppc->history_offset = 0;
         mppc->history_ptr = history_buffer;
     }
 
     if (flags & PACKET_FLUSHED)
     {
-        puts("PACKET_FLUSHED");
+        //puts("PACKET_FLUSHED");
         mppc->history_offset = 0;
         mppc->history_ptr = history_buffer;
         memset(history_buffer, 0, mppc->history_size);

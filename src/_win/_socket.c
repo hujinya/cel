@@ -66,7 +66,7 @@ int os_socket_do_async_accept(CelSocketAsyncAcceptArgs *args)
     if (!(args->socket->AcceptEx(args->socket->fd, args->accept_socket->fd, 
         args->addr_buf, 0,
         ACCEPTEX_LOCALADDRESS_LEN, ACCEPTEX_REMOTEADDRESS_LEN, 
-        &(args->ol.result.ret), &(args->ol._ol))) 
+        &(args->_ol.result.ret), &(args->_ol._ol))) 
         && WSAGetLastError() != WSA_IO_PENDING)
     {
         //CEL_ERR((_T("AcceptEx error")));
@@ -100,7 +100,7 @@ int os_socket_do_async_connect(CelSocketAsyncConnectArgs *args)
         (struct sockaddr *)(&args->remote_addr), 
         cel_sockaddr_get_len(&args->remote_addr),
         /*args->buffer, (DWORD)args->buffer_size,*/ NULL, 0,
-        &(args->ol.result.ret), &(args->ol._ol))
+        &(args->_ol.result.ret), &(args->_ol._ol))
         && WSAGetLastError() != WSA_IO_PENDING)
     {
         //_tprintf(_T("WSAIoctl error %d\r\n"), WSAGetLastError());
@@ -117,7 +117,7 @@ int os_socket_do_async_send(CelSocketAsyncSendArgs *args)
 
     if ((iRet = WSASend(args->socket->fd, 
         (LPWSABUF)args->buffers, args->buffer_count,
-        NULL, 0, &(args->ol._ol), NULL)) == -1
+        NULL, 0, &(args->_ol._ol), NULL)) == -1
         && (iErr = WSAGetLastError()) != WSA_IO_PENDING)
     {
         //_tprintf(_T("WSAGetLastError() %d\r\n"), iErr);
@@ -133,7 +133,7 @@ int os_socket_do_async_recv(CelSocketAsyncRecvArgs *args)
     DWORD flags = 0;
     if (WSARecv(args->socket->fd, 
         (LPWSABUF)args->buffers, args->buffer_count,
-        NULL, &flags, &(args->ol._ol), NULL) == SOCKET_ERROR
+        NULL, &flags, &(args->_ol._ol), NULL) == SOCKET_ERROR
         && WSAGetLastError() != WSA_IO_PENDING)
         return -1;
     return 0;
@@ -144,7 +144,7 @@ int os_socket_do_async_sendto(CelSocketAsyncSendToArgs *args)
     if (WSASendTo(args->socket->fd, 
         (LPWSABUF)args->buffers, args->buffer_count, NULL, 0, 
         (struct sockaddr *)(args->addr), cel_sockaddr_get_len(args->addr),
-        &(args->ol._ol), NULL) == -1
+        &(args->_ol._ol), NULL) == -1
         && WSAGetLastError() == WSA_IO_PENDING)
         return -1;
     return 0;
@@ -155,7 +155,7 @@ int os_socket_do_async_recvfrom(CelSocketAsyncRecvFromArgs *args)
     socklen_t len = sizeof(CelSockAddr);
     if (WSARecvFrom(args->socket->fd, 
         (LPWSABUF)args->buffers, args->buffer_count, NULL, 0, 
-        (struct sockaddr *)(&args->addr), &len, &(args->ol._ol), NULL) == -1
+        (struct sockaddr *)(&args->addr), &len, &(args->_ol._ol), NULL) == -1
         && WSAGetLastError() != WSA_IO_PENDING)
         return -1;
 
@@ -174,11 +174,11 @@ int os_socket_do_async_sendfile(CelSocketAsyncSendFileArgs *args)
         &args->socket->TransmitFile, sizeof(LPFN_TRANSMITFILE), 
         &dwBytes, NULL, NULL) == SOCKET_ERROR)
         return -1;
-    args->ol._ol.Offset = (DWORD)args->offset;
-    args->ol._ol.OffsetHigh = (DWORD)(args->offset >> 32);
+    args->_ol._ol.Offset = (DWORD)args->offset;
+    args->_ol._ol.OffsetHigh = (DWORD)(args->offset >> 32);
     if (args->socket->TransmitFile(args->socket->fd, 
         args->file, args->count, 4096,
-        &(args->ol._ol), NULL, TF_USE_SYSTEM_THREAD)
+        &(args->_ol._ol), NULL, TF_USE_SYSTEM_THREAD)
         && WSAGetLastError() != WSA_IO_PENDING)
         return -1;
 

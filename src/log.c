@@ -111,13 +111,13 @@ int cel_logger_hook_register(CelLogger *logger, const TCHAR *name,
     {
         if ((logger->hook_list = cel_list_new(cel_free)) == NULL)
         {
-            _tprintf(_T("Hook list new failed.\r\n"));
+            CEL_ERR((_T("Hook list new failed.\r\n")));
             return -1;
         }
     }
     if ((hook = cel_malloc(sizeof(CelLogerHookItem))) == NULL)
     {
-        _tprintf(_T("Hook malloc failed.\r\n"));
+        CEL_ERR((_T("Hook malloc failed.")));
         return -1;
     }
     if (write_func == NULL)
@@ -220,16 +220,18 @@ int cel_logger_flush(CelLogger *logger)
                 return -1;
             }
             /*printf("size %d * %d = %d\r\n", 
-            sizeof(CelLogMsg), logger->n_bufs, 
-            sizeof(CelLogMsg) * logger->n_bufs);*/
-            if ((logger->ring_list = cel_ringlist_new(logger->n_bufs)) == NULL)
+                 sizeof(CelLogMsg), logger->n_bufs, 
+                 sizeof(CelLogMsg) * logger->n_bufs);*/
+            if ((logger->ring_list = 
+                cel_ringlist_new(logger->n_bufs, NULL)) == NULL)
             {
                 _cel_sys_free(logger->msg_bufs);
                 logger->msg_bufs = NULL;
                 cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
                 return -1;
             }
-            if ((logger->free_list = cel_ringlist_new(logger->n_bufs)) == NULL)
+            if ((logger->free_list = 
+                cel_ringlist_new(logger->n_bufs, NULL)) == NULL)
             {
                 _cel_sys_free(logger->msg_bufs);
                 logger->msg_bufs = NULL;
@@ -237,7 +239,7 @@ int cel_logger_flush(CelLogger *logger)
                 cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
                 return -1;
             }
-            i = _cel_ringlist_push_do_mp(logger->free_list, logger->n_bufs, 
+            i = _cel_ringlist_push_do(logger->free_list, TRUE, logger->n_bufs, 
                 (CelRingListProdFunc)_cel_logger_freelist_init,
                 logger->msg_bufs + logger->n_bufs);
             //printf("i = %d\r\n", i);
@@ -246,7 +248,7 @@ int cel_logger_flush(CelLogger *logger)
         cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
     }
     //printf("n_msg %ld\r\n", cel_getticks());
-    if ((n_msg = cel_ringlist_pop_do_mp(
+    if ((n_msg = cel_ringlist_pop_do_sp(
         logger->ring_list, logger->msg_bufs, logger->n_bufs)) > 0)
     {
         i = 0;
@@ -257,7 +259,7 @@ int cel_logger_flush(CelLogger *logger)
                 cel_logmsg_puts(msg, NULL);
             else 
                 cel_logger_write(logger, msg);
-            cel_ringlist_push_do_mp(logger->free_list, msg, 1);
+            cel_ringlist_push_do_sp(logger->free_list, msg, 1);
             i++;
         }
         if (logger->hook_list != NULL)

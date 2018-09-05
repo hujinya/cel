@@ -15,6 +15,8 @@
 #include "cel/net/vrrp.h"
 #include "cel/error.h"
 #include "cel/allocator.h"
+#undef _CEL_DEBUG
+//#define _CEL_DEBUG
 #include "cel/log.h"
 #include "cel/net/ethernet.h"
 #include "cel/net/ip.h"
@@ -214,7 +216,9 @@ static int cel_vrrp_recieve_advertisement(CelVrrpRouter *router,
     int iphdr_len, vrrp_len;
     CelIpHdr *ip_hdr;
     CelVrrpHdr *vrrp_hdr;
+#ifdef _CEL_DEBUG
     CelIpAddr ip;
+#endif
 
     if ((router->receive_size = 
         cel_vrrp_receive(router->recv_fd, router->buf, router->buf_size)) <= 0)
@@ -230,7 +234,9 @@ static int cel_vrrp_recieve_advertisement(CelVrrpRouter *router,
     }
     if (peer_ip != NULL)
         peer_ip->s_addr = ip_hdr->saddr; 
+#ifdef _CEL_DEBUG
     ip.s_addr = ip_hdr->saddr;
+#endif
     vrrp_hdr = (CelVrrpHdr *)((char *)ip_hdr + iphdr_len);
     /* MUST verify the vrrp version */
     if (vrrp_hdr->version != CEL_VRRP_VERSION)

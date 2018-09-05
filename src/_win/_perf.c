@@ -74,7 +74,7 @@ LSTATUS PdhOpen(CelPdh *pdh, LPTSTR lpMachineName, LPTSTR lpPDBName)
     if ((lStatus = RegConnectRegistry(
         lpMachineName, HKEY_PERFORMANCE_DATA, &(pdh->hKey))) != ERROR_SUCCESS)
     {
-        _tprintf(_T("RegConnectRegistry failed.\r\n"));
+        CEL_ERR((_T("RegConnectRegistry failed")));
         return -1;
     }
     pdh->dwTotal = 4096;
@@ -88,7 +88,7 @@ LSTATUS PdhOpen(CelPdh *pdh, LPTSTR lpMachineName, LPTSTR lpPDBName)
     {
         if (lStatus != ERROR_MORE_DATA)
         {
-            _tprintf(_T("RegQueryValueEx failed.\r\n"));
+             CEL_ERR((_T("RegQueryValueEx failed")));
             PdhClose(pdh);
             return -1;
         }

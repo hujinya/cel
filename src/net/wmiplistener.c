@@ -43,7 +43,7 @@ void wmiplistener_do_handshake(CelWmipClient *client, CelAsyncResult *result)
 {
     if (result->ret != 1)
     {
-        puts("wmiplistener_do_handshake failed##################################");
+        CEL_ERR((_T("wmiplistener_do_handshake failed##################################")));
         cel_wmipclient_free(client);
         return ;
     }

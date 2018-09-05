@@ -1,16 +1,19 @@
 * Tue Aug 21 2018 Hu Jinya <hjy@gzsunrun.cn> 1.0.9.10
+- 增加CelSqlCon, CelSqlConPool。
 - 修改CEL_DEBUG宏定义。
-- 修改ringlist原子比较赋值返回值BUG;
-  修改Windows下cel_atomic_add返回值BUG。
-- 修改SslSocket, Socket底层异步接口封装。
+- 修改CelRingList原子比较赋值返回值BUG;
+  修改Windows下函数cel_atomic_increment返回值BUG。
+- 修改CelSslSocket, CelSocket底层异步接口封装。
+- 删除无用的调试打印信息。
 
 * Wed Jul 11 2018 Hu Jinya <hjy@gzsunrun.cn> 1.0.8.9
-- 增加httpwebclient,httpweblistener,httproute。
+- 增加CelHttpWebClient, CelHttpWebListener, CelHttpRoute。
 - 增加pattrie,httproute采用pattrie存储。
-- httpreuqest,httpresponse支持自定义头部。
-- cel_realse()改为cel_lib_realse()。
+- 修改httpreuqest,httpresponse支持自定义头部。
+- 修改cel_realse()改为cel_lib_realse()。
 - 修改eventloopgroup头文件extern c错误。
 - 增加ringlist库，log使用ringlist作为缓存，支持多线程。
+- 删除CelWmipXX库，新的库采用路由管理方式。
 
 * Thu May 24 2018 Hu Jinya <hu_jinya@163.com> 1.0.7.8
 - 优化coroutinescheduler。

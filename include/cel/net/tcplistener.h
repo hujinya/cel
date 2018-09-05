@@ -30,7 +30,6 @@ typedef void (*CelTcpAcceptCallbackFunc) (
 
 struct _CelTcpListenerAsyncArgs
 {
-    //char offset_data[ACCEPTEX_RECEIVEDATA_OFFSET];
     CelTcpAcceptCallbackFunc async_callback;
 };
 
@@ -80,7 +79,7 @@ void cel_tcplistener_free(CelTcpListener *listener);
 
 int cel_tcplistener_accept(CelTcpListener *listener, CelTcpClient *client);
 
-int cel_tcplistener_async_accept(CelTcpListener *listener, 
+int cel_tcplistener_async_accept(CelTcpListener *listener,
                                  CelTcpClient *new_client,
                                  CelTcpAcceptCallbackFunc async_callback);
 

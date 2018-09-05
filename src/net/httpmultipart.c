@@ -13,6 +13,7 @@
  * GNU General Public License for more details.
  */
 #include "cel/net/httpmultipart.h"
+#define _CEL_ERR
 #include "cel/log.h"
 #include "cel/error.h"
 #include "cel/allocator.h"

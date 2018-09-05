@@ -411,10 +411,10 @@ static int cel_httprequest_reading_header(CelHttpRequest *req, CelStream *s)
                 {
                     if (s_httpreqhdr_offset[hdr_index] == 0)
                     {
-                        printf("Http request header '%.*s' "
-                            "call back is null.\r\n",
+                        CEL_WARNING(("Http request header '%.*s' "
+                            "call back is null",
                             (int)value_end - key_start, 
-                            (char *)(cel_stream_get_buffer(s) + key_start));
+                            (char *)(cel_stream_get_buffer(s) + key_start)));
                     }
                     else
                     {
@@ -427,11 +427,11 @@ static int cel_httprequest_reading_header(CelHttpRequest *req, CelStream *s)
                             (char *)req + s_httpreqhdr_offset[hdr_index], 
                             (char *)(cel_stream_get_buffer(s) + value_start), 
                             value_len) == -1)
-                            printf("Http request header '%.*s' "
-                            "reading return -1(%s).\r\n",
+                            CEL_WARNING(("Http request header '%.*s' "
+                            "reading return -1(%s)",
                             (int)value_end - key_start,
                             (char *)(cel_stream_get_buffer(s) + key_start),
-                            cel_geterrstr(cel_sys_geterrno()));
+                            cel_geterrstr(cel_sys_geterrno())));
                         else
                             CEL_SETFLAG(req->hdr_flags, (ULL(1) << hdr_index));
                         /*printf("Http request header '%.*s' reading end i= %d.\r\n",
@@ -457,7 +457,7 @@ static long cel_httprequest_reading_body_content(CelHttpRequest *req,
     if (req->content_length > CEL_HTTPBODY_CACHE_LEN_MAX
         || len > CEL_HTTPBODY_CACHE_LEN_MAX - req->reading_body_offset)
     {
-        puts("Httprequest body too large.");
+        CEL_ERR((_T("Httprequest body too large")));
         return -1;
     }
     if (req->body_reading_callback != NULL)
@@ -503,7 +503,7 @@ start:
             {
                 if (chunk_size == -2)
                 {
-                    puts("cel_httprequest_reading_body(chunk size error).");
+                    CEL_ERR((_T("cel_httprequest_reading_body(chunk size error)")));
                     req->reading_state = CEL_HTTP_ERROR;
                     return -1;
                 }
@@ -522,7 +522,7 @@ start:
     {
         if (cel_httprequest_reading_body_content(req, s, len1) != len1)
         {
-            puts("cel_httprequest_reading_body_content error");
+            CEL_ERR((_T("cel_httprequest_reading_body_content error")));
             req->reading_state = CEL_HTTP_ERROR;
             return -1;
         }
@@ -536,7 +536,7 @@ start:
         {
             if (cel_httprequest_reading_body_content(req, s, len2) != len2)
             {
-                puts("cel_httprequest_reading_body_content error");
+                CEL_ERR((_T("cel_httprequest_reading_body_content error")));
                 req->reading_state = CEL_HTTP_ERROR;
                 return -1;
             }

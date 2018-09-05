@@ -123,11 +123,14 @@ static int cel_eventloop_handle(CelEventLoop *evt_loop, CelEventCtlBlock *ecb)
     case CEL_EVENT_CHANNELIN:
     case CEL_EVENT_CHANNELOUT:
         if (ecb->ol.async_callback != NULL)
+        {
             ecb->ol.async_callback(&(ecb->ol));
-        else if(ecb->ol.co_entity != NULL)
-            os_coroutineentity_resume(ecb->ol.co_entity);
+        }
         else
-            _tprintf(_T("Event loop channel event error\r\n"));
+        {
+            CEL_ERR((_T("Event loop channel event error")));
+            return -1;
+        }
         break;
     case CEL_EVENT_TIMER:
         /* Callback */

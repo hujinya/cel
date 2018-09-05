@@ -27,7 +27,7 @@ int arraylist_test(int argc, TCHAR *argv[])
     cel_arraylist_foreach(array_list, arraylist_print, NULL);
     _putts(_T("\r\n"));
     p = (int *)cel_arraylist_get_front(array_list);
-    //_tprintf(_T("p = %d\r\n"), *p);
+    _tprintf(_T("p = %d\r\n"), *p);
     for (i = 0; i < BUFFER_SIZE; i++)
     {
         cel_arraylist_pop_back(array_list);

@@ -407,7 +407,7 @@ int cel_wmipclient_async_send_request(CelWmipClient *client,
         &(client->wmip_msg->req), &(client->wmip_msg->rsp),
         (CelHttpExecuteCallbackFunc)cel_wmipclient_execute_callback) == -1)
     {
-        puts("cel_httpclient_async_execute return -1");
+        CEL_ERR((_T("cel_httpclient_async_execute return -1")));
         cel_wmipclient_free(client);
         return -1;
     }

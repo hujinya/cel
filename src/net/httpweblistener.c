@@ -49,7 +49,7 @@ void cel_httpweblistener_do_handshake(CelHttpWebClient *client,
 {
     if (result->ret != 1)
     {
-        puts("httpweblistener_do_handshake failed##########################");
+        CEL_ERR((_T("httpweblistener_do_handshake failed##########################")));
         cel_httpwebclient_free(client);
         return ;
     }
@@ -79,7 +79,7 @@ static void cel_httpweblistener_do_accept(CelHttpWebListener *listener,
     if ((new_client = cel_httpwebclient_new_httpclient(
         http_client, listener->web_ctx)) == NULL)
     {
-        puts("cel_httpwebclient_new_httpclient return null");
+        CEL_ERR((_T("cel_httpwebclient_new_httpclient return null")));
         cel_httpclient_destroy(http_client);
         cel_httpweblistener_post_accept(listener);
         return ;

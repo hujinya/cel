@@ -16,6 +16,7 @@
 #include "cel/allocator.h"
 #include "cel/error.h"
 #include "cel/multithread.h"
+#include "cel/log.h"
 
 CelEventLoopThreadId *_cel_eventloopthread_id()
 {
@@ -47,8 +48,8 @@ static int cel_eventloopgroup_start(CelEventLoopThread *evt_loop_thread)
     thread_id->i = evt_loop_thread->i;
     //printf("thread id %d\r\n", thread_id->i);
     cel_eventloop_run(evt_loop_thread->evt_loop);
-    _tprintf(_T("Event loop thread %d exit.(%s)"), 
-       (int)cel_thread_getid(), cel_geterrstr(cel_geterrno()));
+    CEL_DEBUG((_T("Event loop thread %d exit.(%s)"), 
+       (int)cel_thread_getid(), cel_geterrstr(cel_geterrno())));
     cel_thread_exit(0);
 
     return 0;

@@ -303,7 +303,7 @@ static CelThreadPool *cel_threadpool_wait_pool(void)
     long local_wakeup_thread_serial;
     long last_wakeup_thread_serial = cel_atomic_load(&wakeup_thread_serial);
 
-    cel_atomic_add(&num_unused_threads, 1);
+    cel_atomic_increment(&num_unused_threads, 1);
     do
     {
         if (local_max_unused_threads != -1
@@ -355,7 +355,7 @@ static CelThreadPool *cel_threadpool_wait_pool(void)
             }
         }
     }while (thread_pool == wakeup_thread_marker);
-    cel_atomic_add(&num_unused_threads, -1);
+    cel_atomic_increment(&num_unused_threads, -1);
 
     return thread_pool;
 }
@@ -380,7 +380,7 @@ void cel_threadpool_set_max_unused_threads(int max_threads)
     max_threads = (max_threads < -1 ? -1 : max_threads);
     cel_atomic_store(&max_unused_threads, (long)max_threads);
     if ((i = num_unused_threads) > 0)
-        cel_atomic_add(&wakeup_thread_serial, 1);
+        cel_atomic_increment(&wakeup_thread_serial, 1);
 
     cel_asyncqueue_lock(unused_thread_queue);
     while (i-- > 0)
@@ -407,7 +407,7 @@ void cel_threadpool_stop_unused_threads(void)
 
     cel_threadpool_set_max_unused_threads(0);
     if ((i = num_unused_threads) > 0)
-        cel_atomic_add(&wakeup_thread_serial, 1);
+        cel_atomic_increment(&wakeup_thread_serial, 1);
 
     cel_asyncqueue_lock(unused_thread_queue);
     while (i-- > 0)
@@ -426,7 +426,7 @@ void cel_threadpool_set_max_idle_time(int interval)
 
     cel_atomic_store(&max_idle_time, (long)interval);
     if ((i = num_unused_threads) > 0)
-        cel_atomic_add(&wakeup_thread_serial, 1);
+        cel_atomic_increment(&wakeup_thread_serial, 1);
 
     cel_asyncqueue_lock(unused_thread_queue);
     while (i-- > 0)
