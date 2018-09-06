@@ -345,6 +345,18 @@ WCHAR *cel_fullpath_r_w(const WCHAR *rel_path, WCHAR *full_path, size_t size)
     return full_path;
 }
 
+BOOL cel_fexists_w(const WCHAR *file_name)
+{
+#ifdef _CEL_UNIX
+    CEL_ERR((_T("cel_fexists_w is null############")));
+    return FALSE;
+#endif
+#ifdef _CEL_WIN
+    CelStat my_stat;
+    return (_wstat(file_name, &my_stat) == 0);
+#endif
+}
+
 FILE *cel_fopen(const TCHAR *file_name, const TCHAR *mode)
 {
     FILE *fp;
@@ -394,8 +406,12 @@ int cel_fmove(const TCHAR *old_file, const TCHAR *new_file)
     if (rename(old_file, new_file) == 0)
         return 0;
     if (cel_fsync(new_file, old_file) == -1)
+    {
+        CEL_ERR((_T("file move %s"), cel_geterrstr(cel_sys_geterrno())));
         return -1;
+    }
     cel_fremove(old_file);
+
     return 0;
 }
 
@@ -439,7 +455,7 @@ int cel_mkdirs_intern_a(CHAR *dir, int dir_idx, int mode)
             {
                 if (cel_sys_geterrno() != CEL_ERROR_EXIST)
                 {
-                    printf("mkdir %s error\r\n", dir);
+                    CEL_ERR((_T("mkdir %s error"), dir));
                     return -1;
                 }
             }

@@ -23,10 +23,11 @@ typedef volatile S64 OsAtomic;
 typedef volatile S32 OsAtomic;
 #endif
 
-static __inline void _mm_pause(void)
-{
-    __asm__ __volatile__ ("pause" : : :"memory");
-}
+#include <xmmintrin.h>
+//static __inline void _mm_pause(void)
+//{
+//    __asm__ __volatile__ ("pause" : : :"memory");
+//}
 #define os_compiler_barrier() __sync_synchronize()
 
 #define os_atomic_store(ptr, val) *(ptr) = val

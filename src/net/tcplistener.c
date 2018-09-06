@@ -15,8 +15,6 @@
 #include "cel/net/tcplistener.h"
 #include "cel/allocator.h"
 #include "cel/error.h"
-#undef _CEL_DEBUG
-//#define _CEL_DEBUG
 #include "cel/log.h"
 
 int cel_tcplistener_init(CelTcpListener *listener, int family, CelSslContext *ssl_ctx)

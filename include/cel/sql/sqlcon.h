@@ -147,8 +147,11 @@ static __inline CelSqlField *cel_sqlres_fetch_field(CelSqlRes *res)
 
 static __inline void cel_sqlres_free(CelSqlRes *res)
 {
-    res->kclass->res_free(res->_res);
-    cel_free(res);
+    if (res != NULL)
+    {
+        res->kclass->res_free(res->_res);
+        cel_free(res);
+    }
 }
 
 int cel_sqlcon_execute_onequery_results(CelSqlCon *con, const char *sqlstr,

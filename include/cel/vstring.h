@@ -62,7 +62,7 @@ static __inline
 void cel_vstring_assign_a(CelVStringA *vstr, const CHAR *val, size_t n)
 {
     if (n > 0 && _cel_vstring_resize(vstr, n, sizeof(CHAR)) == 0) {
-        memcpy(vstr->str, val, n * sizeof(CHAR)); 
+        memcpy(vstr->str, val, n * sizeof(CHAR));
         vstr->size = n;
     }
 }
@@ -70,19 +70,19 @@ static __inline
 void cel_vstring_assign_w(CelVStringW *vstr, const WCHAR *val, size_t n)
 {
     if (_cel_vstring_resize(vstr, n, sizeof(WCHAR)) == 0) {
-        memcpy(vstr->str, val, n * sizeof(WCHAR)); 
+        memcpy(vstr->str, val, n * sizeof(WCHAR));
         vstr->size = n;
     }
 }
 
 static __inline void cel_vstring_append_a(CelVStringA *vstr, CHAR ch)
 {
-    if (_cel_vstring_resize(vstr, vstr->size + 1, sizeof(CHAR)) == 0) 
+    if (_cel_vstring_resize(vstr, vstr->size + 1, sizeof(CHAR)) == 0)
         vstr->str[vstr->size++] = ch;
 }
 static __inline void cel_vstring_append_w(CelVStringW *vstr, WCHAR ch)
 {
-    if (_cel_vstring_resize(vstr, vstr->size + 1, sizeof(WCHAR)) == 0) 
+    if (_cel_vstring_resize(vstr, vstr->size + 1, sizeof(WCHAR)) == 0)
         vstr->str[vstr->size++] = ch;
 }
 

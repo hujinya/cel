@@ -231,7 +231,7 @@ void cel_httpclient_do_send_requset(CelHttpClient *client,
     if (result->ret <= 0
         || (ret = cel_httpclient_writing_send_requset(client, s, req)) == -1)
     {
-        CEL_ERR((_T("cel_httpclient_do_send_requset return -1")));
+        //CEL_ERR((_T("cel_httpclient_do_send_requset return -1")));
         result->ret = -1;
         send_req_callback(client, req, result);
         return;

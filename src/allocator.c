@@ -1276,7 +1276,7 @@ CelBlock *cel_threadcache_allocate(CelThreadCache *thread_cache, size_t index)
         }
         CEL_DEBUG((_T("Thread(tid:%ld) fetch %d[%p-%p] blocks from central cache."), 
             cel_thread_getid(), (int)allocate_num, start, end));
-        if ((--allocate_num) >= 0)
+        if ((--allocate_num) > 0)
         {
             cel_freelist_push_range(free_list, start->next, end, allocate_num);
             thread_cache->size += (allocate_num * block_size);

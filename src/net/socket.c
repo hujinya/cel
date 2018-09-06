@@ -14,8 +14,6 @@
  */
 #include "cel/net/socket.h"
 #include "cel/allocator.h"
-#undef _CEL_DEBUG
-//#define _CEL_DEBUG
 #include "cel/log.h"
 #include "cel/error.h"
 #include "cel/convert.h"
@@ -357,8 +355,8 @@ int cel_socket_async_connect_host(CelSocket *sock,
     hints.ai_protocol = sock->protocol;
     if (GetAddrInfo(host, _itot(port, ports, 10), &hints, &res) != 0)
     {
-        CEL_ERR((_T("Get address information \"%s:%s\" failed.(%s)"), 
-            args->host, args->service));
+        CEL_ERR((_T("Get address information \"%s:%d\" failed.(%s)"), 
+            host, port));
         return -1;
     }
     result = res;

@@ -13,8 +13,6 @@
  * GNU General Public License for more details.
  */
 #include "cel/net/httpwebclient.h"
-#undef _CEL_DEBUG
-//#define _CEL_DEBUG
 #include "cel/log.h"
 #include "cel/error.h"
 #include "cel/allocator.h"
@@ -51,8 +49,8 @@ CelHttpWebClient *cel_httpwebclient_new_httpclient(CelHttpClient *http_client,
     CelHttpWebClient *new_client;
 
     if ((new_client = (web_ctx->new_func != NULL ? 
-        web_ctx->new_func(sizeof(CelHttpWebClient), 
-        http_client->tcp_client.sock.fd)
+        web_ctx->new_func(
+        sizeof(CelHttpWebClient), http_client->tcp_client.sock.fd)
         : cel_malloc(sizeof(CelHttpWebClient)))) == NULL)
     {
         CEL_ERR((_T("Http web client new return null.")));
@@ -115,7 +113,7 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
     case CEL_HTTPREQUEST_READING_BODY:
         if (result->ret == -1)
         {
-            CEL_ERR((_T("cel_httpwebclient_do_recv_request return -1")));
+            //CEL_ERR((_T("cel_httpwebclient_do_recv_request return -1")));
             cel_httpwebclient_free(client);
         }
         else
@@ -142,7 +140,7 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
             || cel_keyword_ncmp_a(
             &client->web_ctx->prefix, url, ver_end) != 0)
         {
-            printf("method %d, %s\r\n", cel_httprequest_get_method(req), url);
+            //printf("method %d, %s\r\n", cel_httprequest_get_method(req), url);
             cel_httpwebclient_async_send_response_result(client, 
                 CEL_HTTPWEB_UNSUPPORTED_OPERATION_EXCEPTION, 0,
                 "Http web request prefix not supported.");
@@ -155,8 +153,8 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
             url + ver_end, 
             &(client->rt_data))) == NULL)
         {
-            printf("method %d, %s\r\n", 
-                cel_httprequest_get_method(req), url + ver_end);
+            /*printf("method %d, %s\r\n", 
+                cel_httprequest_get_method(req), url + ver_end);*/
             cel_httpwebclient_async_send_response_result(client, 
                 CEL_HTTPWEB_UNSUPPORTED_OPERATION_EXCEPTION, 0,
                 "Http web request not supported.");

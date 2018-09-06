@@ -13,8 +13,6 @@
  * GNU General Public License for more details.
  */
 #include "cel/allocator.h"
-#undef _CEL_DEBUG
-//#define _CEL_DEBUG
 #include "cel/log.h"
 
 #ifdef _CEL_WIN

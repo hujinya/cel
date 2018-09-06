@@ -13,8 +13,6 @@
  * GNU General Public License for more details.
  */
 #include "cel/sql/sqlcon.h"
-#undef _CEL_DEBUG
-//#define _CEL_DEBUG
 #include "cel/log.h"
 #include "cel/error.h"
 

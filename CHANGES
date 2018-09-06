@@ -1,9 +1,11 @@
 * Tue Aug 21 2018 Hu Jinya <hjy@gzsunrun.cn> 1.0.9.10
 - 增加CelSqlCon, CelSqlConPool。
-- 修改CEL_DEBUG宏定义。
+- 修改CEL库的调试接口，增加CEL_DEBUG、CEL_WARNING、CEL_ERR相关宏定义。
 - 修改CelRingList原子比较赋值返回值BUG;
   修改Windows下函数cel_atomic_increment返回值BUG。
 - 修改CelSslSocket, CelSocket底层异步接口封装。
+- 修改CelAllocator函数cel_threadcache_allocate中
+  allocate_num为0时cel_freelist_push_range判断问题。
 - 删除无用的调试打印信息。
 
 * Wed Jul 11 2018 Hu Jinya <hjy@gzsunrun.cn> 1.0.8.9

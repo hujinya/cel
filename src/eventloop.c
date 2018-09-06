@@ -15,8 +15,6 @@
 #include "cel/eventloop.h"
 #include "cel/allocator.h"
 #include "cel/error.h"
-#undef _CEL_DEBUG
-//#define _CEL_DEBUG
 #include "cel/log.h"
 
 static CelQueuedEvent s_wakeupevent = { CEL_EVENT_WAKEUP, NULL, NULL };

@@ -39,11 +39,7 @@ typedef struct dirent CelDirent;
 #define CEL_DIRENT_ISDIR(dirent) ((dirent)->d_type == DT_DIR)
 
 #define cel_chmod_a(path, mode) chmod(path, mode)
-static __inline int cel_chmod_w(const WCHAR *path, int mode) 
-{
-    puts("cel_chmod_w is null ############");
-    return -1;
-}
+int cel_chmod_w(const WCHAR *path, int mode);
 #define cel_chown(path, uid, gid) chown(path, uid, gid)
 
 static __inline int cel_fremove(const TCHAR *file_name)
@@ -62,11 +58,7 @@ static __inline int cel_readdir(CelDir *dir, CelDirent *dirent)
 /* void cel_closedir(CelDir *dir)*/
 #define cel_closedir(dir) closedir(dir)
 #define cel_mkdir_a(dir_name, mode) mkdir(dir_name, mode)
-static __inline int cel_mkdir_w(const WCHAR *dir_name, int mode)
-{
-    puts("cel_mkdir_w is null ############");
-    return -1;
-}
+int cel_mkdir_w(const WCHAR *dir_name, int mode);
 /* int cel_rmdir(const TCHAR *dir_name); */
 #define cel_rmdir(dir_name) ((rmdir(dir_name) == 0 \
     || (chown(dir_name, 0, 0) != -1 && rmdir(dir_name) == 0)) ? 0 : -1)

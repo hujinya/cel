@@ -201,7 +201,7 @@ int cel_logmsg_puts(CelLogMsg *msg, void *user_data);
 /* Insert db */
 int cel_logmsg_dbinsert(CelLogMsg *msg, void *user_data);
 
-// Like assert(), but executed even in _CEL_DEBUG mode
+// Like assert()
 #ifdef _CEL_ASSERT
 #define CEL_ASSERT(cond)  \
 do {                                                           \
@@ -235,7 +235,7 @@ static __inline int cel_lib_warning(const TCHAR *fmt, ...)
     va_list args;
     va_start(args, fmt);
     cel_logger_vprintf(&g_logger, 
-        CEL_LOGFACILITY_LOCAL0, CEL_LOGLEVEL_ERR, fmt, args);
+        CEL_LOGFACILITY_LOCAL0, CEL_LOGLEVEL_WARNING, fmt, args);
     va_end(args);
     return 0;
 }
@@ -250,11 +250,11 @@ static __inline int cel_lib_err(const TCHAR *fmt, ...)
     va_list args;
     va_start(args, fmt);
     cel_logger_vprintf(&g_logger, 
-        CEL_LOGFACILITY_LOCAL0, CEL_LOGLEVEL_WARNING, fmt, args);
+        CEL_LOGFACILITY_LOCAL0, CEL_LOGLEVEL_ERR, fmt, args);
     va_end(args);
     return 0;
 }
-#define CEL_ERR(args) cel_lib_warning args
+#define CEL_ERR(args) cel_lib_err args
 #else
 #define CEL_ERR(args)  ((void) 0)
 #endif /* _CEL_ERR */

@@ -15,8 +15,6 @@
 #include "cel/poll.h"
 #include "cel/allocator.h"
 #include "cel/error.h"
-#undef _CEL_DEBUG
-//#define _CEL_DEBUG
 #include "cel/log.h"
 
 CelPoll *cel_poll_new(int max_threads, int max_fileds)

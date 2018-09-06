@@ -15,6 +15,7 @@
 #include "cel/ringlist.h"
 #include "cel/error.h"
 #include "cel/allocator.h"
+#include "cel/log.h"
 #include "cel/convert.h"
 
 int cel_ringlist_init(CelRingList *ring_list, size_t size, 
@@ -64,7 +65,7 @@ void cel_ringlist_free(CelRingList *ring_list)
 
 void cel_ringlist_clear(CelRingList *ring_list)
 {
-    puts("cel_ringlist_clear is null");
+    CEL_ERR((_T("cel_ringlist_clear is null")));
 }
 
 static __inline 

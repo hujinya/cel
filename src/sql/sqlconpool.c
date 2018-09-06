@@ -14,8 +14,6 @@
  */
 #include "cel/sql/sqlconpool.h"
 #include "cel/error.h"
-#undef _CEL_DEBUG
-//#define _CEL_DEBUG
 #include "cel/log.h"
 #include "cel/allocator.h"
 
@@ -36,8 +34,8 @@ int cel_sqlconpool_init(CelSqlConPool *pool, CelSqlConType type,
     pool->port = port;
     pool->min = pool_min;
     pool->max = pool_max;
-    if (cel_ringlist_init(
-        &(pool->frees), 256, (CelFreeFunc)cel_sqlcon_free) == -1)
+    if (cel_ringlist_init(&(pool->frees), 
+        256, (CelFreeFunc)cel_sqlcon_free) == -1)
         return -1;
     pool->n_conns = 0;
     do

@@ -16,8 +16,6 @@
 #ifdef _CEL_UNIX
 #include "cel/allocator.h"
 #include "cel/error.h"
-#undef _CEL_DEBUG
-//#define _CEL_DEBUG
 #include "cel/log.h"
 
 int cel_eventchannel_init(CelChannel *evt_ch)

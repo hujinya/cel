@@ -596,7 +596,7 @@ int cel_logmsg_fflush(void *path)
 
 int cel_logmsg_puts(CelLogMsg *msg, void *user_data)
 {
-    static CelDateTime timestamp_cached;
+    static CelDateTime timestamp_cached = 0;
     static TCHAR strtime[26];
 
     if (timestamp_cached != msg->timestamp)

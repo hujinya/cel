@@ -56,6 +56,8 @@ void cel_freelist_push(CelFreeList *free_list, CelBlock *block)
 {
     block->next = free_list->free;
     free_list->free = block;
+    /*if (free_list->free == NULL)
+        puts("error");*/
     (free_list->size)++;
 }
 
@@ -75,6 +77,15 @@ static __inline
 void cel_freelist_push_range(CelFreeList *free_list, 
                              CelBlock *start, CelBlock *end, int num)
 {
+    /*int i = 0;
+    CelBlock *check = start;
+    while (check != end)
+    {
+        check = check->next;
+        i++;
+    }
+    if (i != num - 1)
+        puts("error");*/
     end->next = free_list->free;
     free_list->free = start;
     (free_list->size) += num;

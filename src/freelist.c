@@ -14,6 +14,7 @@
  */
 #include "cel/freelist.h"
 #include "cel/allocator.h"
+#include "cel/log.h"
 
 int cel_freelist_init(CelFreeList *free_list)
 {

@@ -14,8 +14,6 @@
  */
 #include "cel/sql/mysql.h"
 #include "cel/allocator.h"
-#undef _CEL_DEBUG
-//#define _CEL_DEBUG
 #include "cel/log.h"
 #include "cel/error.h"
 #include "cel/thread.h"
