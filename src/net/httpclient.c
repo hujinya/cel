@@ -366,7 +366,7 @@ int cel_httpclient_async_recv_response(CelHttpClient *client,
 int cel_httpclient_writing_send_response(CelHttpClient *client, 
                                          CelStream *s, CelHttpResponse *rsp )
 {
-    while (cel_stream_get_remaining_length(s) == 0)
+    while (cel_stream_get_remaining_length(s) <= 0)
     {
         cel_stream_set_position(s, 0);
         if (rsp->writing_state == CEL_HTTPRESPONSE_WRITING_OK)
@@ -380,8 +380,8 @@ int cel_httpclient_writing_send_response(CelHttpClient *client,
             }
         }
         cel_stream_set_position(s, 0);
-        //_tprintf(_T("length = %d\r\n"), cel_stream_get_remaining_length(s));
     }
+    //_tprintf(_T("length = %d\r\n"), cel_stream_get_remaining_length(s));
     return 0;
 }
 

@@ -267,11 +267,11 @@ int cel_tcpclient_send(CelTcpClient *client, CelStream *s)
     CelTcpClientAsyncArgs *args = &(client->out);
 
     if ((args->async_buf.buf = cel_stream_get_pointer(s))== NULL
-        || (args->async_buf.len = cel_stream_get_remaining_capacity(s)) <= 0)
+        || (args->async_buf.len = cel_stream_get_remaining_length(s)) <= 0)
     {
         CEL_ERR((_T("tcpclient %d send buf %p, len %ld"), 
             client->sock.fd, 
-            cel_stream_get_pointer(s), cel_stream_get_remaining_capacity(s)));
+            cel_stream_get_pointer(s), cel_stream_get_remaining_length(s)));
         return -1;
     }
     if (client->ssl_sock.ssl != NULL)
@@ -307,11 +307,11 @@ int cel_tcpclient_async_send(CelTcpClient *client, CelStream *s,
     client->sock.fd, 
     cel_stream_get_pointer(s), cel_stream_get_length(s));*/
     if ((args->async_buf.buf = cel_stream_get_pointer(s))== NULL
-        || (args->async_buf.len = cel_stream_get_length(s)) <= 0)
+        || (args->async_buf.len = cel_stream_get_remaining_length(s)) <= 0)
     {
         CEL_ERR((_T("tcpclient %d send buf %p, len %ld"), 
             client->sock.fd, 
-            cel_stream_get_pointer(s), cel_stream_get_length(s)));
+            cel_stream_get_pointer(s), cel_stream_get_remaining_length(s)));
         return -1;
     }
     args->s = s;

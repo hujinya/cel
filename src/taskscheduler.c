@@ -42,7 +42,8 @@ int cel_task_init(CelTask *task,
     task->trigger.months = months;
     task->task_func = task_func;
     task->user_data = user_data;
-    cel_refcounted_init(&(task->ref_counted), (CelFreeFunc)cel_task_destroy_derefed);
+    cel_refcounted_init(&(task->ref_counted),
+        (CelFreeFunc)cel_task_destroy_derefed);
 
     return 0;
 }

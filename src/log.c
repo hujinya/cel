@@ -530,7 +530,7 @@ static int cel_log_fremove_callback(const TCHAR *dir, const TCHAR *file_name,
 int cel_logmsg_fwrite(CelLogMsg *msg, void *path)
 {
     static int file_day = -1;
-    static CelDateTime timestamp_cached;
+    static CelDateTime timestamp_cached = 0;
     static TCHAR strtime[26];
     int msg_day;
     long lfile;

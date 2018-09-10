@@ -1,4 +1,4 @@
-* Tue Aug 21 2018 Hu Jinya <hjy@gzsunrun.cn> 1.0.9.10
+* Tue Aug 21 2018 Hu Jinya <hjy@gzsunrun.cn> 1.0.9.13
 - 增加CelSqlCon, CelSqlConPool。
 - 修改CEL库的调试接口，增加CEL_DEBUG、CEL_WARNING、CEL_ERR相关宏定义。
 - 修改CelRingList原子比较赋值返回值BUG;

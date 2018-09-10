@@ -374,14 +374,14 @@ int cel_httpchunked_get_send_buffer_position(CelHttpChunked *chunked)
 static __inline 
 void *cel_httpchunked_get_send_buffer(CelHttpChunked *chunked, CelStream *s)
 {
-    cel_stream_set_position(s, 
+    cel_stream_set_position(s,
         cel_httpchunked_get_send_buffer_position(chunked));
     return cel_stream_get_pointer(s);
 }
 #define cel_httpchunked_get_send_buffer_size(chunked, s) \
-    (cel_stream_get_remaining_capacity(s) - 11)
+    (cel_stream_get_remaining_capacity(s) - 11 - 5)
 #define cel_httpchunked_resize_send_buffer(chunked, s, resize) \
-    cel_stream_remaining_resize(s, resize + 11)
+    cel_stream_remaining_resize(s, resize + 11 + 5)
 static __inline void cel_httpchunked_send_seek(CelHttpChunked *chunked, int offset)
 {
     chunked->size += offset;

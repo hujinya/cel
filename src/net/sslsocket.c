@@ -25,7 +25,7 @@ int cel_bio_mem_grow(CelBio *bio)
     size_t length = bm->length, size;
 
     if ((size = cel_capacity_get_min(bm->max + 1)) < CEL_BIO_MEM_SIZE)
-        size = CEL_BIO_MEM_SIZE;   
+        size = CEL_BIO_MEM_SIZE;
     if (BUF_MEM_grow_clean(bm, size) == (int)size)
     {
         bm->length = length;
@@ -55,10 +55,12 @@ int cel_bio_mem_read_seek(CelBio *bio, int seek)
     bm = (BUF_MEM *)bio->ptr;
     BIO_clear_retry_flags(bio);
     ret = ((seek >= 0 && (size_t)seek > bm->length) ? (int)bm->length : seek);
+    //printf("cel_bio_mem_read_seek ret = %d\r\n", ret);
     if (ret > 0)
     {
-        bm->length -= ret;
-        memmove(&(bm->data[0]), &(bm->data[ret]), bm->length);
+        (bm->length) -= ret;
+        if (bm->length > 0)
+            memmove(&(bm->data[0]), &(bm->data[ret]), bm->length);
     }
     else if (bm->length == 0)
     {
@@ -84,7 +86,7 @@ int cel_bio_mem_write_seek(CelBio *bio, int seek)
     else
     {
         BIO_clear_retry_flags(bio);
-        bm->length += seek;
+        (bm->length) += seek;
         ret = seek;
         if (ret > 0) 
             bio->num_write += (unsigned long)ret;
@@ -487,11 +489,14 @@ int cel_sslsocket_async_send(CelSslSocket *ssl_sock,
     CEL_ASSERT(callback != NULL);
     args->ssl_buf = buffers;
     args->send_callback = callback;
+    //printf("args->ssl_buf->len = %d\r\n", args->ssl_buf->len);
     if ((args->result.ret = cel_ssl_write(
         ssl_sock->ssl, args->ssl_buf->buf, args->ssl_buf->len)) > 0)
     {
         if (cel_bio_mem_get_length(ssl_sock->w_bio) > 0)
         {
+            /*_tprintf(_T("remaining %d ret %d\r\n"), 
+                (int)cel_bio_mem_get_length(ssl_sock->w_bio), args->result.ret);*/
             return cel_sslsocket_post_send(ssl_sock, cel_sslsocket_do_send);
         }
     }
