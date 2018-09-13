@@ -120,15 +120,12 @@ static int cel_eventloop_handle(CelEventLoop *evt_loop, CelEventCtlBlock *ecb)
     {
     case CEL_EVENT_CHANNELIN:
     case CEL_EVENT_CHANNELOUT:
-        if (ecb->ol.async_callback != NULL)
-        {
-            ecb->ol.async_callback(&(ecb->ol));
-        }
-        else
+        if (ecb->ol.async_callback == NULL)
         {
             CEL_ERR((_T("Event loop channel event error")));
             return -1;
         }
+        ecb->ol.async_callback(&(ecb->ol));
         break;
     case CEL_EVENT_TIMER:
         /* Callback */

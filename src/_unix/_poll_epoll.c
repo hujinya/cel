@@ -60,7 +60,8 @@ int cel_eventchannel_read_async(CelEventReadAsyncArgs *args)
     args->ol.evt_type = CEL_EVENT_CHANNELIN;
     args->ol.handle_func = (int ( *)(void *))cel_eventchannel_do_async_read;
     args->ol.async_callback = (void ( *)(void *))cel_eventchannel_do_read;
-    return cel_poll_post(channel->poll, channel->handle, (CelOverLapped *)args);
+    return cel_poll_post(
+        channel->poll, channel->handle, (CelOverLapped *)args);
 }
 
 int cel_poll_init(CelPoll *poll, int max_threads, int max_fileds)
@@ -70,22 +71,27 @@ int cel_poll_init(CelPoll *poll, int max_threads, int max_fileds)
     if ((poll->epoll_datas = (struct _CelPollData *)
         cel_calloc(max_fileds, sizeof(CelPollData))) != NULL)
     {
-        if ((poll->epoll_fd = epoll_create(max_fileds)) > 0)
+        if ((poll->events = (struct epoll_event *)
+            cel_calloc(EVENTS_MAX, sizeof(struct epoll_event))) != NULL)
         {
-            if (cel_asyncqueue_init(&(poll->async_queue), NULL) != -1)
+            if ((poll->epoll_fd = epoll_create(max_fileds)) > 0)
             {
-                poll->max_threads = max_threads;
-                poll->max_fileds = max_fileds;
-                poll->is_waited = FALSE;
-                cel_mutex_init(&(poll->event_locker), 0);
-                cel_mutex_init(&(poll->wait_locker), NULL);
-                cel_eventchannel_init(&(poll->wakeup_ch));
-                cel_poll_add(poll, &(poll->wakeup_ch), NULL);
-                poll->wakeup_args.evt_ch = &(poll->wakeup_ch);
-                cel_eventchannel_read_async(&(poll->wakeup_args));
-                return 0;
+                if (cel_asyncqueue_init(&(poll->async_queue), NULL) != -1)
+                {
+                    poll->max_threads = max_threads;
+                    poll->max_fileds = max_fileds;
+                    poll->is_waited = FALSE;
+                    cel_mutex_init(&(poll->event_locker), 0);
+                    cel_mutex_init(&(poll->wait_locker), NULL);
+                    cel_eventchannel_init(&(poll->wakeup_ch));
+                    cel_poll_add(poll, &(poll->wakeup_ch), NULL);
+                    poll->wakeup_args.evt_ch = &(poll->wakeup_ch);
+                    cel_eventchannel_read_async(&(poll->wakeup_args));
+                    return 0;
+                }
+                close(poll->epoll_fd);
             }
-            close(poll->epoll_fd);
+            cel_free(poll->events);
         }
         cel_free(poll->epoll_datas);
     }

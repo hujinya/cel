@@ -232,7 +232,8 @@ void cel_socket_do_accept(CelSocketAsyncAcceptArgs *args)
 }
 
 int cel_socket_async_accept(CelSocket *sock, CelSocket *new_sock, 
-                            CelSocketAcceptCallbackFunc callback)
+                            CelSocketAcceptCallbackFunc callback,
+                            CelCoroutine *co)
 {
     CelSocketAsyncArgs *args;
 
@@ -306,7 +307,8 @@ void cel_socket_do_connect(CelSocketAsyncConnectArgs *args)
 }
 
 int cel_socket_async_connect(CelSocket *sock, CelSockAddr *addr, 
-                             CelSocketConnectCallbackFunc callback)
+                             CelSocketConnectCallbackFunc callback,
+                             CelCoroutine *co)
 {
     CelSocketAsyncArgs *args;
 
@@ -329,7 +331,8 @@ int cel_socket_async_connect(CelSocket *sock, CelSockAddr *addr,
 
 int cel_socket_async_connect_host(CelSocket *sock, 
                                   const TCHAR *host, unsigned short port,
-                                  CelSocketConnectCallbackFunc callback)
+                                  CelSocketConnectCallbackFunc callback,
+                                  CelCoroutine *co)
 {
     ADDRINFOT *res, *result, hints;
     TCHAR ports[CEL_NPLEN];
@@ -389,7 +392,8 @@ void cel_socket_do_send(CelSocketAsyncSendArgs *args)
 
 int cel_socket_async_send(CelSocket *sock, 
                           CelAsyncBuf *buffers, int buffer_count, 
-                          CelSocketSendCallbackFunc callback)
+                          CelSocketSendCallbackFunc callback,
+                          CelCoroutine *co)
 {
     CelSocketAsyncArgs *args;
 
@@ -426,7 +430,8 @@ void cel_socket_do_recv(CelSocketAsyncRecvArgs *args)
 
 int cel_socket_async_recv(CelSocket *sock, 
                           CelAsyncBuf *buffers, int buffer_count, 
-                          CelSocketRecvCallbackFunc callback)
+                          CelSocketRecvCallbackFunc callback,
+                          CelCoroutine *co)
 {
     CelSocketAsyncArgs *args;
 
@@ -468,7 +473,8 @@ void cel_socket_do_sendto(CelSocketAsyncSendToArgs *args)
 int cel_socket_async_sendto(CelSocket *sock, 
                             CelAsyncBuf *buffers, int buffer_count, 
                             CelSockAddr *to, 
-                            CelSocketSendToCallbackFunc callback)
+                            CelSocketSendToCallbackFunc callback,
+                            CelCoroutine *co)
 {
     CelSocketAsyncArgs *args;
 
@@ -509,7 +515,8 @@ void cel_socket_do_recvfrom(CelSocketAsyncRecvFromArgs *args)
 int cel_socket_async_recvfrom(CelSocket *sock, 
                               CelAsyncBuf *buffers, int buffer_count, 
                               CelSockAddr *from, 
-                              CelSocketRecvFromCallbackFunc callback)
+                              CelSocketRecvFromCallbackFunc callback,
+                              CelCoroutine *co)
 {
     CelSocketAsyncArgs *args;
 
@@ -540,7 +547,8 @@ void cel_socket_do_sendfile(CelSocketAsyncSendFileArgs *args)
 int cel_socket_async_sendfile(CelSocket *sock, 
                               const TCHAR *path, 
                               long long first, long long last, 
-                              CelSocketSendFileCallbackFunc callback)
+                              CelSocketSendFileCallbackFunc callback,
+                              CelCoroutine *co)
 {
     CelSocketAsyncArgs *args;
 

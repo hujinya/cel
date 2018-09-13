@@ -235,7 +235,7 @@ void cel_wmipclient_do_recv_request(CelWmipClient *client,
     case CEL_HTTPREQUEST_READING_BODY:
         if (result->ret == -1)
         {
-            CEL_ERR((_T("cel_wmipclient_do_recv_request return -1")));
+            //CEL_ERR((_T("cel_wmipclient_do_recv_request return -1")));
             cel_wmipclient_free(client);
         }
         else
@@ -245,7 +245,7 @@ void cel_wmipclient_do_recv_request(CelWmipClient *client,
                 (CelHttpRecvRequestCallbackFunc)
                 cel_wmipclient_do_recv_request) == -1)
             {
-                CEL_ERR((_T("cel_httpclient_async_recv_request return -1")));
+                //CEL_ERR((_T("cel_httpclient_async_recv_request return -1")));
                 cel_wmipclient_free(client);
             }
         }

@@ -30,7 +30,9 @@ typedef void (*CelTcpAcceptCallbackFunc) (
 
 struct _CelTcpListenerAsyncArgs
 {
+    CelAsyncResult result;
     CelTcpAcceptCallbackFunc async_callback;
+    CelCoroutine *co;
 };
 
 struct _CelTcpListener
@@ -81,7 +83,12 @@ int cel_tcplistener_accept(CelTcpListener *listener, CelTcpClient *client);
 
 int cel_tcplistener_async_accept(CelTcpListener *listener,
                                  CelTcpClient *new_client,
-                                 CelTcpAcceptCallbackFunc async_callback);
+                                 CelTcpAcceptCallbackFunc callback, 
+                                 CelCoroutine *co);
+#define cel_tcplistener_async_cb_accept(listener, new_client, callback) \
+    cel_tcplistener_async_accept(listener, new_client, callback, NULL)
+#define cel_tcplistener_async_co_accept(listener, new_client, co) \
+    cel_tcplistener_async_accept(listener, new_client, NULL, co)
 
 #ifdef __cplusplus
 }

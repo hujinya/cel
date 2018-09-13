@@ -123,7 +123,7 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
                 (CelHttpRecvRequestCallbackFunc)
                 cel_httpwebclient_do_recv_request) == -1)
             {
-                CEL_ERR((_T("cel_httpclient_async_recv_request return -1")));
+                //CEL_ERR((_T("cel_httpclient_async_recv_request return -1")));
                 cel_httpwebclient_free(client);
             }
         }

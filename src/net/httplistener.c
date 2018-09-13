@@ -63,5 +63,5 @@ int cel_httplistener_async_accept(CelHttpListener *listener,
     args->async_callback = async_callback;
     return cel_tcplistener_async_accept(&(listener->tcp_listener), 
         &(client->tcp_client), 
-        (CelTcpAcceptCallbackFunc)cel_httplistener_do_accept);
+        (CelTcpAcceptCallbackFunc)cel_httplistener_do_accept, NULL);
 }

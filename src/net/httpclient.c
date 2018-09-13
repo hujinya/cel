@@ -101,31 +101,32 @@ void cel_httpclient_free(CelHttpClient *client)
 int cel_httpclient_reading_recv_request(CelHttpClient *client, 
                                         CelStream *s, CelHttpRequest *req)
 {
-    while (req->reading_state != CEL_HTTPREQUEST_READING_OK)
+    if (req->reading_state == CEL_HTTPREQUEST_READING_OK)
+        return 1;
+    if (cel_stream_get_remaining_length(&(req->s)) != 0)
+        return 0;
+    cel_stream_set_position(s, 0);
+    if (cel_httprequest_reading(req, s) == -1)
     {
-        if (cel_stream_get_remaining_length(&(req->s)) != 0)
-            return 0;
-        cel_stream_set_position(s, 0);
-        if (cel_httprequest_reading(req, s) == -1)
+        if (req->reading_error == CEL_HTTP_ERROR)
         {
-            if (req->reading_error == CEL_HTTP_ERROR)
-            {
-                CEL_ERR((_T("cel_httprequest_reading error")));
-                return -1;
-            }
-        }
-        if (cel_stream_get_remaining_length(s) > 0)
-        {
-            memmove(cel_stream_get_buffer(s), 
-                cel_stream_get_pointer(s), cel_stream_get_remaining_length(s));
-            cel_stream_set_position(s, cel_stream_get_remaining_length(s));
-        }
-        else
-        {
-            cel_stream_set_position(s, 0);
+            CEL_ERR((_T("cel_httprequest_reading error")));
+            return -1;
         }
     }
-    return 1;
+    if (cel_stream_get_remaining_length(s) > 0)
+    {
+        memmove(cel_stream_get_buffer(s), 
+            cel_stream_get_pointer(s), cel_stream_get_remaining_length(s));
+        cel_stream_set_position(s, cel_stream_get_remaining_length(s));
+    }
+    else
+    {
+        cel_stream_set_position(s, 0);
+    }
+    if (req->reading_state == CEL_HTTPREQUEST_READING_OK)
+        return 1;
+    return 0;
 }
 
 int cel_httpclient_recv_request(CelHttpClient *client, CelHttpRequest *req)
@@ -161,7 +162,7 @@ void cel_httpclient_do_recv_request(CelHttpClient *client,
     if (ret == 0)
     {
         if (cel_tcpclient_async_recv(&(client->tcp_client), s, 
-            (CelTcpSendCallbackFunc)cel_httpclient_do_recv_request) == -1)
+            (CelTcpSendCallbackFunc)cel_httpclient_do_recv_request, NULL) == -1)
         {
             result->ret = -1;
             recv_req_callback(client, req, result);
@@ -179,13 +180,13 @@ int cel_httpclient_async_recv_request(CelHttpClient *client,
 
     req->_async_callback = callback;
     return cel_tcpclient_async_recv(&(client->tcp_client), s, 
-        (CelTcpSendCallbackFunc)cel_httpclient_do_recv_request);
+        (CelTcpSendCallbackFunc)cel_httpclient_do_recv_request, NULL);
 }
 
 int cel_httpclient_writing_send_requset(CelHttpClient *client, 
                                         CelStream *s, CelHttpRequest *req)
 {
-    while (cel_stream_get_remaining_length(s) == 0)
+    if (cel_stream_get_remaining_length(s) == 0)
     {
         cel_stream_set_position(s, 0);
         if (req->writing_state == CEL_HTTPREQUEST_WRITING_OK)
@@ -239,7 +240,7 @@ void cel_httpclient_do_send_requset(CelHttpClient *client,
     if (ret == 0)
     {
         if (cel_tcpclient_async_send(&(client->tcp_client), s, 
-            (CelTcpSendCallbackFunc)cel_httpclient_do_send_requset) == -1)
+            (CelTcpSendCallbackFunc)cel_httpclient_do_send_requset, NULL) == -1)
         {
             result->ret = -1;
             send_req_callback(client, req, result);
@@ -264,7 +265,7 @@ int cel_httpclient_async_send_request(CelHttpClient *client,
     if ((ret = cel_httpclient_writing_send_requset(client, s, req)) == 0)
     {
         return cel_tcpclient_async_send(&(client->tcp_client), s, 
-            (CelTcpSendCallbackFunc)cel_httpclient_do_send_requset);
+            (CelTcpSendCallbackFunc)cel_httpclient_do_send_requset, NULL);
     }
     if (ret == 1)
     {
@@ -279,31 +280,32 @@ int cel_httpclient_async_send_request(CelHttpClient *client,
 int cel_httpclient_reading_recv_response(CelHttpClient *client, 
                                          CelStream *s, CelHttpResponse *rsp)
 {
-    while (rsp->reading_state != CEL_HTTPRESPONSE_READING_OK)
+    if (rsp->reading_state == CEL_HTTPRESPONSE_READING_OK)
+        return 1;
+    if (cel_stream_get_remaining_length(s) != 0)
+        return 0;
+    cel_stream_set_position(s, 0);
+    if (cel_httpresponse_reading(rsp, s) == -1)
     {
-        if (cel_stream_get_remaining_length(s) != 0)
-            return 0;
-        cel_stream_set_position(s, 0);
-        if (cel_httpresponse_reading(rsp, s) == -1)
+        if (rsp->reading_error == CEL_HTTP_ERROR)
         {
-            if (rsp->reading_error == CEL_HTTP_ERROR)
-            {
-                CEL_ERR((_T("cel_httpresponse_reading error")));
-                return -1;
-            }
-        }
-        if (cel_stream_get_remaining_length(s) > 0)
-        {
-            memmove(cel_stream_get_buffer(s), cel_stream_get_pointer(s),
-                cel_stream_get_remaining_length(s));
-            cel_stream_set_position(s, cel_stream_get_remaining_length(s));
-        }
-        else
-        {
-            cel_stream_set_position(s, 0);
+            CEL_ERR((_T("cel_httpresponse_reading error")));
+            return -1;
         }
     }
-    return 1;
+    if (cel_stream_get_remaining_length(s) > 0)
+    {
+        memmove(cel_stream_get_buffer(s), cel_stream_get_pointer(s),
+            cel_stream_get_remaining_length(s));
+        cel_stream_set_position(s, cel_stream_get_remaining_length(s));
+    }
+    else
+    {
+        cel_stream_set_position(s, 0);
+    }
+    if (rsp->reading_state == CEL_HTTPRESPONSE_READING_OK)
+        return 1;
+    return 0;
 }
 
 int cel_httpclient_recv_response(CelHttpClient *client, CelHttpResponse *rsp)
@@ -341,7 +343,7 @@ void cel_httpclient_do_recv_response(CelHttpClient *client,
     if (ret == 0)
     {
         if (cel_tcpclient_async_recv(&(client->tcp_client), s, 
-            (CelTcpRecvCallbackFunc)cel_httpclient_do_recv_response) == -1)
+            (CelTcpRecvCallbackFunc)cel_httpclient_do_recv_response, NULL) == -1)
         {
             result->ret = -1;
             recv_rsp_callback(client, rsp, result);
@@ -360,13 +362,13 @@ int cel_httpclient_async_recv_response(CelHttpClient *client,
 
     rsp->_async_callback = callback;
     return cel_tcpclient_async_recv(&(client->tcp_client), s, 
-        (CelTcpRecvCallbackFunc)cel_httpclient_do_recv_response);
+        (CelTcpRecvCallbackFunc)cel_httpclient_do_recv_response, NULL);
 }
 
 int cel_httpclient_writing_send_response(CelHttpClient *client, 
                                          CelStream *s, CelHttpResponse *rsp )
 {
-    while (cel_stream_get_remaining_length(s) <= 0)
+    if (cel_stream_get_remaining_length(s) <= 0)
     {
         cel_stream_set_position(s, 0);
         if (rsp->writing_state == CEL_HTTPRESPONSE_WRITING_OK)
@@ -421,7 +423,7 @@ void cel_httpclient_do_send_response(CelHttpClient *client,
     if (ret == 0)
     {
         if (cel_tcpclient_async_send(&(client->tcp_client), &(rsp->s), 
-            (CelTcpSendCallbackFunc)cel_httpclient_do_send_response) == -1)
+            (CelTcpSendCallbackFunc)cel_httpclient_do_send_response, NULL) == -1)
         {
             result->ret = -1;
             send_rsp_callback(client, rsp, result);
@@ -446,7 +448,7 @@ int cel_httpclient_async_send_response(CelHttpClient *client,
     if ((ret = cel_httpclient_writing_send_response(client, s, rsp)) == 0)
     {
         return cel_tcpclient_async_send(&(client->tcp_client), s, 
-            (CelTcpSendCallbackFunc)cel_httpclient_do_send_response);
+            (CelTcpSendCallbackFunc)cel_httpclient_do_send_response, NULL);
     }
     if (ret == 1)
     {

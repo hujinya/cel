@@ -56,7 +56,7 @@ CelLogger g_logger = {
         -1,-1, -1, -1,-1,                  /* 0 - 4 */
         -1,-1,-1,-1,-1,                    /* 5 - 9 */
         -1,-1,-1,-1,-1,                    /* 10 - 14 */
-        -1, CEL_LOGLEVEL_DEBUG, CEL_LOGLEVEL_DEBUG,-1, -1, /* 15 - 19 */
+        -1, -1,/* lib */ CEL_LOGLEVEL_DEBUG, /* default */ -1, -1, /* 15 - 19 */
         -1,-1,-1,-1        /* 20 - 23 */
     },  /* level */
     { '\0' }, /* hostname */
@@ -149,7 +149,8 @@ int cel_logger_hook_unregister(CelLogger *logger, const TCHAR *name)
     while ((hook2 = hook1) != (CelLogerHookItem *)&(logger->hook_list->tail))
     {
         hook1 = (CelLogerHookItem *)hook2->item.next;
-        if (strncmp(hook2->name, name, CEL_KNLEN) == 0)
+        if (name == NULL
+            || strncmp(hook2->name, name, CEL_KNLEN) == 0)
         {
             cel_list_remove(logger->hook_list, (CelListItem *)hook2);
             cel_free(hook2);

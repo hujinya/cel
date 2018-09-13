@@ -16,7 +16,9 @@
 #define __CEL_COROUTINE_UNIX_H__
 
 #include "cel/types.h"
+#include "cel/atomic.h"
 #include "cel/list.h"
+#include "cel/thread.h"
 #include <stddef.h> /* ptrdiff_t */
 #if __APPLE__ && __MACH__
 #include <sys/ucontext.h>
@@ -32,13 +34,13 @@ typedef struct _OsCoroutineEntity OsCoroutineEntity;
 
 typedef struct _OsCoroutineScheduler
 {
-    char stack[CEL_COROUTINE_STACK_SIZE];
+    char stack[CEL_COROUTINE_GROUP_SIZE][CEL_COROUTINE_STACK_SIZE];
     ucontext_t main_ctx;
-    int co_running;
-    int co_num;
-    int co_capacity;
-    CelList ready_list;
-    OsCoroutineEntity **co_entitys;
+    OsCoroutineEntity *co_running;
+    CelAtomic co_id;
+    CelList coes;
+    CelList co_readies;
+    CelSpinLock lock;
 }OsCoroutineScheduler;
 
 typedef struct _OsCoroutineAttr
@@ -60,50 +62,21 @@ struct _OsCoroutineEntity
     ucontext_t ctx;
     OsCoroutineScheduler *schd;
     CelCoroutineStatus status;
-    ptrdiff_t stack_capacity;
-    ptrdiff_t stack_size;
-    char *stack;
+    ptrdiff_t private_stack_capacity;
+    ptrdiff_t private_stack_size;
+    char *private_stack;
 };
 
 OsCoroutineScheduler *os_coroutinescheduler_new(void);
 void os_coroutinescheduler_free(OsCoroutineScheduler *schd);
 
-static __inline 
-int os_coroutinescheduler_running_id(OsCoroutineScheduler *schd)
-{
-    return schd->co_running;
-}
-
-static __inline 
-OsCoroutineEntity *os_coroutinescheduler_running(OsCoroutineScheduler *schd)
-{
-    return schd->co_entitys[schd->co_running];
-}
-
-static __inline 
-void os_coroutinescheduler_push_ready(OsCoroutineScheduler *schd, 
-                                      OsCoroutineEntity *co_entity)
-{
-    cel_list_push_front(&(schd->ready_list), &(co_entity->list_item));
-}
-
-static __inline 
-OsCoroutineEntity *os_coroutinescheduler_pop_ready(OsCoroutineScheduler *schd)
-{
-    return (OsCoroutineEntity *)cel_list_pop_back(&(schd->ready_list));
-}
-
-int os_coroutineentity_create(OsCoroutineEntity **co_entity, 
+int os_coroutineentity_create(OsCoroutineEntity **coe, 
                               OsCoroutineScheduler *schd, 
                               OsCoroutineAttr *attr,
                               OsCoroutineFunc func, void *user_data);
-void os_coroutineentity_resume(OsCoroutineEntity *co_entity);
-void os_coroutineentity_yield(OsCoroutineEntity *co_entity);
-static __inline 
-CelCoroutineStatus os_coroutineentity_status(OsCoroutineEntity *co_entity)
-{
-    return co_entity->status;
-}
+void os_coroutineentity_resume(OsCoroutineEntity *coe);
+void os_coroutineentity_yield(OsCoroutineEntity *old_coe, 
+                              OsCoroutineEntity *new_coe);
 
 #ifdef __cplusplus
 }

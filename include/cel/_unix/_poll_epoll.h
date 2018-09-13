@@ -115,8 +115,8 @@ typedef struct _CelPoll
     BOOL is_waited;
     CelMutex wait_locker;
     CelMutex event_locker;
-    struct epoll_event events[EVENTS_MAX];
     CelPollData *epoll_datas;
+    struct epoll_event *events;
     CelAsyncQueue async_queue;
 
     CelChannel wakeup_ch;

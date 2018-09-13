@@ -17,6 +17,7 @@
 
 #include "cel/config.h"
 
+#define CEL_COROUTINE_GROUP_SIZE  128
 #define CEL_COROUTINE_STACK_SIZE (1024 * 1024)
 #define CEL_COROUTINE_CAP         16
 
@@ -36,56 +37,66 @@ typedef void (* OsCoroutineFunc)(void *user_data);
 #include "cel/_win/_coroutine_fiber.h"
 #endif
 
-typedef int CelCoroutine;
+typedef OsCoroutineFunc CelCoroutineFunc;
+
 typedef OsCoroutineAttr CelCoroutineAttr;
 typedef OsCoroutineEntity CelCoroutineEntity;
 typedef OsCoroutineScheduler CelCoroutineScheduler;
 
-typedef OsCoroutineFunc CelCoroutineFunc;
+typedef OsCoroutineEntity* CelCoroutine;
 
 #define cel_coroutinescheduler_new os_coroutinescheduler_new
 #define cel_coroutinescheduler_free os_coroutinescheduler_free
 
 CelCoroutineScheduler *_cel_coroutinescheduler_get();
-#define cel_coroutinescheduler_running_id os_coroutinescheduler_running_id
-#define cel_coroutinescheduler_running os_coroutinescheduler_running
-#define cel_coroutinescheduler_push_ready os_coroutinescheduler_push_ready
-#define cel_coroutinescheduler_pop_ready os_coroutinescheduler_pop_ready
+static __inline 
+int cel_coroutinescheduler_running_id(CelCoroutineScheduler *schd)
+{
+    return schd->co_running->id;
+}
+static __inline 
+CelCoroutineEntity *cel_coroutinescheduler_running(CelCoroutineScheduler *schd)
+{
+    return (schd == NULL ? NULL : schd->co_running);
+}
+static __inline 
+BOOL cel_coroutinescheduler_readies_is_empty(CelCoroutineScheduler *schd)
+{
+    return cel_list_is_empty(&(schd->co_readies));
+}
+static __inline 
+void cel_coroutinescheduler_readies_push(CelCoroutineScheduler *schd, 
+                                         CelCoroutineEntity *co_entity)
+{
+    cel_list_push_front(&(schd->co_readies), &(co_entity->list_item));
+}
+static __inline 
+CelCoroutineEntity *cel_coroutinescheduler_readies_pop(OsCoroutineScheduler *schd)
+{
+    return (OsCoroutineEntity *)cel_list_pop_back(&(schd->co_readies));
+}
 
 static __inline 
 int cel_coroutine_create(CelCoroutine *co, 
                          CelCoroutineAttr *attr, 
                          CelCoroutineFunc func, void *user_data)
 {
-    CelCoroutineEntity *co_entity;
-    return ((*co = os_coroutineentity_create(&co_entity,
-        _cel_coroutinescheduler_get(), attr, func, user_data)) == -1 ? -1 : 0);
+    return (os_coroutineentity_create(co,
+        _cel_coroutinescheduler_get(), attr, func, user_data) == -1 ? -1 : 0);
 }
 
-#define cel_coroutineentity_get(co) \
-    _cel_coroutinescheduler_get()->co_entitys[*co]
+#define cel_coroutineentity_get(co) (*co)
 
-static __inline void cel_coroutine_resume(CelCoroutine *co)
-{
-    CelCoroutineEntity *co_entity;
-    if ((co_entity = _cel_coroutinescheduler_get()->co_entitys[*co]) != NULL)
-        os_coroutineentity_resume(co_entity);
-}
-static __inline void cel_coroutine_yield(CelCoroutine *co)
-{
-    CelCoroutineEntity *co_entity;
-    if ((co_entity = _cel_coroutinescheduler_get()->co_entitys[*co]) != NULL)
-        os_coroutineentity_yield(co_entity);
-}
+void cel_coroutine_resume(CelCoroutine *co);
+void cel_coroutine_yield(CelCoroutine *co);
 static __inline CelCoroutineStatus cel_coroutine_status(CelCoroutine *co)
 {
-    CelCoroutineEntity *co_entity;
-    if ((co_entity = _cel_coroutinescheduler_get()->co_entitys[*co]) != NULL)
-        return os_coroutineentity_status(co_entity);
-    return CEL_COROUTINE_DEAD;
+    return (*co)->status;
 }
+/* CelCoroutine cel_coroutine_self() */
 #define cel_coroutine_self() \
-    &(cel_coroutinescheduler_running(_cel_coroutinescheduler_get())->id)
+    cel_coroutinescheduler_running(_cel_coroutinescheduler_get())
+/* int cel_coroutine_getid() */
 #define cel_coroutine_getid() \
     cel_coroutinescheduler_running_id(_cel_coroutinescheduler_get())
 

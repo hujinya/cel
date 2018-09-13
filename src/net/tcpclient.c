@@ -203,62 +203,85 @@ void cel_tcpclient_do_connect(CelTcpClient *client, CelAsyncResult *result)
         cel_socket_get_localaddr(&(client->sock), &(client->local_addr));
         cel_socket_get_remoteaddr(&(client->sock), &(client->remote_addr));
     }
-    args->connect_callback(client, result);
+    memcpy(&(args->result), result, sizeof(CelAsyncResult));
+    if (args->connect_callback != NULL)
+        args->connect_callback(client, result);
+    else
+        cel_coroutine_resume(args->co);
 }
 
 int cel_tcpclient_async_connect(CelTcpClient *client, CelSockAddr *remote_addr,
-                                CelTcpConnectCallbackFunc async_callback)
+                                CelTcpConnectCallbackFunc async_callback,
+                                CelCoroutine *co)
 {
-    CelTcpClientAsyncArgs *args;
-
-    args = &(client->out);
+    CelTcpClientAsyncArgs *args = &(client->out);
     args->connect_callback = async_callback;
-    return cel_socket_async_connect(
+    args->co = co;
+    if ((args->result.ret = cel_socket_async_connect(
         &(client->sock), remote_addr, 
-        (CelSocketConnectCallbackFunc)cel_tcpclient_do_connect);
+        (CelSocketConnectCallbackFunc)cel_tcpclient_do_connect, NULL)) != -1
+        && args->co != NULL)
+        cel_coroutine_yield(args->co);
+    return args->result.ret;
 }
 
 int cel_tcpclient_async_connect_host(CelTcpClient *client, 
                                      const TCHAR *host, unsigned short port,
-                                     CelTcpConnectCallbackFunc async_callback)
+                                     CelTcpConnectCallbackFunc async_callback,
+                                     CelCoroutine *co)
 {
-    CelTcpClientAsyncArgs *args;
-
-    args = &(client->out);
+    CelTcpClientAsyncArgs *args = &(client->out);
     args->connect_callback = async_callback;
-    return cel_socket_async_connect_host(
+    args->co = co;
+    if ((args->result.ret = cel_socket_async_connect_host(
         &(client->sock), host, port, 
-        (CelSocketConnectCallbackFunc)cel_tcpclient_do_connect);
+        (CelSocketConnectCallbackFunc)cel_tcpclient_do_connect, NULL)) != -1
+        && args->co != NULL)
+        cel_coroutine_yield(args->co);
+    return args->result.ret;
 }
 
 void cel_tcpclient_do_handshake(CelTcpClient *client, CelAsyncResult *result)
 {
     CelTcpClientAsyncArgs *args = &(client->in);
-    args->handshake_callback(client, result);
+
+    memcpy(&(args->result), result, sizeof(CelAsyncResult));
+    if (args->handshake_callback != NULL)
+        args->handshake_callback(client, result);
+    else
+        cel_coroutine_resume(args->co);
 }
 
 int cel_tcpclient_async_handshake(CelTcpClient *client, 
-                                  CelTcpHandshakeCallbackFunc async_callback)
+                                  CelTcpHandshakeCallbackFunc async_callback,
+                                  CelCoroutine *co)
 {
-    CelTcpClientAsyncArgs *args;
-    CelAsyncResult _result;
+    CelTcpClientAsyncArgs *args = &(client->in);
 
-    args = &(client->in);
     args->handshake_callback = async_callback;
+    args->co = co;
     if (client->ssl_sock.use_ssl)
     {
         //puts("tcpclient ssl handshake");
-        return cel_sslsocket_async_handshake(&(client->ssl_sock), 
-            (CelSslSocketHandshakeCallbackFunc)cel_tcpclient_do_handshake);
+        if ((args->result.ret = 
+            cel_sslsocket_async_handshake(&(client->ssl_sock), 
+            (CelSslSocketHandshakeCallbackFunc)
+            cel_tcpclient_do_handshake, NULL)) != -1
+            && args->co != NULL)
+            cel_coroutine_yield(args->co);
+        return args->result.ret;
     }
     else
     {
         //puts("tcpclient no ssl");
-        _result.error = 0;
-        _result.ret = 1;
-        async_callback(client, &_result);
+        if (args->handshake_callback != NULL)
+        {
+            args->result.error = 0;
+            args->result.ret = 1;
+            args->handshake_callback(client, &(args->result));
+        }
+        return 0;
     }
-    return 0;
 }
 
 int cel_tcpclient_send(CelTcpClient *client, CelStream *s)
@@ -293,16 +316,18 @@ void cel_tcpclient_do_send(CelTcpClient *client,
     //printf("send ret = %d\r\n", result->ret);
     if (result->ret > 0)
         cel_stream_seek(args->s, result->ret);
-    
-    args->send_callback(client, args->s, result);
+    memcpy(&(args->result), result, sizeof(CelAsyncResult));
+    if (args->send_callback != NULL)
+        args->send_callback(client, args->s, result);
+    else
+        cel_coroutine_resume(args->co);
 }
 
 int cel_tcpclient_async_send(CelTcpClient *client, CelStream *s, 
-                             CelTcpSendCallbackFunc async_callback)
+                             CelTcpSendCallbackFunc async_callback,
+                             CelCoroutine *co)
 {
-    CelTcpClientAsyncArgs *args;
-
-    args = &(client->out);
+    CelTcpClientAsyncArgs *args = &(client->out);
     /*_tprintf(_T("tcpclient %d post send buf %p, len %ld\r\n"), 
     client->sock.fd, 
     cel_stream_get_pointer(s), cel_stream_get_length(s));*/
@@ -316,14 +341,18 @@ int cel_tcpclient_async_send(CelTcpClient *client, CelStream *s,
     }
     args->s = s;
     args->send_callback = async_callback;
+    args->co = co;
     if (client->ssl_sock.use_ssl)
-        return cel_sslsocket_async_send(
+        args->result.ret = cel_sslsocket_async_send(
         &(client->ssl_sock), &(args->async_buf), 1, 
-        (CelSslSocketSendCallbackFunc)cel_tcpclient_do_send);
+        (CelSslSocketSendCallbackFunc)cel_tcpclient_do_send, NULL);
     else
-        return cel_socket_async_send(
+        args->result.ret = cel_socket_async_send(
         &(client->sock), &(args->async_buf), 1, 
-        (CelSocketSendCallbackFunc)cel_tcpclient_do_send);
+        (CelSocketSendCallbackFunc)cel_tcpclient_do_send, NULL);
+    if (args->result.ret != -1 && args->co != NULL)
+        cel_coroutine_yield(args->co);
+    return args->result.ret;
 }
 
 int cel_tcpclient_recv(CelTcpClient *client, CelStream *s)
@@ -366,11 +395,16 @@ void cel_tcpclient_do_recv(CelTcpClient *client,
     //puts(buffers->buf);
     /*printf("recv ret = %d, buffers %p s %p\r\n",
     result->ret, buffers->buf, args->s->buffer);*/
-    args->recv_callback(client, args->s, result);
+    memcpy(&(args->result), result, sizeof(CelAsyncResult));
+    if (args->recv_callback != NULL)
+        args->recv_callback(client, args->s, result);
+    else
+        cel_coroutine_resume(args->co);
 }
 
 int cel_tcpclient_async_recv(CelTcpClient *client, CelStream *s,
-                             CelTcpRecvCallbackFunc async_callback)
+                             CelTcpRecvCallbackFunc async_callback,
+                             CelCoroutine *co)
 {
     CelTcpClientAsyncArgs *args = &(client->in);
     /*_tprintf(_T("tcpclient %d post recv buf %p, len %ld\r\n"), 
@@ -386,12 +420,16 @@ int cel_tcpclient_async_recv(CelTcpClient *client, CelStream *s,
     }
     args->s = s;
     args->recv_callback = async_callback;
+    args->co = co;
     if (client->ssl_sock.ssl != NULL)
-        return cel_sslsocket_async_recv(
+        args->result.ret = cel_sslsocket_async_recv(
         &(client->ssl_sock), &(args->async_buf), 1, 
-        (CelSslSocketRecvCallbackFunc)cel_tcpclient_do_recv);
+        (CelSslSocketRecvCallbackFunc)cel_tcpclient_do_recv, NULL);
     else
-        return cel_socket_async_recv(
+        args->result.ret = cel_socket_async_recv(
         &(client->sock), &(args->async_buf), 1, 
-        (CelSocketRecvCallbackFunc)cel_tcpclient_do_recv);
+        (CelSocketRecvCallbackFunc)cel_tcpclient_do_recv, NULL);
+    if (args->result.ret != -1 && args->co != NULL)
+        cel_coroutine_yield(args->co);
+    return args->result.ret;
 }
