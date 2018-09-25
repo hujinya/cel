@@ -52,29 +52,32 @@ CelCoroutineScheduler *_cel_coroutinescheduler_get();
 static __inline 
 int cel_coroutinescheduler_running_id(CelCoroutineScheduler *schd)
 {
-    return schd->co_running->id;
+    return schd->coe_running->id;
 }
 static __inline 
 CelCoroutineEntity *cel_coroutinescheduler_running(CelCoroutineScheduler *schd)
 {
-    return (schd == NULL ? NULL : schd->co_running);
-}
-static __inline 
-BOOL cel_coroutinescheduler_readies_is_empty(CelCoroutineScheduler *schd)
-{
-    return cel_list_is_empty(&(schd->co_readies));
+    return (schd == NULL ? NULL : schd->coe_running);
 }
 static __inline 
 void cel_coroutinescheduler_readies_push(CelCoroutineScheduler *schd, 
                                          CelCoroutineEntity *co_entity)
 {
-    cel_list_push_front(&(schd->co_readies), &(co_entity->list_item));
+    cel_asyncqueue_push(&(schd->coe_readies), co_entity);
+}
+static __inline 
+CelCoroutineEntity *cel_coroutinescheduler_readies_try_pop(OsCoroutineScheduler *schd)
+{
+    return (OsCoroutineEntity *)cel_asyncqueue_try_pop(&(schd->coe_readies));
 }
 static __inline 
 CelCoroutineEntity *cel_coroutinescheduler_readies_pop(OsCoroutineScheduler *schd)
 {
-    return (OsCoroutineEntity *)cel_list_pop_back(&(schd->co_readies));
+    return (OsCoroutineEntity *)cel_asyncqueue_pop(&(schd->coe_readies));
 }
+
+#define cel_coroutineentity_resume os_coroutineentity_resume
+#define cel_coroutineentity_yeild os_coroutineentity_yeild
 
 static __inline 
 int cel_coroutine_create(CelCoroutine *co, 
@@ -85,7 +88,7 @@ int cel_coroutine_create(CelCoroutine *co,
         _cel_coroutinescheduler_get(), attr, func, user_data) == -1 ? -1 : 0);
 }
 
-#define cel_coroutineentity_get(co) (*co)
+#define cel_coroutine_get_entity(co) (*co)
 
 void cel_coroutine_resume(CelCoroutine *co);
 void cel_coroutine_yield(CelCoroutine *co);

@@ -17,17 +17,17 @@
 
 static OsServiceEntry sc_entry;
 
-BOOL os_service_is_running(TCHAR *name)
+BOOL os_service_is_running(const TCHAR *name)
 {
     return FALSE;
 }
 
-BOOL os_service_stop(TCHAR *name)
+BOOL os_service_stop(const TCHAR *name)
 {
     return FALSE;
 }
 
-BOOL os_service_reload(TCHAR *name)
+BOOL os_service_reload(const TCHAR *name)
 {
     return FALSE;
 }
@@ -75,10 +75,12 @@ void WINAPI ServiceStart(DWORD dwArgc, LPTSTR *lpArgv)
     SetServiceStatus(sc_entry.scStautsHandle, &(sc_entry.scStatus));
 }
 
-OsServiceEntry *os_service_entry_create(TCHAR *name, CelMainFunc on_start, 
+OsServiceEntry *os_service_entry_create(const TCHAR *name, 
+                                        CelMainFunc on_start, 
                                         CelVoidFunc on_stop)
 {
-    sc_entry.scEntry[0].lpServiceName = name;
+    _tcsncpy(sc_entry.service_name, name, CEL_SNLEN);
+    sc_entry.scEntry[0].lpServiceName = sc_entry.service_name;
     sc_entry.scEntry[0].lpServiceProc = ServiceStart;
     sc_entry.scEntry[1].lpServiceName = NULL;
     sc_entry.scEntry[1].lpServiceProc = NULL;

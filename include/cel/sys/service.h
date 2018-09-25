@@ -29,14 +29,14 @@ extern "C" {
 typedef OsServiceEntry CelServiceEntry;
 
 /* 
-CelServiceEntry *cel_service_entry_create(TCHAR *name, CelMainFunc on_start, 
+CelServiceEntry *cel_service_entry_create(const TCHAR *name, CelMainFunc on_start, 
                                           CelVoidFunc on_stop); 
 */
 #define cel_service_entry_create os_service_entry_create
 /* int cel_service_entry_dispatch(CelServiceEntry *sc_entry); */
 #define cel_service_entry_dispatch os_service_entry_dispatch
 
-/* BOOL cel_service_is_running(TCHAR *name); */
+/* BOOL cel_service_is_running(const TCHAR *name); */
 #define cel_service_is_running os_service_is_running
 #define cel_service_stop os_service_stop
 #define cel_service_reload os_service_reload

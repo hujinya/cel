@@ -47,5 +47,5 @@ int _tmain(int argc, TCHAR *argv[])
 {
     //_tscanf(_T("%s", ))
 
-    return tcplistener_test(argc, argv);
+    return log_test(argc, argv);
 }

@@ -73,8 +73,8 @@ int cel_eventloopgroup_init(CelEventLoopGroup *group,
         n_threads = n_cpus;
     if (n_threads > CEL_THDNUM)
         n_threads = n_threads / 2;
-    else if (n_threads < 2)
-        n_threads = 2;
+    else if (n_threads < 4)
+        n_threads = 4;
     if ((group->evt_loop_threads = (CelEventLoopThread *)
         cel_calloc(1, sizeof(CelEventLoopThread) * n_threads)) != NULL)
     {

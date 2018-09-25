@@ -41,7 +41,8 @@ typedef struct _OsServiceEntry
     CelVoidFunc on_stop;
 }OsServiceEntry;
 
-OsServiceEntry *os_service_entry_create(TCHAR *name, CelMainFunc on_start, 
+OsServiceEntry *os_service_entry_create(const TCHAR *name,
+                                        CelMainFunc on_start, 
                                         CelVoidFunc on_stop);
 
 int _os_service_entry_dispatch(OsServiceEntry *sc_entry, 
@@ -49,9 +50,9 @@ int _os_service_entry_dispatch(OsServiceEntry *sc_entry,
 #define os_service_entry_dispatch(sc_entry) \
     _os_service_entry_dispatch(sc_entry, argc, argv)
 
-BOOL os_service_is_running(TCHAR *name);
-BOOL os_service_stop(TCHAR *name);
-BOOL os_service_reload(TCHAR *name);
+BOOL os_service_is_running(const TCHAR *name);
+BOOL os_service_stop(const TCHAR *name);
+BOOL os_service_reload(const TCHAR *name);
 
 #ifdef __cplusplus
 }

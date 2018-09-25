@@ -203,7 +203,7 @@ int cel_poll_post(CelPoll *poll, int fileds, CelOverLapped *ol)
     int ret;
     CelPollData *poll_data;
 
-    if (fileds <=0 || fileds >= poll->max_fileds)
+    if (fileds <= 0 || fileds >= poll->max_fileds)
     {
         CEL_ERR((_T("Poll post %d failed."), fileds));
         return -1;

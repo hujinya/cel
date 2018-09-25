@@ -12,6 +12,9 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
  * GNU General Public License for more details.
  */
+
+/* github.com/xujiajun/gorouter */
+
 #include "cel/pattrie.h"
 #include "cel/allocator.h"
 #include "cel/error.h"
@@ -353,6 +356,13 @@ next_static_children:
             //}
             //else
             {
+                if (child->param_name[0] == '*')
+                {
+                    param_value = cel_strdup(key);
+                    cel_rbtree_insert(params, child->param_name, param_value);
+                    *value = child->value;
+                    return 0;
+                }
                 for(i = 0; i < (int)key_len; i++)
                 {
                     if (key[i] == '/')

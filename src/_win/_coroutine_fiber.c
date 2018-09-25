@@ -16,39 +16,44 @@
 #include "cel/allocator.h"
 #ifdef _CEL_WIN
 
-static void _coroutineentity_free(OsCoroutineEntity *coe)
+static void _coroutineentityitem_free(OsCoroutineEntityItem *coe_item)
 {
     // If the currently running fiber calls DeleteFiber, 
     // its thread calls ExitThread and terminates.  
     // However, if a currently running fiber is deleted by another fiber,
     // the thread running the   
     // deleted fiber is likely to terminate abnormally 
-    // because the fiber stack has been freed.  
-    DeleteFiber(coe->ctx);
-    cel_free(coe);
+    // because the fiber stack has been freed.
+    //puts("_coroutineentityitem_free");
+    DeleteFiber(coe_item->coe.ctx);
+    cel_free(coe_item);
 }
 
 void __stdcall _os_coroutineentity_main(OsCoroutineScheduler *schd)
 {
-    OsCoroutineEntity *coe = schd->co_running;
+    OsCoroutineEntity *coe = schd->coe_running;
+    OsCoroutineEntityItem *coe_item = 
+        (OsCoroutineEntityItem *)((char *)coe - sizeof(CelListItem));
 
     //_tprintf(_T("co %d enter.\r\n"), coe->id);
     (coe->func)(coe->user_data);
     //_tprintf(_T("co %d exit.\r\n"), coe->id);
-    schd->co_running = NULL;
-    cel_list_remove(&(schd->coes), &(coe->list_item));
-    //_coroutineentity_free(coe);
-    //coe->status = CEL_COROUTINE_DEAD;
+    schd->coe_running = NULL;
+    cel_list_remove(&(schd->coe_items), (CelListItem *)coe_item);
+    coe->status = CEL_COROUTINE_DEAD;
+    //_coroutineentityitem_free(coe_item);
     SwitchToFiber(schd->main_ctx);
 }
 
-OsCoroutineEntity *_coroutineentity_new(OsCoroutineScheduler *schd, 
-                                        OsCoroutineFunc func, void *user_data) 
+OsCoroutineEntityItem *_coroutineentityitem_new(OsCoroutineScheduler *schd, 
+                                                OsCoroutineFunc func, void *user_data) 
 {
+    OsCoroutineEntityItem *coe_item;
     OsCoroutineEntity *coe;
 
-    if ((coe = cel_malloc(sizeof(OsCoroutineEntity))) != NULL)
+    if ((coe_item = cel_malloc(sizeof(OsCoroutineEntityItem))) != NULL)
     {
+        coe = &(coe_item->coe);
         coe->schd = schd;
         coe->status = CEL_COROUTINE_READY;
         coe->func = func;
@@ -57,7 +62,7 @@ OsCoroutineEntity *_coroutineentity_new(OsCoroutineScheduler *schd,
             FIBER_FLAG_FLOAT_SWITCH, _os_coroutineentity_main, schd);
         coe->id = -1;
         coe->status = CEL_COROUTINE_READY;
-        return coe;
+        return coe_item;
     }
     return NULL;
 }
@@ -68,13 +73,12 @@ OsCoroutineScheduler *os_coroutinescheduler_new()
 
     if ((schd = cel_malloc(sizeof(OsCoroutineScheduler))) != NULL)
     {
-        schd->co_running = NULL;
-        schd->co_id = 0;
+        schd->coe_running = NULL;
+        schd->coe_id = 0;
         schd->main_ctx = 
             ConvertThreadToFiberEx(NULL, FIBER_FLAG_FLOAT_SWITCH);
-        cel_list_init(&(schd->coes), _coroutineentity_free);
-        cel_list_init(&(schd->co_readies), NULL);
-        cel_spinlock_init(&(schd->lock), 0);
+        cel_list_init(&(schd->coe_items), _coroutineentityitem_free);
+        cel_asyncqueue_init(&(schd->coe_readies), NULL);
         
         return schd;
     }
@@ -83,8 +87,8 @@ OsCoroutineScheduler *os_coroutinescheduler_new()
 
 void os_coroutinescheduler_free(OsCoroutineScheduler *schd)
 {
-    cel_list_destroy(&(schd->co_readies));
-    cel_list_destroy(&(schd->coes));
+    cel_asyncqueue_destroy(&(schd->coe_readies));
+    cel_list_destroy(&(schd->coe_items));
     cel_free(schd);
 }
 
@@ -93,10 +97,13 @@ int os_coroutineentity_create(OsCoroutineEntity **coe,
                               OsCoroutineAttr *attr,
                               OsCoroutineFunc func, void *user_data)
 {
-    if ((*coe = _coroutineentity_new(schd, func, user_data)) != NULL)
+    OsCoroutineEntityItem *coe_item;
+
+    if ((coe_item = _coroutineentityitem_new(schd, func, user_data)) != NULL)
     {
-        cel_list_push_back(&(schd->coes), &((*coe)->list_item));
-        (*coe)->id = (int)cel_atomic_increment(&(schd->co_id), 1);
+        cel_list_push_back(&(schd->coe_items), (CelListItem *)coe_item);
+        (*coe) = &(coe_item->coe);
+        (*coe)->id = (int)cel_atomic_increment(&(schd->coe_id), 1);
         return (*coe)->id;
     }
     return -1;
@@ -105,16 +112,21 @@ int os_coroutineentity_create(OsCoroutineEntity **coe,
 void os_coroutineentity_resume(OsCoroutineEntity *coe)
 {
     OsCoroutineScheduler *schd = coe->schd;
+    OsCoroutineEntityItem *coe_item;
 
     switch (coe->status)
     {  
     case CEL_COROUTINE_READY:
     case CEL_COROUTINE_SUSPEND:
         coe->status = CEL_COROUTINE_RUNNING;
-        schd->co_running = coe;
+        schd->coe_running = coe;
         SwitchToFiber(coe->ctx);
-        /*if (schd->coes[coe->id] == NULL)
-            _coroutineentity_free(coe);*/
+        if (coe->status == CEL_COROUTINE_DEAD)
+        {
+            coe_item =
+                (OsCoroutineEntityItem *)((char *)coe - sizeof(CelListItem));
+            _coroutineentityitem_free(coe_item);
+        }
         break;
     default:
         //assert(0);
@@ -128,7 +140,7 @@ void os_coroutineentity_yield(OsCoroutineEntity *old_coe,
     OsCoroutineScheduler *schd = old_coe->schd;
 
     old_coe->status = CEL_COROUTINE_SUSPEND;
-    schd->co_running = NULL;
+    schd->coe_running = NULL;
     if (new_coe == NULL)
         SwitchToFiber(schd->main_ctx);
     else

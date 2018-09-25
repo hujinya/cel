@@ -70,12 +70,14 @@ void cel_ringlist_clear(CelRingList *ring_list)
 
 static __inline 
 void cel_ringlist_push_values(CelRingList *ring_list, 
-                              unsigned long prod_head, size_t n, void **values)
+                              unsigned long prod_head, 
+                              void **values, size_t n, void *user_data)
 { 
     unsigned int i, idx;
+    U32 size = ring_list->size;
 
     idx = (prod_head & (ring_list->mask));
-    if (idx + n < ring_list->size)
+    if (idx + n < size)
     { 
         for (i = 0; i < (n & ((~(unsigned)0x3))); i += 4, idx += 4)
         { 
@@ -86,22 +88,26 @@ void cel_ringlist_push_values(CelRingList *ring_list,
         } 
         switch (n & 0x3) 
         { 
-        case 3: ring_list->ring[idx++] = values[i++];
-        case 2: ring_list->ring[idx++] = values[i++];
-        case 1: ring_list->ring[idx++] = values[i++];
+        case 3: 
+            ring_list->ring[idx++] = values[i++];
+        case 2: 
+            ring_list->ring[idx++] = values[i++];
+        case 1: 
+            ring_list->ring[idx++] = values[i++];
         } 
     }
     else 
     { 
-        for (i = 0; idx < ring_list->size; i++, idx++)
+        for (i = 0; idx < size; i++, idx++)
             ring_list->ring[idx] = values[i]; 
         for (idx = 0; i < n; i++, idx++) 
             ring_list->ring[idx] = values[i]; 
     } 
 }
 
-int _cel_ringlist_push_do(CelRingList *ring_list, BOOL is_sp, size_t n,
-                          CelRingListConsFunc handle, void *user_data)
+int _cel_ringlist_push_do(CelRingList *ring_list, BOOL is_sp, 
+                          void **values, size_t n, 
+                          CelRingListProdFunc handle, void *user_data)
 {
     U32 prod_head, prod_next;
     U32 cons_tail, free_entries;
@@ -120,7 +126,7 @@ int _cel_ringlist_push_do(CelRingList *ring_list, BOOL is_sp, size_t n,
         /* Reset n to the initial burst count */
         prod_head = ring_list->p_head;
         cons_tail = ring_list->c_tail;
-        free_entries = (mask + cons_tail - prod_head);
+        free_entries = (mask + 1 + cons_tail - prod_head);
         //printf("cons_tail = %d, prod_head = %d\r\n", cons_tail, prod_head);
         /* check that we have enough room in ring */
         if (n > free_entries)
@@ -139,9 +145,9 @@ int _cel_ringlist_push_do(CelRingList *ring_list, BOOL is_sp, size_t n,
         &(ring_list->p_head), prod_head, prod_next, 0) != prod_head);
     /* write entries in ring */
     if (handle == NULL)
-        cel_ringlist_push_values(ring_list, prod_head, n, user_data);
+        cel_ringlist_push_values(ring_list, prod_head, values, n, user_data);
     else
-        handle(ring_list, prod_head, n, user_data);
+        handle(ring_list, prod_head, values, n, user_data);
     cel_compiler_barrier();
     if (!is_sp)
     {
@@ -165,7 +171,8 @@ int _cel_ringlist_push_do(CelRingList *ring_list, BOOL is_sp, size_t n,
 
 static __inline 
 void cel_ringlist_pop_values(CelRingList *ring_list, 
-                             unsigned long cons_head, size_t n, void **values)
+                             unsigned long cons_head, 
+                             void **values, size_t n, void *user_data)
 {
     unsigned int i, idx;
 
@@ -181,9 +188,12 @@ void cel_ringlist_pop_values(CelRingList *ring_list,
         }
         switch (n & 0x3) 
         {
-        case 3: values[i++] = ring_list->ring[idx++];
-        case 2: values[i++] = ring_list->ring[idx++];
-        case 1: values[i++] = ring_list->ring[idx++];
+        case 3: 
+            values[i++] = ring_list->ring[idx++];
+        case 2: 
+            values[i++] = ring_list->ring[idx++];
+        case 1: 
+            values[i++] = ring_list->ring[idx++];
         }
     } 
     else 
@@ -195,8 +205,9 @@ void cel_ringlist_pop_values(CelRingList *ring_list,
     }
 }
 
-int _cel_ringlist_pop_do(CelRingList *ring_list, BOOL is_sp, size_t n, 
-                         CelRingListProdFunc handle, void *user_data)
+int _cel_ringlist_pop_do(CelRingList *ring_list, BOOL is_sp,
+                         void **values, size_t n, 
+                         CelRingListConsFunc handle, void *user_data)
 {
     U32 cons_head, prod_tail;
     U32 cons_next, entries;
@@ -239,9 +250,9 @@ int _cel_ringlist_pop_do(CelRingList *ring_list, BOOL is_sp, size_t n,
         &(ring_list->c_head), cons_head, cons_next, 0) != cons_head);
     /* copy in table */
     if (handle == NULL)
-        cel_ringlist_pop_values(ring_list, cons_head, n, user_data);
+        cel_ringlist_pop_values(ring_list, cons_head, values, n, user_data);
     else
-        handle(ring_list, cons_head, n, user_data);
+        handle(ring_list, cons_head, values, n, user_data);
     cel_compiler_barrier();
     /*
     * If there are other dequeues in progress that preceded us,

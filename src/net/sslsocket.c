@@ -188,8 +188,7 @@ int cel_sslsocket_send_bio_mem(CelSslSocket *ssl_sock)
     {
         ssl_sock->out.sock_buf.buf = 
             cel_bio_mem_get_read_pointer(ssl_sock->w_bio);
-        ssl_sock->out.sock_buf.len = 
-            cel_bio_mem_get_length(ssl_sock->w_bio);
+        ssl_sock->out.sock_buf.len = cel_bio_mem_get_length(ssl_sock->w_bio);
         if ((_size = cel_socket_send(&(ssl_sock->sock), 
             &(ssl_sock->out.sock_buf), 1)) <= 0)
             return -1;
@@ -302,21 +301,20 @@ void cel_sslsocket_do_handshake(CelSocket *sock,
         ssl_sock->sock.fd, result->ret, result->error);*/
     if (result->ret <= 0)
     {
-        CEL_ERR((_T("result %ld, error %d,fd %d, result = %ld error = %d"), 
-            args->result.ret, args->result.error, ssl_sock->sock.fd,
+        CEL_ERR((_T("cel_sslsocket_do_handshake failed, result = %ld error = %d"), 
             result->ret, result->error);
         args->result.ret = result->ret;
         args->result.error = result->error;
         args->handshake_callback(ssl_sock, &(args->result)));
         return ;
     }
-    if (args->x == SSL_ERROR_WANT_READ)
+    if (args->want == SSL_ERROR_WANT_READ)
     {
         cel_bio_mem_write_seek(ssl_sock->r_bio, result->ret);
         if (cel_bio_mem_get_remaining(ssl_sock->r_bio) == 0)
             cel_bio_mem_grow(ssl_sock->r_bio);
     }
-    else if (args->x == SSL_ERROR_WANT_WRITE)
+    else if (args->want == SSL_ERROR_WANT_WRITE)
     {
         cel_bio_mem_read_seek(ssl_sock->w_bio, result->ret);
     }
@@ -330,7 +328,7 @@ void cel_sslsocket_do_handshake(CelSocket *sock,
         {
             if (cel_bio_mem_get_length(ssl_sock->w_bio) > 0)
             {
-                args->x = SSL_ERROR_WANT_WRITE;
+                args->want = SSL_ERROR_WANT_WRITE;
                 if (cel_sslsocket_post_send(
                     ssl_sock, cel_sslsocket_do_handshake) != -1)
                     return ;
@@ -338,7 +336,7 @@ void cel_sslsocket_do_handshake(CelSocket *sock,
             }
             else if ((args->result.error == SSL_ERROR_WANT_READ))
             {
-                args->x = SSL_ERROR_WANT_READ;
+                args->want = SSL_ERROR_WANT_READ;
                 if (cel_sslsocket_post_recv(
                     ssl_sock, cel_sslsocket_do_handshake) != -1)
                     return ;
@@ -356,7 +354,7 @@ void cel_sslsocket_do_handshake(CelSocket *sock,
     {
         if (cel_bio_mem_get_length(ssl_sock->w_bio) > 0)
         {
-            args->x = SSL_ERROR_WANT_WRITE;
+            args->want = SSL_ERROR_WANT_WRITE;
             if (cel_sslsocket_post_send(
                 ssl_sock, cel_sslsocket_do_handshake) != -1)
                 return ;
@@ -454,13 +452,13 @@ int cel_sslsocket_async_handshake(CelSslSocket *ssl_sock,
         {
             if (cel_bio_mem_get_length(ssl_sock->w_bio) > 0)
             {
-                args->x = SSL_ERROR_WANT_WRITE;
+                args->want = SSL_ERROR_WANT_WRITE;
                 return cel_sslsocket_post_send(ssl_sock,
                     cel_sslsocket_do_handshake);
             }
             else if ((args->result.error == SSL_ERROR_WANT_READ))
             {
-                args->x = SSL_ERROR_WANT_READ;
+                args->want = SSL_ERROR_WANT_READ;
                 return cel_sslsocket_post_recv(
                     ssl_sock, cel_sslsocket_do_handshake);
             }
@@ -473,7 +471,7 @@ int cel_sslsocket_async_handshake(CelSslSocket *ssl_sock,
     {
         if (cel_bio_mem_get_length(ssl_sock->w_bio) > 0)
         {
-            args->x = SSL_ERROR_WANT_WRITE;
+            args->want = SSL_ERROR_WANT_WRITE;
             return cel_sslsocket_post_send(
                 ssl_sock, cel_sslsocket_do_handshake);
         }

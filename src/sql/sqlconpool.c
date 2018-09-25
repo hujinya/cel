@@ -14,6 +14,7 @@
  */
 #include "cel/sql/sqlconpool.h"
 #include "cel/error.h"
+//#define _CEl_DEBUG
 #include "cel/log.h"
 #include "cel/allocator.h"
 
@@ -89,10 +90,17 @@ void cel_sqlconpool_free(CelSqlConPool *pool)
 
 CelSqlCon *cel_sqlconpool_get(CelSqlConPool *pool)
 {
-    CelSqlCon *con;
+    CelSqlCon *con = NULL;
 
+    /*
+    printf(" cel_sqlconpool_get count %d min %d total %d\r\n", 
+        cel_ringlist_get_count(&(pool->frees)), pool->min, pool->n_conns);
+        */
     if (cel_ringlist_pop_do_mp(&(pool->frees), &con, 1) == 1)
+    {
+        CEL_DEBUG((_T("cel_sqlconpool_get %p"), con));
         return con;
+    }
     if (pool->n_conns < pool->max)
     {
         if ((con = cel_sqlcon_new(pool->type, 
@@ -108,10 +116,16 @@ CelSqlCon *cel_sqlconpool_get(CelSqlConPool *pool)
 
 void cel_sqlconpool_return(CelSqlConPool *pool, CelSqlCon *con)
 {
-    if (cel_ringlist_get_used(&(pool->frees)) > pool->min)
+    /*
+    printf(" cel_sqlconpool_return count %d min %d total %d\r\n", 
+    cel_ringlist_get_count(&(pool->frees)), pool->min, pool->n_conns);
+    */
+    CEL_DEBUG((_T("cel_sqlconpool_return %p"), con));
+    if (cel_ringlist_get_count(&(pool->frees)) > pool->min)
     {
         cel_sqlcon_free(con);
         cel_atomic_increment(&(pool->n_conns), -1);
+        return ;
     }
     cel_ringlist_push_do_mp(&(pool->frees), con, 1);
 }

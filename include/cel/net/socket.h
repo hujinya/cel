@@ -50,8 +50,9 @@ typedef struct _CelSocketAsyncAcceptArgs
     CelSocket *socket;
     CelSocket *accept_socket;
     char addr_buf[ACCEPTEX_RECEIVEDATA_OFFSET];
-    CelCoroutine *co;
+    CelAsyncResult result;
     CelSocketAcceptCallbackFunc async_callback;
+    CelCoroutine *co;
 }CelSocketAsyncAcceptArgs;
 
 typedef struct _CelSocketAsyncConnectArgs
@@ -65,7 +66,9 @@ typedef struct _CelSocketAsyncConnectArgs
             TCHAR service[CEL_NPLEN];
         };
     };
+    CelAsyncResult result;
     CelSocketConnectCallbackFunc async_callback;
+    CelCoroutine *co;
 }CelSocketAsyncConnectArgs;
 
 typedef struct _CelSocketAsyncSendArgs
@@ -74,7 +77,9 @@ typedef struct _CelSocketAsyncSendArgs
     CelSocket *socket;
     CelAsyncBuf *buffers;
     int buffer_count;
+    CelAsyncResult result;
     CelSocketRecvCallbackFunc async_callback;
+    CelCoroutine *co;
 }CelSocketAsyncSendArgs, CelSocketAsyncRecvArgs;
 
 typedef struct _CelSocketAsyncSendToArgs
@@ -84,7 +89,9 @@ typedef struct _CelSocketAsyncSendToArgs
     CelAsyncBuf *buffers;
     int buffer_count;
     CelSockAddr *addr;
+    CelAsyncResult result;
     CelSocketRecvFromCallbackFunc async_callback;
+    CelCoroutine *co;
 }CelSocketAsyncSendToArgs, CelSocketAsyncRecvFromArgs;
 
 typedef struct _CelSocketAsyncSendFileArgs
@@ -98,7 +105,9 @@ typedef struct _CelSocketAsyncSendFileArgs
     unsigned long long offset;
 #endif
     unsigned long count;
+    CelAsyncResult result;
     CelSocketSendFileCallbackFunc async_callback;
+    CelCoroutine *co;
 }CelSocketAsyncSendFileArgs;
 
 typedef union _CelSocketAsyncArgs

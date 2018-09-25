@@ -40,25 +40,27 @@ CelCoroutineScheduler *_cel_coroutinescheduler_get()
 void cel_coroutine_resume(CelCoroutine *co)
 {
     CelCoroutineScheduler *schd = (*co)->schd;
-    if (schd == _cel_coroutinescheduler_get())
+
+    if (schd == _cel_coroutinescheduler_get()
+        && *co != cel_coroutine_self())
     {
         os_coroutineentity_resume(*co);
         return ;
     }
-    cel_spinlock_lock(&(schd->lock));
     cel_coroutinescheduler_readies_push(schd, *co);
-    cel_spinlock_unlock(&(schd->lock));
 }
 
 void cel_coroutine_yield(CelCoroutine *co)
 {
     CelCoroutineScheduler *schd = (*co)->schd;
-    OsCoroutineEntity *new_coe = NULL;
+    OsCoroutineEntity *new_coe;
 
-    cel_spinlock_lock(&(schd->lock));
-    if (cel_coroutinescheduler_readies_is_empty(schd) > 0)
-        new_coe = (OsCoroutineEntity *)
-        cel_coroutinescheduler_readies_pop(schd);
-    cel_spinlock_unlock(&(schd->lock));
-    os_coroutineentity_yield(*co, new_coe);
+    while ((new_coe = (OsCoroutineEntity *)
+        cel_coroutinescheduler_readies_try_pop(schd)) != NULL)
+    {
+        if (*co == new_coe)
+            return;
+        os_coroutineentity_yield(*co, new_coe);
+    }
+    os_coroutineentity_yield(*co, NULL);
 }

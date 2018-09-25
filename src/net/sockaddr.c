@@ -282,17 +282,27 @@ void cel_sockaddr_free(CelSockAddr *addr)
     cel_free(addr);
 }
 
-const TCHAR *cel_sockaddr_get_ipstr(CelSockAddr *addr)
+const TCHAR *cel_sockaddr_get_ipstr_r(CelSockAddr *addr, 
+                                      TCHAR *buf, size_t size)
 {
+    static volatile int i = 0;
+    static TCHAR s_buf[CEL_BUFNUM][CEL_IP6STRLEN] = { {_T('\0')}, {_T('\0')} };
+
+    if (buf == NULL)
+    {
+        buf = s_buf[((++i) % (int)CEL_BUFNUM)];
+        size = CEL_IP6STRLEN;
+    }
+
     switch (addr->sa_family)
     {
     case AF_INET:
-        return cel_ipaddr_ntop(&(addr->addr_in.sin_addr));
+        return cel_ipaddr_ntop_r(&(addr->addr_in.sin_addr), buf, size);
     case AF_INET6:
-        return cel_ip6addr_ntop(&(addr->addr_in6.sin6_addr));
+        return cel_ip6addr_ntop_r(&(addr->addr_in6.sin6_addr), buf, size);
 #ifdef _CEL_UNIX
     case AF_UNIX:
-        return addr->addr_un.sun_path;
+        return strncpy(buf, addr->addr_un.sun_path, size);
 #endif
     default:
         CEL_ERR((_T("Socket address family \"%d\" undefined¡£"), 

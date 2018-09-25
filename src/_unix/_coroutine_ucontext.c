@@ -18,14 +18,17 @@
 #include "cel/log.h"
 #ifdef _CEL_UNIX
 
-OsCoroutineEntity *_coroutineentity_new(OsCoroutineScheduler *schd, 
-                                        OsCoroutineFunc func, void *user_data)
+OsCoroutineEntityItem *_coroutineentityitem_new(OsCoroutineScheduler *schd,
+                                                OsCoroutineFunc func,
+                                                void *user_data)
 {
+    OsCoroutineEntityItem *coe_item;
     OsCoroutineEntity *coe;
 
-    if ((coe = (OsCoroutineEntity *)
-        cel_malloc(sizeof(OsCoroutineEntity))) != NULL)
+    if ((coe_item = (OsCoroutineEntityItem *)
+        cel_malloc(sizeof(OsCoroutineEntityItem))) != NULL)
     {
+        coe = &(coe_item->coe);
         coe->id = 0;
         coe->func = func;
         coe->user_data = user_data;
@@ -34,15 +37,17 @@ OsCoroutineEntity *_coroutineentity_new(OsCoroutineScheduler *schd,
         coe->private_stack_capacity = 0;
         coe->private_stack_size = 0;
         coe->private_stack = NULL;
-        return coe;
+        return coe_item;
     }
     return NULL;
 }
 
-void _coroutineentity_free(OsCoroutineEntity *coe) 
+void _coroutineentityitem_free(OsCoroutineEntityItem *coe_item) 
 {
-    cel_free(coe->private_stack);
-    cel_free(coe);
+    //_tprintf(_T("co %d free.\r\n"), coe_item->coe.id);
+    if (coe_item->coe.private_stack != NULL)
+        cel_free(coe_item->coe.private_stack);
+    cel_free(coe_item);
 }
 
 OsCoroutineScheduler *os_coroutinescheduler_new(void) 
@@ -52,11 +57,11 @@ OsCoroutineScheduler *os_coroutinescheduler_new(void)
     if ((schd = (OsCoroutineScheduler *)
         cel_malloc(sizeof(OsCoroutineScheduler))) != NULL)
     {
-        schd->co_running = NULL;
-        schd->co_id = 0;
-        cel_list_init(&(schd->coes), NULL);
-        cel_list_init(&(schd->co_readies), NULL);
-        cel_spinlock_init(&(schd->lock), 0);
+        schd->coe_running = NULL;
+        schd->coe_id = 0;
+        cel_list_init(&(schd->coe_items), 
+            (CelFreeFunc)_coroutineentityitem_free);
+        cel_asyncqueue_init(&(schd->coe_readies), NULL);
         return schd;
     }
     return NULL;
@@ -64,8 +69,8 @@ OsCoroutineScheduler *os_coroutinescheduler_new(void)
 
 void os_coroutinescheduler_free(OsCoroutineScheduler *schd) 
 {
-    cel_list_destroy(&(schd->co_readies));
-    cel_list_destroy(&(schd->coes));
+    cel_asyncqueue_destroy(&(schd->coe_readies));
+    cel_list_destroy(&(schd->coe_items));
     cel_free(schd);
 }
 
@@ -74,10 +79,13 @@ int os_coroutineentity_create(OsCoroutineEntity **coe,
                               OsCoroutineAttr *attr,
                               OsCoroutineFunc func, void *user_data)
 {
-    if ((*coe = _coroutineentity_new(schd, func, user_data)) != NULL)
+    OsCoroutineEntityItem *coe_item;
+
+    if ((coe_item = _coroutineentityitem_new(schd, func, user_data)) != NULL)
     {
-        cel_list_push_back(&(schd->coes), &((*coe)->list_item));
-        (*coe)->id = cel_atomic_increment(&(schd->co_id), 1);
+        cel_list_push_back(&(schd->coe_items), (CelListItem *)coe_item);
+        (*coe) = &(coe_item->coe);
+        (*coe)->id = cel_atomic_increment(&(schd->coe_id), 1);
         return (*coe)->id;
     }
     return -1;
@@ -87,13 +95,16 @@ static void main_ctxfunc(uint32_t low32, uint32_t hi32)
 {
     uintptr_t ptr = (uintptr_t)low32 | ((uintptr_t)hi32 << 32);
     OsCoroutineScheduler *schd = (OsCoroutineScheduler *)ptr;
-    OsCoroutineEntity *coe = schd->co_running;
+    OsCoroutineEntity *coe = schd->coe_running;
+    OsCoroutineEntityItem *coe_item = 
+        (OsCoroutineEntityItem *)((char *)coe - sizeof(CelListItem));
 
     //_tprintf(_T("co %d enter.\r\n"), coe->id);
     coe->func(coe->user_data);
     //_tprintf(_T("co %d exit.\r\n"), coe->id);
-    cel_list_remove(&(schd->coes), &(coe->list_item));
-    schd->co_running = NULL;
+    cel_list_remove(&(schd->coe_items), (CelListItem *)coe_item);
+    _coroutineentityitem_free(coe_item);
+    schd->coe_running = NULL;
 }
 
 void os_coroutineentity_resume(OsCoroutineEntity *coe)
@@ -109,7 +120,7 @@ void os_coroutineentity_resume(OsCoroutineEntity *coe)
         coe->ctx.uc_stack.ss_sp = schd->stack[coe->id % 128];
         coe->ctx.uc_stack.ss_size = CEL_COROUTINE_STACK_SIZE;
         coe->ctx.uc_link = &schd->main_ctx;
-        schd->co_running = coe;
+        schd->coe_running = coe;
         coe->status = CEL_COROUTINE_RUNNING;
         ptr = (uintptr_t)schd;
         makecontext(&coe->ctx, (void (*)(void))main_ctxfunc, 
@@ -121,7 +132,7 @@ void os_coroutineentity_resume(OsCoroutineEntity *coe)
         + CEL_COROUTINE_STACK_SIZE - coe->private_stack_size, 
             coe->private_stack, coe->private_stack_size);
         //_tprintf(_T("co pop stack size %ld\r\n"), coe->private_stack_size);
-        schd->co_running = coe;
+        schd->coe_running = coe;
         coe->status = CEL_COROUTINE_RUNNING;
         swapcontext(&schd->main_ctx, &coe->ctx);
         break;
@@ -155,7 +166,7 @@ void os_coroutineentity_yield(OsCoroutineEntity *old_coe,
     _coroutineentity_save_stack(old_coe, 
         old_coe->ctx.uc_stack.ss_sp + CEL_COROUTINE_STACK_SIZE);
     old_coe->status = CEL_COROUTINE_SUSPEND;
-    schd->co_running = NULL;
+    schd->coe_running = NULL;
     if (new_coe == NULL)
         swapcontext(&old_coe->ctx , &schd->main_ctx);
     else

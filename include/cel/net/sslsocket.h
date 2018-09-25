@@ -38,7 +38,7 @@ typedef void (*CelSslSocketRecvCallbackFunc)(
 
 typedef struct _CelSslAsyncArgs
 {
-    int x;
+    int want;
     CelAsyncBuf sock_buf;
     CelAsyncBuf *ssl_buf;
     CelAsyncResult result;

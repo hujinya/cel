@@ -19,7 +19,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.[proto-quic-master\src\base\guid.cc]
 
-BOOL cel_guid_isvalid_internal(const char *guid, BOOL strict) 
+BOOL cel_guid_isvalid_internal(const char *guid, BOOL strict)
 {
     const size_t kGUIDLength = 36U;
     size_t i, len;

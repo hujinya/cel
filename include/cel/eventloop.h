@@ -18,6 +18,7 @@
 #include "cel/types.h"
 #include "cel/atomic.h"
 #include "cel/timerqueue.h"
+#include "cel/asyncqueue.h"
 #include "cel/poll.h"
 
 #ifdef __cplusplus
@@ -26,9 +27,10 @@ extern "C" {
 
 typedef void (* CelEventRoutine) (void *evt_data);
 
-//#define CEL_EVENT_TIEMR       0x01
-//#define CEL_EVNET_CHANNEL_IN  0x11
-//#define CEL_EVENT_CHANNEL_OUT 0x12
+//#define CEL_EVENT_TIEMR            0x01
+//#define CEL_EVNET_CHANNEL_IN       0x11
+//#define CEL_EVENT_CHANNEL_OUT      0x12
+//#define CEL_EVENT_COROUTINE_RESUME 0x21
 #define CEL_EVENT_QUEUED   0x8D
 #define CEL_EVENT_WAKEUP   0x8E
 #define CEL_EVENT_EXIT     0x8F
@@ -45,6 +47,7 @@ typedef union _CelEventCtlBlock
     BYTE evt_type;
     CelTimer timer;
     CelOverLapped ol;
+    CelCoroutineEntity coe;
     CelQueuedEvent queued;
 }CelEventCtlBlock;
 

@@ -13,10 +13,10 @@
  * GNU General Public License for more details.
  */
 #include "cel/net/httpweblistener.h"
+//#define _CEL_DEBUG
 #include "cel/log.h"
 #include "cel/error.h"
 #include "cel/allocator.h"
-
 
 int cel_httpweblistener_accept(CelHttpWebListener *listener,
                                CelHttpWebClient *client);
@@ -89,15 +89,15 @@ static void cel_httpweblistener_do_accept(CelHttpWebListener *listener,
     {
         if (listener->is_run_group)
         {
-            if (cel_eventloopgroup_add_channel(listener->evt_loop_group, -1, 
+            if (cel_eventloopgroup_add_channel(listener->evt_loop_group, -1,
                 cel_httpwebclient_get_channel(new_client), NULL) == 0)
             {
                 CEL_DEBUG((_T("Http web client %s connected."), 
                     cel_httpwebclient_get_remoteaddr_str(new_client)));
-                if (cel_httpclient_async_handshake(&(new_client->http_client), 
+                if (cel_httpclient_async_handshake(&(new_client->http_client),
                     (CelHttpHandshakeCallbackFunc)
                     cel_httpweblistener_do_handshake) != -1)
-                return ;
+                    return ;
             }
         }
         else 
@@ -130,7 +130,7 @@ int cel_httpweblistener_post_accept(CelHttpWebListener *listener)
         cel_calloc(1, sizeof(CelHttpWebListenerAsyncArgs))) == NULL)
         return -1;
     args = listener->async_args;
-    return cel_httplistener_async_accept(&(listener->http_listener), 
+    return cel_httplistener_async_accept(&(listener->http_listener),
         &(args->client), 
         (CelHttpAcceptCallbackFunc)cel_httpweblistener_do_accept);
 }

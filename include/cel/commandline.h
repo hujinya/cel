@@ -34,9 +34,9 @@ typedef struct _CelArgumentsTableEntry
 
 typedef struct _CelCommandTableEntry
 {
-    TCHAR *key;
-    TCHAR *full_key;
-    TCHAR *help;
+    const TCHAR *key;
+    const TCHAR *full_key;
+    const TCHAR *help;
     CelMainFunc proc;
     TCHAR *args[CEL_ARGVNUM];
     //CelCommandArgEnty args[CEL_ARGVNUM];

@@ -66,7 +66,9 @@ CelSockAddr *cel_sockaddr_new_str(const TCHAR *str);
 void cel_sockaddr_free(CelSockAddr *addr);
 
 TCHAR *cel_sockaddr_get_addrs_r(CelSockAddr *addr, TCHAR *buf, size_t size);
-const TCHAR *cel_sockaddr_get_ipstr(CelSockAddr *addr);
+const TCHAR *cel_sockaddr_get_ipstr_r(CelSockAddr *addr, 
+                                      TCHAR *buf, size_t size);
+#define cel_sockaddr_get_ipstr(addr) cel_sockaddr_get_ipstr_r(addr, NULL, 0)
 /* unsigned short cel_sockaddr_get_port(CelSockAddr *addr); */
 #define cel_sockaddr_get_port(addr) ntohs((addr)->addr_in.sin_port)
 /* size_t cel_sockaddr_get_len(CelSockAddr *addr) */

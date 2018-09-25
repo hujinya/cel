@@ -19,6 +19,7 @@
 #include "cel/atomic.h"
 #include "cel/list.h"
 #include "cel/thread.h"
+#include "cel/asyncqueue.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -29,11 +30,10 @@ typedef struct _OsCoroutineEntity OsCoroutineEntity;
 typedef struct _OsCoroutineScheduler
 {
     LPVOID main_ctx;
-    OsCoroutineEntity *co_running;
-    CelAtomic co_id;
-    CelList coes;
-    CelList co_readies;
-    CelSpinLock lock;
+    OsCoroutineEntity *coe_running;
+    CelAtomic coe_id;
+    CelList coe_items;
+    CelAsyncQueue coe_readies;
 }OsCoroutineScheduler;
 
 typedef struct _OsCoroutineAttr
@@ -43,20 +43,20 @@ typedef struct _OsCoroutineAttr
 
 struct _OsCoroutineEntity
 {  
-    union {
-        CelListItem list_item;
-        struct {
-            struct _OsCoroutineEntity *next, *prev;
-        };
-    };
+    int evt_type;
     int id;
     OsCoroutineFunc func;
     void *user_data;
     OsCoroutineScheduler *schd;
     CelCoroutineStatus status;
     LPVOID ctx;
-    
 };
+
+typedef struct _OsCoroutineEntityItem
+{
+    CelListItem item;
+    OsCoroutineEntity coe;
+}OsCoroutineEntityItem;
 
 OsCoroutineScheduler *os_coroutinescheduler_new(void);
 void os_coroutinescheduler_free(OsCoroutineScheduler *schd);

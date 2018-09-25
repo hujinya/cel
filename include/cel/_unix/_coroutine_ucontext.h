@@ -19,6 +19,7 @@
 #include "cel/atomic.h"
 #include "cel/list.h"
 #include "cel/thread.h"
+#include "cel/asyncqueue.h"
 #include <stddef.h> /* ptrdiff_t */
 #if __APPLE__ && __MACH__
 #include <sys/ucontext.h>
@@ -36,11 +37,10 @@ typedef struct _OsCoroutineScheduler
 {
     char stack[CEL_COROUTINE_GROUP_SIZE][CEL_COROUTINE_STACK_SIZE];
     ucontext_t main_ctx;
-    OsCoroutineEntity *co_running;
-    CelAtomic co_id;
-    CelList coes;
-    CelList co_readies;
-    CelSpinLock lock;
+    OsCoroutineEntity *coe_running;
+    CelAtomic coe_id;
+    CelList coe_items;
+    CelAsyncQueue coe_readies;
 }OsCoroutineScheduler;
 
 typedef struct _OsCoroutineAttr
@@ -50,12 +50,7 @@ typedef struct _OsCoroutineAttr
 
 struct _OsCoroutineEntity
 {
-    union {
-        CelListItem list_item;
-        struct {
-            struct _OsCoroutineEntity *next, *prev;
-        };
-    };
+    int evt_type;
     int id;
     OsCoroutineFunc func;
     void *user_data;
@@ -66,6 +61,12 @@ struct _OsCoroutineEntity
     ptrdiff_t private_stack_size;
     char *private_stack;
 };
+
+typedef struct _OsCoroutineEntityItem
+{
+    CelListItem item;
+    OsCoroutineEntity coe;
+}OsCoroutineEntityItem;
 
 OsCoroutineScheduler *os_coroutinescheduler_new(void);
 void os_coroutinescheduler_free(OsCoroutineScheduler *schd);

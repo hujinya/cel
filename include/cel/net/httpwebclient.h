@@ -94,13 +94,14 @@ void cel_httpwebclient_free(CelHttpWebClient *client);
 #define cel_httpwebclient_get_response(client) &((client)->rsp)
 #define cel_httpwebclient_get_routedata(client) &((client)->rt_data)
 
+const char *cel_httpwebclient_get_request_file_path(CelHttpWebClient *client,
+                                                    char *path, size_t *path_len);
 static __inline 
 const char *cel_httpwebclient_get_route_path(CelHttpWebClient *client)
 {
     return (cel_httprequest_get_url_path(&(client->req))
         + client->web_ctx->prefix.key_len);
 }
-
 void cel_httpwebclient_do_recv_request(CelHttpWebClient *client, 
                                        CelHttpRequest *req,
                                        CelAsyncResult *result);
@@ -134,6 +135,15 @@ int cel_httpwebclient_async_send_response(CelHttpWebClient *client,
 int cel_httpwebclient_async_send_response_result(CelHttpWebClient *client,
                                                  CelHttpStatusCode status,
                                                  int code, const char *msg);
+int cel_httpwebclient_async_send_response_file(CelHttpWebClient *client, 
+                                               const char *file_path, 
+                                               long long first, long long last,
+                                               CelDateTime *if_modified_since,
+                                               char *if_none_match,
+                                               CelHttpWebCallbackFunc callback);
+int cel_httpwebclient_async_send_response_redirect(CelHttpWebClient *client, 
+                                                   const char *url,
+                                                   CelHttpWebCallbackFunc callback);
 
 #ifdef __cplusplus
 }

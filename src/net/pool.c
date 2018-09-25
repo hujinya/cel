@@ -31,7 +31,8 @@ int cel_pool_init(CelPool *pool, const TCHAR *name, CelBalancerType balancer)
     cel_arraylist_init(&(pool->mntr_ctxs), NULL);
     cel_arraylist_init(&(pool->nodes), NULL);
     cel_balancer_init(&(pool->balancer), balancer, &(pool->nodes));
-    cel_refcounted_init(&(pool->ref_counted), (CelFreeFunc)_cel_pool_destroy_derefed);
+    cel_refcounted_init(&(pool->ref_counted), 
+        (CelFreeFunc)_cel_pool_destroy_derefed);
 
     return 0;
 }
@@ -55,7 +56,8 @@ CelPool *cel_pool_new(const TCHAR *name, CelBalancerType balancer)
     {
         if (cel_pool_init(pool, name, balancer) == 0)
         {
-            cel_refcounted_init(&(pool->ref_counted), (CelFreeFunc)_cel_pool_free_derefed);
+            cel_refcounted_init(&(pool->ref_counted),
+                (CelFreeFunc)_cel_pool_free_derefed);
             return pool;
         }
         cel_free(pool);

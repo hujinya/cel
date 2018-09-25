@@ -138,8 +138,8 @@ static int cel_eventloop_handle(CelEventLoop *evt_loop, CelEventCtlBlock *ecb)
             if (cel_timerqueue_push(&(evt_loop->timer_queue), &(ecb->timer)))
             {
                 evt_loop->timer_wakeup++;
-                /*if (evt_loop->wait_threads > 0)
-                    cel_eventloop_wakeup(evt_loop);*/
+                if (evt_loop->wait_threads > 0)
+                    cel_eventloop_wakeup(evt_loop);
             }
             //_tprintf(_T("timer restart\r\n"));
             return 0;
@@ -196,8 +196,8 @@ int cel_eventloop_do(CelEventLoop *evt_loop)
                 if (wakeup_cnt == evt_loop->timer_wakeup)
                 {
                     evt_loop->timer_wakeup++;
-                    /*if (evt_loop->wait_threads > 0)
-                        cel_eventloop_wakeup(evt_loop);*/
+                    if (evt_loop->wait_threads > 0)
+                        cel_eventloop_wakeup(evt_loop);
                 }
                 cel_eventloop_handle(evt_loop, (CelEventCtlBlock *)ol);
                 return 0;
@@ -209,8 +209,8 @@ int cel_eventloop_do(CelEventLoop *evt_loop)
             if (wakeup_cnt == evt_loop->timer_wakeup)
             {
                 evt_loop->timer_wakeup++;
-                /*if (evt_loop->wait_threads > 0)
-                    cel_eventloop_wakeup(evt_loop);*/
+                if (evt_loop->wait_threads > 0)
+                    cel_eventloop_wakeup(evt_loop);
             }
             cel_eventloop_handle(evt_loop, (CelEventCtlBlock *)expireds[0]);
             if (n_expireds < 2) 
@@ -235,6 +235,23 @@ int cel_eventloop_do(CelEventLoop *evt_loop)
         if (ol != NULL)
             cel_eventloop_handle(evt_loop, (CelEventCtlBlock *)ol);
     }
+
+    return 0;
+}
+
+int cel_eventloop_do2(CelEventLoop *evt_loop, CelCoroutineScheduler *schd)
+{
+    //int wakeup_cnt, n_expireds;
+    //long timeout;
+    CelTimer *expireds[2];
+    CelOverLapped *ol = NULL;
+    CelCoroutineEntity *ceo;
+
+    cel_timerqueue_pop_expired(&(evt_loop->timer_queue), expireds, 2, NULL);
+    while (cel_poll_wait(&(evt_loop->poll), &ol, 0))
+        ;
+    while ((ceo = cel_coroutinescheduler_readies_pop(schd)) != NULL)
+        cel_coroutineentity_resume(ceo);
 
     return 0;
 }

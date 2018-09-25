@@ -71,7 +71,7 @@ int os_service_pidfile_exist(const TCHAR *name)
     return -1;
 }
 
-BOOL os_service_is_running(TCHAR *name)
+BOOL os_service_is_running(const TCHAR *name)
 {
     TCHAR file_name[CEL_PATHLEN];
 
@@ -83,7 +83,7 @@ BOOL os_service_is_running(TCHAR *name)
     return FALSE;
 }
 
-BOOL os_service_stop(TCHAR *name)
+BOOL os_service_stop(const TCHAR *name)
 {
     FILE *fp;
     pid_t ppid = 0, pid = 0;
@@ -106,7 +106,7 @@ BOOL os_service_stop(TCHAR *name)
     return FALSE;
 }
 
-BOOL os_service_reload(TCHAR *name)
+BOOL os_service_reload(const TCHAR *name)
 {
     FILE *fp;
     pid_t ppid = 0, pid = 0;
@@ -298,7 +298,8 @@ int _os_service_entry_dispatch(OsServiceEntry *sc_entry, int argc, char **argv)
     return 0;
 }
 
-OsServiceEntry *os_service_entry_create(TCHAR *name, CelMainFunc on_start, 
+OsServiceEntry *os_service_entry_create(const TCHAR *name,
+                                        CelMainFunc on_start, 
                                         CelVoidFunc on_stop)
 {
     sc_entry.on_start = on_start;

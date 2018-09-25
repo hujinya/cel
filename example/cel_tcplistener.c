@@ -142,6 +142,8 @@ void tcpclient_co_func(CelTcpClient *client)
     cel_stream_seal_length(s);
     cel_stream_set_position(s, 0);
     cel_tcpclient_async_send(client, s, NULL, &co);
+    printf("cel_tcpclient_co_send %d %d\r\n",
+        (int)cel_coroutine_getid(), (int)cel_thread_getid());
     cel_tcpclient_destroy(client);
 }
 
@@ -194,7 +196,7 @@ int tcplistener_test(int argc, TCHAR *argv[])
         work_num = work_num / 2;
     else if (work_num < 2)
         work_num = 2;
-    work_num = 10;
+    work_num = 1;
     if (cel_eventloop_init(&evt_loop, td_num, 10240) == -1)
         return 1;
     for (i = 0; i < work_num; i++)

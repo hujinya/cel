@@ -23,6 +23,7 @@ extern "C" {
 
 typedef struct _OsServiceEntry
 {
+    TCHAR service_name[CEL_SNLEN];
     SERVICE_TABLE_ENTRY scEntry[2];
     SERVICE_STATUS_HANDLE scStautsHandle;
     SERVICE_STATUS scStatus;
@@ -36,11 +37,12 @@ typedef struct _OsServiceEntry
 //BOOL os_service_start(TCHAR *name,
 //                      DWORD dwNumServiceArgs = 0,
 //                      TCHAR *lpszServiceArgVectors = NULL);
-BOOL os_service_is_running(TCHAR *name);
-BOOL os_service_stop(TCHAR *name);
-BOOL os_service_reload(TCHAR *name);
+BOOL os_service_is_running(const TCHAR *name);
+BOOL os_service_stop(const TCHAR *name);
+BOOL os_service_reload(const TCHAR *name);
 
-OsServiceEntry *os_service_entry_create(TCHAR *name, CelMainFunc on_start, 
+OsServiceEntry *os_service_entry_create(const TCHAR *name, 
+                                        CelMainFunc on_start, 
                                         CelVoidFunc on_stop);
 
 #define os_service_entry_dispatch(sc_entry) \

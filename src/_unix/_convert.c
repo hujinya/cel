@@ -75,36 +75,38 @@ char *itoa(int num, char *str, int radix)
 /* 
 将一个无符号长整形数左循环移位的函数 
 */  
-unsigned _rotl(unsigned val,int shift)  
-{  
-    register unsigned hibit;        /* non-zero means hi bit set */  
-    register unsigned num = val;    /* number to rotate */  
-    shift &= 0x1f;                  /* modulo 32 -- this will also make negative shifts work */  
-    while (shift--) {  
-        hibit = num & 0x80000000;   /* get high bit */  
-        num <<= 1;                  /* shift left one bit */  
-        if (hibit)  
-            num |= 1;               /* set lo bit if hi bit was set */  
-    }  
-    return num;  
-}  
+
+//unsigned _rotl(unsigned val,int shift)  
+//{  
+//    register unsigned hibit;        /* non-zero means hi bit set */  
+//    register unsigned num = val;    /* number to rotate */  
+//    shift &= 0x1f;                  /* modulo 32 -- this will also make negative shifts work */  
+//    while (shift--) {  
+//        hibit = num & 0x80000000;   /* get high bit */  
+//        num <<= 1;                  /* shift left one bit */  
+//        if (hibit)  
+//            num |= 1;               /* set lo bit if hi bit was set */  
+//    }  
+//    return num;  
+//} 
 
 /* 
 _rotr()将一个无符号长整形数右循环移位的函数 
 */  
-unsigned _rotr(unsigned val,int shift)  
-{  
-    register unsigned lobit;        /* non-zero means lo bit set */  
-    register unsigned num = val;    /* number to rotate */  
 
-    shift &= 0x1f;              /* modulo 32 -- this will also make  negative shifts work */  
-    while (shift--) {  
-        lobit = num & 1;        /* get high bit */  
-        num >>= 1;              /* shift right one bit */  
-        if (lobit)  
-            num |= 0x80000000;  /* set hi bit if lo bit was set */  
-    }  
-    return num;  
-}
+//unsigned _rotr(unsigned val,int shift)  
+//{  
+//    register unsigned lobit;        /* non-zero means lo bit set */  
+//    register unsigned num = val;    /* number to rotate */  
+//
+//    shift &= 0x1f;              /* modulo 32 -- this will also make  negative shifts work */  
+//    while (shift--) {  
+//        lobit = num & 1;        /* get high bit */  
+//        num >>= 1;              /* shift right one bit */  
+//        if (lobit)  
+//            num |= 0x80000000;  /* set hi bit if lo bit was set */  
+//    }  
+//    return num;  
+//}
 
 #endif

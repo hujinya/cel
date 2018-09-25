@@ -19,6 +19,7 @@
 #include "cel/sql/mysql.h"
 #include "cel/allocator.h"
 #include "cel/ringlist.h"
+#include "cel/vstring.h"
 
 typedef enum _CelSqlConType
 {
@@ -87,6 +88,7 @@ struct _CelSqlCon
         CelMysqlCon mysql_con;
     }con;
     char sqlstr[1024];
+    CelVStringA sql_str;
     CelSqlConClass *kclass;
 };
 

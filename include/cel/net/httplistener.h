@@ -67,8 +67,12 @@ int cel_httplistener_start(CelHttpListener *listener, CelSockAddr *addr);
 int cel_httplistener_accept(CelHttpListener *listener, CelHttpClient *new_client);
 int cel_httplistener_async_accept(CelHttpListener *listener, 
                                   CelHttpClient *new_client,
-                                  CelHttpAcceptCallbackFunc async_callback);
-    
+                                  CelHttpAcceptCallbackFunc callback);
+#define cel_httplistener_async_cb_accept(listener, new_client, callback) \
+    cel_httplistener_async_accept(listener, new_client, callback)
+#define cel_httplistener_async_co_accept(listener, new_client, co) \
+    cel_httplistener_async_accept(listener, new_client, callback)
+
 #ifdef __cplusplus
 }
 #endif

@@ -80,8 +80,8 @@ typedef struct _CelLogMsg
     TCHAR content[CEL_LOGCONTENT_LEN];
 }CelLogMsg;
 
-typedef int (* CelLogMsgWriteFunc) (CelLogMsg *msg, void *user_data);
-typedef int (* CelLogMsgFlushFunc) (void *user_data);
+typedef int (* CelLogMsgWriteFunc) (CelLogMsg **msgs, size_t n, void *ud);
+typedef int (* CelLogMsgFlushFunc) (void *ud);
 
 typedef struct _CelLogger
 {
@@ -94,17 +94,15 @@ typedef struct _CelLogger
     size_t n_bufs;
     CelRingList *free_list;
     CelRingList *ring_list;
-    CelLogMsg **msg_bufs;
+    CelLogMsg **msg_ptrs;
 }CelLogger;
 
 extern CelLogger g_logger;
 
 void cel_logger_facility_set(CelLogger *logger, CelLogFacility facility);
 
-void _cel_logger_level_set(CelLogger *logger, 
-                           CelLogFacility facility, CelLogLevel level);
-#define cel_logger_level_set(logger, level) \
-    _cel_logger_level_set(logger, (logger)->facility, level)
+void cel_logger_level_set(CelLogger *logger, 
+                          CelLogFacility facility, CelLogLevel level);
 #define cel_logger_severity_set cel_logger_level_set
 
 #define cel_logger_hostname_set(logger, _hostname) \
@@ -136,8 +134,9 @@ int cel_logger_flush(CelLogger *logger);
 /* Global log */
 #define cel_log_facility_set(facility) \
     cel_log_facility_set(&g_logger, facility)
-#define cel_log_level_set(level) cel_logger_level_set(&g_logger, level)
-#define cel_log_severity_set cel_logger_level_set
+#define cel_log_level_set(level) \
+    cel_logger_level_set(&g_logger, g_logger.facility, level)
+#define cel_log_severity_set cel_log_level_set
 
 #define cel_log_hostname_set(_hostname) \
     cel_logger_hostname_set(&g_logger, _hostname)
@@ -194,12 +193,12 @@ int cel_log_emerg(const TCHAR *fmt, ...);
        cel_log_emerg args
 
 /* Write log file */
-int cel_logmsg_fwrite(CelLogMsg *msg, void *user_data);
+int cel_logmsg_fwrite(CelLogMsg **msgs, size_t n, void *user_data);
 int cel_logmsg_fflush(void *user_data);
 /* Print screen */
-int cel_logmsg_puts(CelLogMsg *msg, void *user_data);
+int cel_logmsg_puts(CelLogMsg **msgs, size_t n, void *user_data);
 /* Insert db */
-int cel_logmsg_dbinsert(CelLogMsg *msg, void *user_data);
+int cel_logmsg_dbinsert(CelLogMsg **msgs, size_t n, void *user_data);
 
 // Like assert()
 #ifdef _CEL_ASSERT
@@ -225,8 +224,9 @@ static __inline int cel_lib_debug(const TCHAR *fmt, ...)
     va_end(args);
     return 0;
 }
+#define CEL_DEBUG(args) cel_lib_debug args
 #else
-#define CEL_DEBUG(cond)    ((void) 0)
+#define CEL_DEBUG(args)    ((void) 0)
 #endif /* _CEL_DEBUG */
 
 #ifdef _CEL_WARNING
@@ -239,7 +239,7 @@ static __inline int cel_lib_warning(const TCHAR *fmt, ...)
     va_end(args);
     return 0;
 }
-#define CEL_WARNING(args) cel_lib_err args
+#define CEL_WARNING(args) cel_lib_warning args
 #else
 #define CEL_WARNING(args)   ((void) 0)
 #endif /* _CEL_WARNING */
