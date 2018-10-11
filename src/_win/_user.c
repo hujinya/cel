@@ -345,13 +345,13 @@ int os_groupuserforeach(TCHAR *groupname, OsUserEachFunc each_func, void *user_d
             pMembersInfo[i].lgrmi1_name, 1, (LPBYTE *)&ui) != NERR_Success)
             break;
         /* Call each function */
-        if (!each_func(ui, user_data))
+        if (each_func(ui, user_data) != 0)
         {
             NetApiBufferFree(ui);
             break;
         }
         NetApiBufferFree(ui);
-        //_tprintf(_T("%s\r\n"), mi[i].lgrmi1_name);
+        //_tprintf(_T("%s\r\n"), pMembersInfo[i].lgrmi1_name);
     }
     NetApiBufferFree(lpBuffer);
 

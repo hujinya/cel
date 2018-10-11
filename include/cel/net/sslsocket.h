@@ -35,6 +35,8 @@ typedef void (*CelSslSocketSendCallbackFunc)(
 typedef void (*CelSslSocketRecvCallbackFunc)(
     CelSslSocket *ssl_sock, CelAsyncBuf *buffers, int count,
     CelAsyncResult *result);
+typedef void (*CelSslSocketShutdownCallbackFunc)(
+    CelSslSocket *ssl_sock, CelAsyncResult *result);
 
 typedef struct _CelSslAsyncArgs
 {
@@ -48,6 +50,7 @@ typedef struct _CelSslAsyncArgs
         CelSslSocketHandshakeCallbackFunc handshake_callback;
         CelSslSocketSendCallbackFunc send_callback;
         CelSslSocketRecvCallbackFunc recv_callback;
+        CelSslSocketShutdownCallbackFunc shutdown_callback;
     };
     CelCoroutine *co;
 }CelSslAsyncArgs;
@@ -88,8 +91,11 @@ int cel_sslsocket_connect(CelSslSocket *ssl_sock)
     cel_ssl_set_endpoint(ssl_sock->ssl, CEL_SSLEP_CLIENT);
     return cel_sslsocket_handshake(ssl_sock);
 }
-int cel_sslsocket_send(CelSslSocket *ssl_sock, CelAsyncBuf *buffers, int count);
-int cel_sslsocket_recv(CelSslSocket *ssl_sock, CelAsyncBuf *buffers, int count);
+int cel_sslsocket_send(CelSslSocket *ssl_sock, 
+                       CelAsyncBuf *buffers, int count);
+int cel_sslsocket_recv(CelSslSocket *ssl_sock, 
+                       CelAsyncBuf *buffers, int count);
+int cel_sslsocket_shutdown(CelSslSocket *ssl_sock);
 
 
 int cel_sslsocket_async_handshake(CelSslSocket *ssl_sock,
@@ -130,19 +136,27 @@ int cel_sslsocket_async_send(CelSslSocket *ssl_sock,
                              CelAsyncBuf *buffers, int count,
                              CelSslSocketSendCallbackFunc callback,
                              CelCoroutine *co);
-#define cel_sslsocket_async_cb_send(ssl_sock, buffers, count,  callback) \
-    cel_sslsocket_async_send(ssl_sock, buffers, count,  callback, NULL)
+#define cel_sslsocket_async_cb_send(ssl_sock, buffers, count, callback) \
+    cel_sslsocket_async_send(ssl_sock, buffers, count, callback, NULL)
 #define cel_sslsocket_async_co_send(ssl_sock, co) \
-    cel_sslsocket_async_send(ssl_sock, buffers, count,  NULL, co)
+    cel_sslsocket_async_send(ssl_sock, buffers, count, NULL, co)
 
 int cel_sslsocket_async_recv(CelSslSocket *ssl_sock, 
                              CelAsyncBuf *buffers, int count,
                              CelSslSocketSendCallbackFunc ca,
                              CelCoroutine *co);
 #define cel_sslsocket_async_cb_recv(ssl_sock, buffers, count, callback) \
-    cel_sslsocket_async_recv(ssl_sock, buffers, count,  callback, NULL)
-#define cel_sslsocket_async_co_recv(ssl_sock, buffers, count,  co) \
-    cel_sslsocket_async_recv(ssl_sock, buffers, count,  NULL, co)
+    cel_sslsocket_async_recv(ssl_sock, buffers, count, callback, NULL)
+#define cel_sslsocket_async_co_recv(ssl_sock, buffers, count, co) \
+    cel_sslsocket_async_recv(ssl_sock, buffers, count, NULL, co)
+
+int cel_sslsocket_async_shutdown(CelSslSocket *ssl_sock, 
+                                 CelSslSocketShutdownCallbackFunc ca,
+                                 CelCoroutine *co);
+#define cel_sslsocket_async_cb_shutdown(ssl_sock, callback) \
+    cel_sslsocket_async_shutdown(ssl_sock, callback, NULL)
+#define cel_sslsocket_async_co_shutdown(ssl_sock, co) \
+    cel_sslsocket_async_shutdown(ssl_sock, NULL, co)
 
 #ifdef __cplusplus
 }

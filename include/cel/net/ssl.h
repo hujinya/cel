@@ -67,11 +67,12 @@ typedef SSL CelSsl;
 extern CelKeyword ssl_methods[];
 
 #define cel_ssllibrary_init() \
-    CRYPTO_set_mem_functions(cel_malloc, cel_realloc, cel_free),\
+    /*CRYPTO_set_mem_functions(cel_malloc, cel_realloc, cel_free),*/\
     SSL_load_error_strings(), \
     SSL_library_init()
 /* SSL_library_init include OpenSSL_add_all_algorithms */
-    
+
+#define cel_ssl_clear_error() ERR_clear_error()
 #define cel_ssl_get_error(ssl, ret) SSL_get_error(ssl, ret)
 
 #define cel_ssl_get_errno() ERR_get_error()
@@ -144,15 +145,38 @@ int cel_sslcontext_set_ca_chain(CelSslContext *ctx,
 #define cel_ssl_get_cipher_version(ssl) SSL_CIPHER_get_version(ssl)
 #define cel_ssl_get_cipher(ssl) SSL_get_cipher(ssl)
 
-/* int cel_ssl_accept(CelSsl *ssl); */
-#define cel_ssl_accept(ssl) SSL_accept(ssl)
-/* int cel_ssl_connect(CelSsl *ssl); */
-#define cel_ssl_connect(ssl) SSL_connect(ssl)
-#define cel_ssl_handshake(ssl) SSL_do_handshake(ssl)
+#include "cel/multithread.h"
+
+static __inline int cel_ssl_accept(CelSsl *ssl)
+{
+    int ret;
+    cel_multithread_mutex_lock(CEL_MT_MUTEX_SSL_HANDSHAKE);
+    ret = SSL_accept(ssl);
+    cel_multithread_mutex_unlock(CEL_MT_MUTEX_SSL_HANDSHAKE);
+    return ret;
+};
+static __inline int cel_ssl_connect(CelSsl *ssl)
+{
+    int ret;
+    cel_multithread_mutex_lock(CEL_MT_MUTEX_SSL_HANDSHAKE);
+    ret = SSL_connect(ssl);
+    cel_multithread_mutex_unlock(CEL_MT_MUTEX_SSL_HANDSHAKE);
+    return ret;
+}
+static __inline int cel_ssl_handshake(CelSsl *ssl) 
+{
+    int ret;
+    cel_multithread_mutex_lock(CEL_MT_MUTEX_SSL_HANDSHAKE);
+    ret = SSL_do_handshake(ssl);
+    cel_multithread_mutex_unlock(CEL_MT_MUTEX_SSL_HANDSHAKE);
+    return ret;
+}
 /* int cel_ssl_read(CelSsl *ssl, void *buf, int size); */
 #define cel_ssl_read(ssl, buf, size) SSL_read(ssl, buf, size)
 /* int cel_ssl_write(CelSsl *ssl, void *buf, int size); */
 #define cel_ssl_write(ssl, buf, size) SSL_write(ssl, buf, size)
+
+#define cel_ssl_shutdown(ssl) SSL_shutdown(ssl)
 
 #ifdef _UNICODE
 #define cel_ssl_get_errstr cel_ssl_get_errstr_w

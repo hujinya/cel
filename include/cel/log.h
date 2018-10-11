@@ -23,10 +23,6 @@
 #include "cel/ringlist.h"
 #include <stdarg.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 typedef enum _CelLogSeverity
 {
     CEL_LOGLEVEL_UNDEFINED = -1,
@@ -67,7 +63,7 @@ typedef enum _CelLogFacility
     CEL_LOGFACILITY_COUNT
 }CelLogFacility;
 
-#define CEL_LOGCONTENT_LEN       512  /* Bytes */
+#define CEL_LOGMSG_CONTENT_SIZE        512  /* Bytes */
 
 typedef struct _CelLogMsg
 {
@@ -77,11 +73,14 @@ typedef struct _CelLogMsg
     TCHAR *hostname;
     TCHAR *processname;           /**< RFC3164.4.1.3 */
     unsigned long pid;
-    TCHAR content[CEL_LOGCONTENT_LEN];
+    TCHAR content[CEL_LOGMSG_CONTENT_SIZE];
 }CelLogMsg;
 
 typedef int (* CelLogMsgWriteFunc) (CelLogMsg **msgs, size_t n, void *ud);
 typedef int (* CelLogMsgFlushFunc) (void *ud);
+
+#define CEL_LOGGER_BUF_NUM      10 * 1024
+#define CEL_LOGGER_FLUSH_NUM         1024
 
 typedef struct _CelLogger
 {
@@ -91,13 +90,16 @@ typedef struct _CelLogger
     TCHAR processname[CEL_FNLEN];
     CelList *hook_list;
     BOOL is_flush;
+    size_t n_flushs;
     size_t n_bufs;
     CelRingList *free_list;
     CelRingList *ring_list;
     CelLogMsg **msg_ptrs;
 }CelLogger;
 
-extern CelLogger g_logger;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void cel_logger_facility_set(CelLogger *logger, CelLogFacility facility);
 
@@ -109,7 +111,9 @@ void cel_logger_level_set(CelLogger *logger,
     strncpy((logger)->hostname, _hostname, CEL_HNLEN)
 #define cel_logger_processname_set(logger, processname) \
     strncpy((logger)->processname, _processname, CEL_FNLEN)
+
 int cel_logger_buffer_num_set(CelLogger *logger, size_t num);
+int cel_logger_flush_num_set(CelLogger *logger, size_t num);
 
 int cel_logger_hook_register(CelLogger *logger, const TCHAR *name,
                              CelLogMsgWriteFunc write_func, 
@@ -125,6 +129,9 @@ int cel_logger_vprintf(CelLogger *logger,
 int cel_logger_printf(CelLogger *logger, 
                       CelLogFacility facility, CelLogLevel level, 
                       const TCHAR *fmt, ...);
+int cel_logger_write(CelLogger *logger, 
+                     CelLogFacility facility, CelLogLevel level, 
+                     void *buf, size_t size);
 int cel_logger_hexdump(CelLogger *logger, 
                        CelLogFacility facility, CelLogLevel level,
                        const BYTE *p, size_t len);
@@ -132,6 +139,8 @@ int cel_logger_flush(CelLogger *logger);
 
 
 /* Global log */
+extern CelLogger g_logger;
+
 #define cel_log_facility_set(facility) \
     cel_log_facility_set(&g_logger, facility)
 #define cel_log_level_set(level) \
@@ -142,7 +151,10 @@ int cel_logger_flush(CelLogger *logger);
     cel_logger_hostname_set(&g_logger, _hostname)
 #define cel_log_processname_set(processname) \
     cel_logger_processname_set(&g_logger, processname)
+
 #define cel_log_buffer_num_set(num) cel_logger_buffer_num_set(&g_logger, num)
+#define cel_log_flush_num_set(num) cel_logger_flush_num_set(&g_logger, num)
+
 #define cel_log_hook_register(name, write_func, flush_func, user_data)\
     cel_logger_hook_register(&g_logger, name, write_func, flush_func, user_data)
 #define cel_log_hook_unregister(name) \
@@ -154,6 +166,8 @@ int cel_logger_flush(CelLogger *logger);
     cel_logger_vprintf(&g_logger, g_logger.facility, level, fmt, ap)
 #define cel_log_hexdump(level, p, len) \
     cel_logger_hexdump(&g_logger, g_logger.facility, level, p, len)
+#define cel_log_write(level, buf, size) \
+    cel_logger_write(&g_logger, g_logger.facility, level, buf, size)
 int cel_log_printf(CelLogLevel level, const TCHAR *fmt, ...);
 static __inline int cel_log_flush(void){
     return cel_logger_flush(&g_logger);

@@ -29,6 +29,8 @@ typedef void (* CelHttpConnectCallbackFunc)(
     CelHttpClient *client, CelAsyncResult *result);
 typedef void (* CelHttpHandshakeCallbackFunc)(
     CelHttpClient *client, CelAsyncResult *result);
+typedef void (* CelHttpShutdownCallbackFunc)(
+    CelHttpClient *client, CelAsyncResult *result);
 
 typedef void (* CelHttpSendRequestCallbackFunc)(
     CelHttpClient *client, CelHttpRequest *req, CelAsyncResult *result);
@@ -108,6 +110,11 @@ int cel_httpclient_recv_request(CelHttpClient *client, CelHttpRequest *req);
 int cel_httpclient_send_request(CelHttpClient *client, CelHttpRequest *req);
 int cel_httpclient_recv_response(CelHttpClient *client, CelHttpResponse *rsp);
 int cel_httpclient_send_response(CelHttpClient *client, CelHttpResponse *rsp);
+static __inline 
+int cel_httpclient_shutdown(CelHttpClient *client)
+{
+    return cel_tcpclient_shutdown(&(client->tcp_client));
+}
 
 int cel_httpclient_execute(CelHttpClient *client,
                            CelHttpRequest *req, CelHttpResponse *rsp);
@@ -151,6 +158,14 @@ int cel_httpclient_async_send_response(CelHttpClient *client,
 int cel_httpclient_async_execute(CelHttpClient *client, 
                                  CelHttpRequest *req, CelHttpResponse *rsp,
                                  CelHttpExecuteCallbackFunc func);
+
+static __inline 
+int cel_httpclient_async_shutdown(CelHttpClient *client,
+                                  CelHttpShutdownCallbackFunc async_callback)
+{
+    return cel_tcpclient_async_shutdown(
+        &(client->tcp_client), (CelTcpShutdownCallbackFunc)async_callback, NULL);
+}
 
 #ifdef __cplusplus
 }

@@ -33,6 +33,8 @@ typedef void (* CelTcpRecvCallbackFunc) (
     CelTcpClient *client, CelStream *s, CelAsyncResult *result);
 typedef void (* CelTcpSendCallbackFunc) (
     CelTcpClient *client, CelStream *s, CelAsyncResult *result);
+typedef void (* CelTcpShutdownCallbackFunc)(
+    CelTcpClient *client, CelAsyncResult *result);
 
 typedef struct _CelTcpClientAsyncArgs
 {
@@ -44,6 +46,7 @@ typedef struct _CelTcpClientAsyncArgs
         CelTcpHandshakeCallbackFunc handshake_callback;
         CelTcpRecvCallbackFunc recv_callback;
         CelTcpSendCallbackFunc send_callback;
+        CelTcpShutdownCallbackFunc shutdown_callback;
     };
     CelCoroutine *co;
 }CelTcpClientAsyncArgs;
@@ -145,7 +148,13 @@ int cel_tcpclient_handshake(CelTcpClient *client)
 }
 int cel_tcpclient_recv(CelTcpClient *client, CelStream *s);
 int cel_tcpclient_send(CelTcpClient *client, CelStream *s);
-
+static __inline 
+int cel_tcpclient_shutdown(CelTcpClient *client)
+{
+    return (client->ssl_sock.ssl != NULL 
+        ? cel_sslsocket_shutdown(&(client->ssl_sock)) 
+        : cel_socket_shutdown(&(client->sock), 2));
+}
 
 int cel_tcpclient_async_connect(CelTcpClient *client, CelSockAddr *remote_addr,
                                 CelTcpConnectCallbackFunc callback, 
@@ -185,6 +194,14 @@ int cel_tcpclient_async_recv(CelTcpClient *client, CelStream *s,
     cel_tcpclient_async_recv(client, s, callback, NULL)
 #define cel_tcpclient_co_async_recv(client, s, co) \
     cel_tcpclient_async_recv(client, s, NULL, co)
+
+int cel_tcpclient_async_shutdown(CelTcpClient *client, 
+                                 CelTcpShutdownCallbackFunc callback, 
+                                 CelCoroutine *co);
+#define cel_tcpclient_async_cb_shutdown(client, callback) \
+    cel_tcpclient_async_shutdown(client, callback, NULL)
+#define cel_tcpclient_async_co_shutdown(client, co) \
+    cel_tcpclient_async_shutdown(client, NULL, co)
 
 
 #ifdef __cplusplus

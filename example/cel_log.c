@@ -2,7 +2,7 @@
 #include "cel/thread.h"
 #include "cel/multithread.h"
 
-int cel_log_write(void *user_data)
+int log_write(void *user_data)
 {
     int i = 0;
     while (TRUE)
@@ -28,7 +28,7 @@ int log_test(int argc, TCHAR *argv[])
     cel_multithread_support();
     cel_log_buffer_num_set(64);
     for (n = 0; n < 64; n++)
-        cel_thread_create(&td[n], NULL, cel_log_write, NULL);
+        cel_thread_create(&td[n], NULL, log_write, NULL);
     while (TRUE)
     {
         usleep(10 * 1000);

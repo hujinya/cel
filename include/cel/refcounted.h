@@ -31,6 +31,12 @@ typedef struct _CelRefCounted
 int cel_refcounted_init(CelRefCounted *ref_counted, CelFreeFunc free_func);
 void cel_refcounted_destroy(CelRefCounted *ref_counted, void *ptr);
 
+static __inline void cel_refcounted_clear(CelRefCounted *ref_counted)
+{
+    ref_counted->cnt = 0;
+    ref_counted->free_func = NULL;
+}
+
 CelRefCounted *cel_refcounted_ref(CelRefCounted *ref_counted);
 void *cel_refcounted_ref_ptr(CelRefCounted *ref_counted, void *ptr);
 void cel_refcounted_deref(CelRefCounted *ref_counted, void *ptr);

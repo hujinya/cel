@@ -16,7 +16,6 @@
 #include "cel/log.h"
 #include "cel/error.h"
 
-
 CelKeyword ssl_methods[] = 
 {
     //{ sizeof(_T("DTLS")) - 1, _T("DTLS"), (const void *)DTLS_method },

@@ -26,8 +26,8 @@ extern "C" {
 typedef enum _CelMultithreadMutexType
 {
     CEL_MT_MUTEX_ALLOCATOR = 0,
-    CEL_MT_MUTEX_ATOMIC,
     CEL_MT_MUTEX_LOG,
+    CEL_MT_MUTEX_SSL_HANDSHAKE,
     CEL_MT_MUTEX_PERFOINFO,
     CEL_MT_MUTEX_USER1,
     CEL_MT_MUTEX_USER2,

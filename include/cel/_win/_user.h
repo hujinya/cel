@@ -43,6 +43,7 @@ typedef struct _OsUserInfo
     LPWSTR shell;
 }OsUserInfo;
 
+/* return 0 = continue;-1 = error;1 = break */
 typedef int (* OsGroupEachFunc) (OsGroupInfo *grp, void *user_data);
 typedef int (* OsUserEachFunc) (OsUserInfo *usr, void *user_data);
 

@@ -45,7 +45,8 @@ int cel_httplistener_accept(CelHttpListener *listener, CelHttpClient *client)
 void cel_httplistener_do_accept(CelHttpListener *listener, 
                                 CelHttpClient *client, CelAsyncResult *result)
 {
-    cel_httpclient_init_tcpclient(client, &(client->tcp_client));
+    if (cel_httpclient_init_tcpclient(client, &(client->tcp_client)) == -1)
+        result->ret = -1;
     listener->async_args->async_callback(listener, client, result);
 }
 

@@ -12,13 +12,22 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
  * GNU General Public License for more details.
  */
-#ifndef _BSD_SOURCE
-#define _BSD_SOURCE
-#endif
+//#ifndef _BSD_SOURCE
+//#define _BSD_SOURCE
+//#endif
+
+/* crypt */
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
 #endif
-#define _XOPEN_SOURCE    500 /* or any value > 500 */
+
+/* fgetgrent_r fgetpwrent_r */
+#ifndef _SVID_SOURCE 
+#define _SVID_SOURCE
+#endif
+
+//#define _XOPEN_SOURCE    500 /* or any value > 500 */
+
 #include "cel/sys/user.h"
 #ifdef _CEL_UNIX
 #include "cel/allocator.h"
@@ -29,14 +38,19 @@
 
 /* Group file */
 #define GROUP           "/etc/group"
-#define GROUP_          "/etc/group-"
+#define GROUP_SWAP      "/etc/.group.swap"
+#define GROUP_EACH      "/etc/.group.each"
 #define GSHADOW         "/etc/gshadow"
-#define GSHADOW_        "/etc/gshadow-"
+#define GSHADOW_SWAP    "/etc/.gshadow.swap"
+#define GSHADOW_EACH    "/etc/.gshadow.each"
 /* User file */
 #define PASSWD          "/etc/passwd"
-#define PASSWD_         "/etc/passwd-"
+#define PASSWD_SWAP     "/etc/.passwd.swap"
+#define PASSWD_EACH     "/etc/.passwd.each"
 #define SHADOW          "/etc/shadow"
-#define SHADOW_         "/etc/shadow-"
+#define SHADOW_SWAP     "/etc/.shadow.swap"
+#define SHADOW_EACH     "/etc/.shadow.each"
+/* Home dir */
 #define HOMEDIR         "/home"
 
 #define GRPINFO_BUF_SIZE 4096
@@ -92,12 +106,13 @@ int os_groupadd(OsGroupInfo *group)
     int i, gid1, gid2 = 2000;
     char buf[CEL_LINELEN];
 
-    if (group->name == NULL || (len = strlen(group->name)) > CEL_GNLEN)
+    if (group->name == NULL 
+        || (len = strlen(group->name)) > CEL_GNLEN || len == 0)
     {
         CEL_ERR(("Group name \"%s\" invalid.", group->name));
         return -1;
     }
-    cel_fsync(GROUP_, GROUP);
+    cel_fsync(GROUP_SWAP, GROUP);
     if ((fp = cel_fopen(GROUP, "a")) == NULL) 
         return -1;
     gid1 = 0;
@@ -130,7 +145,7 @@ int os_groupadd(OsGroupInfo *group)
     if (fprintf(fp, "%s:x:%d:\n", group->name, gid2) == -1)
     {
         cel_fclose(fp);
-        cel_fsync(GROUP, GROUP_);
+        cel_fsync(GROUP, GROUP_SWAP);
         CEL_ERR(("Write group file \"%s\" failed", GROUP));
         return -1;
     }
@@ -146,15 +161,15 @@ int os_groupdel(char *groupname)
     FILE *fp, *fp_;
     char buf[CEL_GNLEN + 1];
 
-    if (groupname == NULL || (len = strlen(groupname)) > CEL_GNLEN)
+    if (groupname == NULL 
+        || (len = strlen(groupname)) > CEL_GNLEN || len == 0)
     {
-        endgrent();
         CEL_ERR(("Group name \"%s\" invalid.", groupname));
         return -1;
     }
     /* Delete group info */ 
-    cel_fsync(GROUP_, GROUP);
-    if ((fp_ = cel_fopen(GROUP_, "r")) == NULL 
+    cel_fsync(GROUP_SWAP, GROUP);
+    if ((fp_ = cel_fopen(GROUP_SWAP, "r")) == NULL 
         || (fp = cel_fopen(GROUP, "w")) == NULL)
     {
         if (fp_ != NULL) cel_fclose(fp_);
@@ -171,7 +186,9 @@ int os_groupdel(char *groupname)
                 break;
         }
         /* Compare the group name */
-        if (len == (i - 1) && strncmp(groupname, buf, len) == 0)
+        if (len == (i - 1) 
+            && strncmp(groupname, buf, len) == 0
+            && strncmp("root", buf, 4) != 0)
         {
             while ((c = fgetc(fp_)) != EOF && c != '\n');
         }
@@ -199,16 +216,16 @@ int os_groupadduser(char *groupname, char *username)
     char buf[CEL_GNLEN + 1];
 
     if (groupname == NULL || username == NULL
-        || (glen = strlen(groupname)) > CEL_GNLEN 
-        || (ulen = strlen(username)) > CEL_UNLEN
+        || (glen = strlen(groupname)) > CEL_GNLEN || glen == 0
+        || (ulen = strlen(username)) > CEL_UNLEN || ulen == 0
         || getgrnam(groupname) == NULL)
     {
         CEL_ERR(("Name is null or group \"%s\" not exists", groupname));
         return -1;
     }
     
-    cel_fsync(GROUP_, GROUP);
-    if ((fp_ = cel_fopen(GROUP_, "r")) == NULL 
+    cel_fsync(GROUP_SWAP, GROUP);
+    if ((fp_ = cel_fopen(GROUP_SWAP, "r")) == NULL 
         || (fp = cel_fopen(GROUP, "w")) == NULL)
     {
         if (fp_ != NULL) cel_fclose(fp_);
@@ -281,15 +298,15 @@ int os_groupdeluser(char *groupname, char *username)
     char buf[CEL_GNLEN + 1];
 
     if (groupname == NULL || username == NULL
-        || (glen = strlen(groupname)) > CEL_GNLEN 
-        || (ulen = strlen(username)) > CEL_UNLEN
+        || (glen = strlen(groupname)) > CEL_GNLEN || glen == 0
+        || (ulen = strlen(username)) > CEL_UNLEN || ulen == 0
         || getgrnam(groupname) == NULL)
     {
         CEL_ERR(("Name is null or group \"%s\" not exists", groupname));
         return -1;
     }
-    cel_fsync(GROUP_, GROUP);
-    if ((fp_ = cel_fopen(GROUP_, "r")) == NULL 
+    cel_fsync(GROUP_SWAP, GROUP);
+    if ((fp_ = cel_fopen(GROUP_SWAP, "r")) == NULL 
         || (fp = cel_fopen(GROUP, "w")) == NULL)
     {
         if (fp_ != NULL) cel_fclose(fp_);
@@ -368,26 +385,6 @@ OsGroupInfo *cel_getgroupinfo(TCHAR *groupname)
     return NULL;
 }
 
-int os_usergroupforeach(TCHAR *username, OsGroupEachFunc each_func, void *user_data)
-{
-    int ret = 0;
-    OsGroupInfo *gi1, *gi2;
-
-    if ((gi1 = (OsGroupInfo *)cel_malloc(GRPINFO_BUF_SIZE)) == NULL)
-        return -1;
-    setgrent();
-    while (getgrent_r((struct group *)gi1, (char *)gi1 + 1, 
-        GRPINFO_BUF_SIZE - sizeof(OsGroupInfo), (struct group **)&gi2) != 0
-        && gi2 != NULL)
-    {
-        if ((ret = each_func(gi2, user_data)) != 0)
-            break;
-    }
-    endgrent();
-
-    return ret;
-}
-
 static int os_useradd_time(void)
 {
     CelDateTime dt1, dt2;
@@ -427,7 +424,8 @@ int os_useradd(OsUserInfo *user)
     uid_t uid;
     char buf[CEL_LINELEN];
 
-    if (user->name == NULL || (len = strlen(user->name)) > CEL_UNLEN)
+    if (user->name == NULL 
+        || (len = strlen(user->name)) > CEL_UNLEN || len == 0)
     {
         CEL_ERR(("User name \"%s\" is null or user already exists",
             user->name));
@@ -444,7 +442,7 @@ int os_useradd(OsUserInfo *user)
         return -1;
     }
     /* Write passwd file */
-    cel_fsync(PASSWD_, PASSWD);
+    cel_fsync(PASSWD_SWAP, PASSWD);
     if ((fp = cel_fopen(PASSWD, "r+")) == NULL) 
         return -1;
     user->uid = 2000;
@@ -481,16 +479,16 @@ int os_useradd(OsUserInfo *user)
         user->name, user->name, user->shell) == -1)
     {
         cel_fclose(fp);
-        cel_fsync(PASSWD, PASSWD_);
+        cel_fsync(PASSWD, PASSWD_SWAP);
         CEL_ERR(("Write passwd file \"%s\" failed", PASSWD));
         return -1;
     }
     cel_fclose(fp);
     /* Write shadow file */
-    cel_fsync(SHADOW_, SHADOW);
+    cel_fsync(SHADOW_SWAP, SHADOW);
     if ((fp = cel_fopen(SHADOW, "a")) == NULL)
     {
-        cel_fsync(PASSWD, PASSWD_);
+        cel_fsync(PASSWD, PASSWD_SWAP);
         return -1;
     }
     //cel_datetime_init_now(&dt);
@@ -499,8 +497,8 @@ int os_useradd(OsUserInfo *user)
         os_useradd_time()) == -1)
     {
         cel_fclose(fp);
-        cel_fsync(PASSWD, PASSWD_);
-        cel_fsync(SHADOW, SHADOW_);
+        cel_fsync(PASSWD, PASSWD_SWAP);
+        cel_fsync(SHADOW, SHADOW_SWAP);
         CEL_ERR(("Write shadow file \"%s\" failed", SHADOW));
         return -1;
     }
@@ -511,8 +509,8 @@ int os_useradd(OsUserInfo *user)
         if (cel_mkdir_a(user->dir, S_ISUID|S_ISGID|S_IRWXU|S_IRWXG) == -1 
             && errno != EEXIST)
         {
-            cel_fsync(PASSWD, PASSWD_);
-            cel_fsync(SHADOW, SHADOW_);
+            cel_fsync(PASSWD, PASSWD_SWAP);
+            cel_fsync(SHADOW, SHADOW_SWAP);
             CEL_ERR(("Create home dir \"%s\" failed", user->dir));
             return -1;
         }
@@ -535,14 +533,15 @@ int os_userdel(char *username)
     FILE *fp, *fp_;
     char buf[CEL_PATHLEN];
 
-    if (username == NULL || (len = strlen(username)) > CEL_UNLEN)
+    if (username == NULL
+        || (len = strlen(username)) > CEL_UNLEN || len == 0)
     {
         CEL_ERR(("User name \"%s\" is null or user not exists", username));
         return -1;
     }
     /* Delete password info */ 
-    cel_fsync(PASSWD_, PASSWD);
-    if ((fp_ = cel_fopen(PASSWD_, "r")) == NULL 
+    cel_fsync(PASSWD_SWAP, PASSWD);
+    if ((fp_ = cel_fopen(PASSWD_SWAP, "r")) == NULL 
         || (fp = cel_fopen(PASSWD, "w")) == NULL)
     {
         if (fp_ != NULL)
@@ -556,10 +555,13 @@ int os_userdel(char *username)
         while (i < CEL_UNLEN && (c = fgetc(fp_)) != EOF)
         {
             buf[i++] = (char) c;
-            if (c == ':') break;
+            if (c == ':') 
+                break;
         }
         /* Compare the user name */
-        if (len == (i - 1) && strncmp(username, buf, len) == 0)
+        if (len == (i - 1)
+            && strncmp(username, buf, len) == 0
+            && strncmp("root", buf, 4) != 0)
         {
             while ((c = fgetc(fp_)) != EOF && c != '\n');
         }
@@ -576,8 +578,8 @@ int os_userdel(char *username)
     cel_fclose(fp);
     cel_fclose(fp_);
     /* Delete shadow info */ 
-    cel_fsync(SHADOW_, SHADOW);
-    if ((fp_ = cel_fopen(SHADOW_, "r")) == NULL 
+    cel_fsync(SHADOW_SWAP, SHADOW);
+    if ((fp_ = cel_fopen(SHADOW_SWAP, "r")) == NULL 
         || (fp = cel_fopen(SHADOW, "w")) == NULL)
     {
         if (fp_ != NULL) 
@@ -624,15 +626,17 @@ int os_userpswd(char *username, char *oldpassword, char *newpassword)
     FILE *fp, *fp_;
     char buf[CEL_UNLEN];
 
-    if (username == NULL || (len = strlen(username)) > CEL_UNLEN
-        || newpassword == NULL
+    if (username == NULL 
+        || (len = strlen(username)) > CEL_UNLEN || len == 0
+        || newpassword == NULL 
+        || (len = strlen(newpassword)) > CEL_PWLEN || len == 0
         || getpwnam(username) == NULL)
     {
         CEL_ERR(("User name \"%s\" is null or user not exists", username));
         return -1;
     }
-    cel_fsync(SHADOW_, SHADOW);
-    if ((fp_ = cel_fopen(SHADOW_, "r")) == NULL 
+    cel_fsync(SHADOW_SWAP, SHADOW);
+    if ((fp_ = cel_fopen(SHADOW_SWAP, "r")) == NULL 
         || (fp = cel_fopen(SHADOW, "w")) == NULL)
     {
         if (fp_ != NULL)
@@ -649,7 +653,9 @@ int os_userpswd(char *username, char *oldpassword, char *newpassword)
             if (c == ':') break;
         }
         /* Compare the user name */
-        if (len == (i - 1) && strncmp(username, buf, len) == 0)
+        if (len == (i - 1) 
+            && strncmp(username, buf, len) == 0
+            && strncmp("root", buf, 4) != 0)
         {
             while ((c = fgetc(fp_)) != EOF && c != '\n');
             fprintf(fp, "%s:%s:%d:0:99999:7:::\n", 
@@ -688,25 +694,74 @@ OsUserInfo *cel_getuserinfo(TCHAR *username)
     return NULL;
 }
 
-int os_groupuserforeach(TCHAR *groupname, OsUserEachFunc each_func, void *user_data)
+int os_groupuserforeach(TCHAR *groupname, 
+                        OsUserEachFunc each_func, void *user_data)
 {
     int ret;
+    FILE *fp;
     OsGroupInfo *gi;
-    OsUserInfo *ui;
+    OsUserInfo *ui1, *ui2 = NULL;
 
-    if (groupname != NULL 
-        && (gi = (OsGroupInfo *)cel_getgroupinfo(groupname)) == NULL)
-        return -1;
-    while ((ui = (OsUserInfo *)getpwent()) != NULL)
+    if (groupname == NULL 
+        || (gi = (OsGroupInfo *)cel_getgroupinfo(groupname)) != NULL)
     {
-        if (groupname != NULL && ui->gid != gi->gid)
-            continue;
-        if ((ret = each_func(ui, user_data)) != 0)
-            break;
+        if ((ui1 = (OsUserInfo *)cel_malloc(USRINFO_BUF_SIZE)) != NULL)
+        {
+            if (cel_fsync(PASSWD_EACH, PASSWD) != -1
+                && (fp = fopen(PASSWD_EACH, "r")) != NULL)
+            {
+                while ((ret = fgetpwent_r(fp,
+                    (struct passwd *)ui1, (char *)(ui1 + 1), 
+                    USRINFO_BUF_SIZE - sizeof(OsUserInfo), 
+                    (struct passwd **)&ui2)) == 0
+                    && ui2 != NULL)
+                {
+                    //puts(ui2->name);
+                    if (groupname != NULL && ui2->gid != gi->gid)
+                        continue;
+                    if ((ret = each_func(ui2, user_data)) != 0)
+                        break;
+                }
+                os_freeuserinfo(gi);
+                cel_free(ui1);
+                fclose(fp);
+                return ret;
+            }
+            cel_free(ui1);
+        }
+        os_freeuserinfo(gi);
     }
-    endpwent();
 
-    return ret;
+    return -1;
+}
+
+int os_usergroupforeach(TCHAR *username,
+                        OsGroupEachFunc each_func, void *user_data)
+{
+    int ret = 0;
+    FILE *fp;
+    OsGroupInfo *gi1, *gi2 = NULL;
+
+    if ((gi1 = (OsGroupInfo *)cel_malloc(GRPINFO_BUF_SIZE)) != NULL)
+    {
+        if (cel_fsync(GROUP_EACH, GROUP) != -1
+            && (fp = fopen(GROUP_EACH, "r")) != NULL)
+        {
+            while (fgetgrent_r(fp, (struct group *)gi1, (char *)gi1 + 1, 
+                GRPINFO_BUF_SIZE - sizeof(OsGroupInfo), 
+                (struct group **)&gi2) == 0
+                && gi2 != NULL)
+            {
+                if ((ret = each_func(gi2, user_data)) != 0)
+                    break;
+            }
+            os_freegroupinfo(gi1);
+            fclose(fp);
+            return ret;
+        }
+        cel_free(gi1);
+    }
+    return -1;
 }
 
 #endif

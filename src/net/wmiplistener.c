@@ -128,6 +128,7 @@ int cel_wmiplistener_post_accept(CelWmipListener *listener)
         cel_calloc(1, sizeof(CelWmipListenerAsyncArgs))) == NULL)
         return -1;
     args = listener->async_args;
+    memset(&(args->client), 0, sizeof(args->client));
     return cel_httplistener_async_accept(&(listener->http_listener), 
         &(args->client), (CelHttpAcceptCallbackFunc)wmiplistener_do_accept);
 }

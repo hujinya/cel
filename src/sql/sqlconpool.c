@@ -111,6 +111,7 @@ CelSqlCon *cel_sqlconpool_get(CelSqlConPool *pool)
             return con;
         }
     }
+    CEL_ERR((_T("cel_sqlconpool_get return NULL")));
     return NULL;
 }
 

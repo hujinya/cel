@@ -114,10 +114,10 @@ static void cel_httpweblistener_do_accept(CelHttpWebListener *listener,
             } 
         }
     }
-    cel_httpwebclient_free(new_client);
     CEL_ERR((_T("Http web request client %s init failed(%s)."), 
         cel_httpwebclient_get_remoteaddr_str(new_client), 
         cel_geterrstr(cel_sys_geterrno())));
+    cel_httpwebclient_free(new_client);
 }
 
 int cel_httpweblistener_post_accept(CelHttpWebListener *listener)
@@ -130,6 +130,7 @@ int cel_httpweblistener_post_accept(CelHttpWebListener *listener)
         cel_calloc(1, sizeof(CelHttpWebListenerAsyncArgs))) == NULL)
         return -1;
     args = listener->async_args;
+    memset(&(args->client), 0, sizeof(args->client));
     return cel_httplistener_async_accept(&(listener->http_listener),
         &(args->client), 
         (CelHttpAcceptCallbackFunc)cel_httpweblistener_do_accept);

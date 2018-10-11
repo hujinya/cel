@@ -60,23 +60,20 @@ int cel_mysqlcon_open(CelMysqlCon *con)
 
     if (mysql_init(&con->mysql) == NULL)
     {
-        CEL_SETERR((CEL_ERR_MYSQL, _T("%s"), mysql_error(&con->mysql)));
-        CEL_ERR((_T("mysql_init:%s."), mysql_error(&con->mysql)));
+        CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_init:%s."), mysql_error(&con->mysql)));
         return -1;
     }
     if (mysql_options(&con->mysql, MYSQL_SET_CHARSET_NAME, "utf8") != 0
         || mysql_options(&con->mysql, MYSQL_OPT_RECONNECT, &reconnect) != 0)
     {
-        CEL_SETERR((CEL_ERR_MYSQL, _T("%s"), mysql_error(&con->mysql)));
-        CEL_ERR((_T("mysql_options:%s."), mysql_error(&con->mysql)));
+        CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_options:%s."), mysql_error(&con->mysql)));
         return -1;
     }
     if (mysql_real_connect(&con->mysql, 
         con->host, con->user, con->passwd, 
         con->db, con->port, NULL, 0) == NULL)
     {
-        CEL_SETERR((CEL_ERR_MYSQL, _T("%s"), mysql_error(&con->mysql)));
-        CEL_ERR((_T("mysql_real_connect:%s."), mysql_error(&con->mysql)));
+        CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_real_connect:%s."), mysql_error(&con->mysql)));
         return -1;
     }
 
@@ -98,16 +95,14 @@ long cel_mysqlcon_execute_nonequery(CelMysqlCon *con, const char *sqlstr)
     if (mysql_real_query(
         &con->mysql, sqlstr, (unsigned long)strlen(sqlstr)) != 0)
     {
-        CEL_SETERR((CEL_ERR_MYSQL, _T("%s"), mysql_error(&con->mysql)));
-        CEL_ERR((_T("mysql_real_query:%s."), mysql_error(&con->mysql)));
+        CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_real_query:%s."), mysql_error(&con->mysql)));
         mysql_close(&con->mysql);
         if (cel_mysqlcon_open(con) == -1)
             return -1;
         if (mysql_real_query(
             &con->mysql, sqlstr, (unsigned long)strlen(sqlstr)) != 0)
         {
-            CEL_SETERR((CEL_ERR_MYSQL, _T("%s"), mysql_error(&con->mysql)));
-            CEL_ERR((_T("mysql_real_query:%s."), mysql_error(&con->mysql)));
+            CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_real_query:%s."), mysql_error(&con->mysql)));
             return -1;
         }
     }
@@ -128,8 +123,7 @@ CelMysqlRes *cel_mysqlcon_execute_onequery(CelMysqlCon *con, const char *sqlstr)
     if (mysql_real_query(
         &con->mysql, sqlstr, (unsigned long)strlen(sqlstr)) != 0)
     {
-        CEL_SETERR((CEL_ERR_MYSQL, _T("%s"), mysql_error(&con->mysql)));
-        CEL_ERR((_T("mysql_real_query:%s."), mysql_error(&con->mysql)));
+        CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_real_query:%s."), mysql_error(&con->mysql)));
         mysql_close(&con->mysql);
         if (cel_mysqlcon_open(con) == -1)
         {
@@ -138,7 +132,7 @@ CelMysqlRes *cel_mysqlcon_execute_onequery(CelMysqlCon *con, const char *sqlstr)
         if (mysql_real_query(
             &con->mysql, sqlstr, (unsigned long)strlen(sqlstr)) != 0)
         {
-            CEL_ERR((_T("mysql_real_query:%s."),mysql_error(&con->mysql)));
+            CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_real_query:%s."),mysql_error(&con->mysql)));
             return NULL;
         }
     }
@@ -152,8 +146,7 @@ CelMysqlRes *cel_mysqlcon_execute_query(CelMysqlCon *con, const char *sqlstr)
     if (mysql_real_query(
         &con->mysql, sqlstr, (unsigned long)strlen(sqlstr)) != 0)
     {
-        CEL_SETERR((CEL_ERR_MYSQL, _T("%s"), mysql_error(&con->mysql)));
-        CEL_ERR((_T("mysql_real_query:%s."),mysql_error(&con->mysql)));
+        CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_real_query:%s."),mysql_error(&con->mysql)));
         mysql_close(&con->mysql);
         if (cel_mysqlcon_open(con) == -1)
         {
@@ -162,8 +155,7 @@ CelMysqlRes *cel_mysqlcon_execute_query(CelMysqlCon *con, const char *sqlstr)
         if (mysql_real_query(
             &con->mysql, sqlstr, (unsigned long)strlen(sqlstr)) != 0)
         {
-            CEL_SETERR((CEL_ERR_MYSQL, _T("%s"), mysql_error(&con->mysql)));
-            CEL_ERR((_T("mysql_real_query:%s."),mysql_error(&con->mysql)));
+            CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_real_query:%s."),mysql_error(&con->mysql)));
             return NULL;
         }
     }
@@ -207,8 +199,7 @@ const char *cel_mysqlres_field_name(CelMysqlRes *res,
     if ((res->fields == NULL && mysql_fetch_field(res) == NULL)
         || res->field_count > field_offset)
     {
-        CEL_SETERR((CEL_ERR_MYSQL, _T("Mysql fetch field error")));
-        CEL_ERR((_T("Mysql fetch field error.")));
+        CEL_SETERR((CEL_ERR_MYSQL, _T("Mysql fetch field error.")));
         return NULL;
     }
     return res->fields[field_offset].name;
@@ -220,8 +211,7 @@ int cel_mysqlres_field_len(CelMysqlRes *res, unsigned int field_offset)
         && mysql_fetch_field(res) == NULL)
         || res->field_count > field_offset)
     {
-        CEL_SETERR((CEL_ERR_MYSQL, _T("Mysql fetch field error")));
-        CEL_ERR((_T("Mysql fetch field error.")));
+        CEL_SETERR((CEL_ERR_MYSQL, _T("Mysql fetch field error.")));
         return -1;
     }
     return res->fields[field_offset].name_length;
@@ -241,7 +231,6 @@ int cel_mysqlres_rows_seek(CelMysqlRes *res,
     }
     CEL_SETERR((CEL_ERR_MYSQL, 
         _T("Mysql data seek failed, offset %lld out of range"), offset));
-    CEL_ERR((_T("Mysql data seek failed, offset %lld out of range"), offset));
 
     return -1;
 }

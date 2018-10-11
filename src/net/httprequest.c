@@ -143,7 +143,7 @@ int cel_httpurl_reading(CelHttpUrl *url, const char *value, size_t size)
     //printf("%d %s\r\n", size, value);
     while (i < (int)size)
     {
-        if (value[i] == '?')
+        if (query_start == 0 && value[i] == '?')
         {
             path_end = i;
             query_start = i + 1;

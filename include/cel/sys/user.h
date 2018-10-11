@@ -29,6 +29,7 @@ extern "C" {
 typedef OsGroupInfo CelGroupInfo;
 typedef OsUserInfo CelUserInfo;
 
+/* return 0 = continue;-1 = error;1 = break */
 typedef OsGroupEachFunc CelGroupEachFunc;
 typedef OsUserEachFunc CelUserEachFunc;
 
