@@ -258,7 +258,7 @@ int cel_httpclient_async_send_request(CelHttpClient *client,
     CelStream *s = cel_httprequest_get_stream(req);
     CelAsyncResult _result;
 
-    CEL_ASSERT(callback == NULL);
+    CEL_ASSERT(callback != NULL);
     req->_async_callback = callback;
     //puts(req->s.buffer);
     cel_stream_set_position(s, 0);
@@ -442,7 +442,7 @@ int cel_httpclient_async_send_response(CelHttpClient *client,
     CelStream *s = cel_httpresponse_get_stream(rsp);
     CelAsyncResult _result;
 
-    CEL_ASSERT(callback == NULL);
+    CEL_ASSERT(callback != NULL);
     rsp->_async_callback = callback;
     cel_stream_set_position(s, 0);
     if ((ret = cel_httpclient_writing_send_response(client, s, rsp)) == 0)
@@ -590,7 +590,7 @@ int cel_httpclient_async_execute(CelHttpClient *client,
     unsigned short port;
 
     //printf("http client fd %d\r\n", client->tcp_client.sock.fd);
-    CEL_ASSERT(async_callback == NULL);
+    CEL_ASSERT(async_callback != NULL);
     client->execute_req = req;
     client->execute_rsp = rsp;
     client->execute_callback = async_callback;

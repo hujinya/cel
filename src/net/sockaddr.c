@@ -305,7 +305,7 @@ const TCHAR *cel_sockaddr_get_ipstr_r(CelSockAddr *addr,
         return strncpy(buf, addr->addr_un.sun_path, size);
 #endif
     default:
-        CEL_ERR((_T("Socket address family \"%d\" undefined¡£"), 
+        CEL_ERR((_T("Socket address family \"%d\" undefined"), 
             addr->sa_family));
         return NULL;
     }
@@ -345,7 +345,7 @@ TCHAR *cel_sockaddr_get_addrs_r(CelSockAddr *addr, TCHAR *buf, size_t size)
         break;
 #endif
     default:
-        CEL_ERR((_T("Socket address family \"%d\" undefined¡£"), 
+        CEL_ERR((_T("Socket address family \"%d\" undefined"), 
             addr->sa_family));
         return NULL;
     }

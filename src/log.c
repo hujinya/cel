@@ -59,7 +59,7 @@ CelLogger g_logger = {
     },  /* level */
     { '\0' }, /* hostname */
     { '\0' }, /* processname */
-    NULL,     /* hook_list */
+    NULL,     /* sink_list */
     FALSE,    /* is_flush */
     CEL_LOGGER_FLUSH_NUM,
     CEL_LOGGER_BUF_NUM,
@@ -123,9 +123,9 @@ int cel_logger_hook_register(CelLogger *logger, const TCHAR *name,
 {
     CelLogerHookItem *hook;
 
-    if (logger->hook_list == NULL)
+    if (logger->sink_list == NULL)
     {
-        if ((logger->hook_list = cel_list_new(cel_free)) == NULL)
+        if ((logger->sink_list = cel_list_new(cel_free)) == NULL)
         {
             _putts(_T("Hook list new failed"));
             return -1;
@@ -148,7 +148,7 @@ int cel_logger_hook_register(CelLogger *logger, const TCHAR *name,
     hook->write_func = write_func;
     hook->flush_func = flush_func;
     hook->user_data = user_data;
-    cel_list_push_back(logger->hook_list, (CelListItem *)hook);
+    cel_list_push_back(logger->sink_list, (CelListItem *)hook);
 
     return 0;
 }
@@ -157,18 +157,18 @@ int cel_logger_hook_unregister(CelLogger *logger, const TCHAR *name)
 {
     CelLogerHookItem *hook1, *hook2;
 
-    if (logger->hook_list == NULL)
+    if (logger->sink_list == NULL)
         return -1;
     if (name == NULL)
         return -1;
-    hook1 = (CelLogerHookItem *)g_logger.hook_list->head.next;
-    while ((hook2 = hook1) != (CelLogerHookItem *)&(logger->hook_list->tail))
+    hook1 = (CelLogerHookItem *)g_logger.sink_list->head.next;
+    while ((hook2 = hook1) != (CelLogerHookItem *)&(logger->sink_list->tail))
     {
         hook1 = (CelLogerHookItem *)hook2->item.next;
         if (name == NULL
             || strncmp(hook2->name, name, CEL_KNLEN) == 0)
         {
-            cel_list_remove(logger->hook_list, (CelListItem *)hook2);
+            cel_list_remove(logger->sink_list, (CelListItem *)hook2);
             cel_free(hook2);
         } 
     }
@@ -179,8 +179,8 @@ static int cel_logger_logging(CelLogger *logger, CelLogMsg **msgs, size_t n)
 {
     CelLogerHookItem *hook1, *hook2;
 
-    hook1 = (CelLogerHookItem *)logger->hook_list->head.next;
-    while ((hook2 = hook1) != (CelLogerHookItem *)&(logger->hook_list->tail))
+    hook1 = (CelLogerHookItem *)logger->sink_list->head.next;
+    while ((hook2 = hook1) != (CelLogerHookItem *)&(logger->sink_list->tail))
     {
         //puts(hook2->name);
         hook1 = (CelLogerHookItem *)hook2->item.next;
@@ -193,8 +193,8 @@ static int _cel_loggger_flush(CelLogger *logger)
 {
     CelLogerHookItem *hook1, *hook2;
 
-    hook1 = (CelLogerHookItem *)logger->hook_list->head.next;
-    while ((hook2 = hook1) != (CelLogerHookItem *)&(logger->hook_list->tail))
+    hook1 = (CelLogerHookItem *)logger->sink_list->head.next;
+    while ((hook2 = hook1) != (CelLogerHookItem *)&(logger->sink_list->tail))
     {
         //puts(hook2->name);
         hook1 = (CelLogerHookItem *)hook2->item.next;
@@ -263,12 +263,12 @@ int cel_logger_flush(CelLogger *logger)
     if ((n = cel_ringlist_pop_do_sp(
         logger->ring_list, logger->msg_ptrs, logger->n_bufs)) > 0)
     {
-        if (logger->hook_list == NULL)
+        if (logger->sink_list == NULL)
             cel_logmsg_puts(logger->msg_ptrs, n, NULL);
         else 
             cel_logger_logging(logger, logger->msg_ptrs, n);
         cel_ringlist_push_do_sp(logger->free_list, logger->msg_ptrs[0], n);
-        if (logger->hook_list != NULL)
+        if (logger->sink_list != NULL)
             _cel_loggger_flush(logger);
     }
     //printf("n_msg = %d %ld\r\n", n, cel_getticks());
@@ -320,11 +320,11 @@ static CelLogSpecific *_cel_logger_specific_get()
 }while(0)
 
 #define CEL_LOG_FLUSH() do { \
-    if (logger->hook_list == NULL) \
+    if (logger->sink_list == NULL) \
         cel_logmsg_puts(&log_msg, 1, NULL); \
     else \
         cel_logger_logging(logger, &log_msg, 1); \
-    if (logger->hook_list != NULL) \
+    if (logger->sink_list != NULL) \
         _cel_loggger_flush(logger); \
 }while(0)
 

@@ -49,7 +49,8 @@ void cel_httpweblistener_do_handshake(CelHttpWebClient *client,
 {
     if (result->ret != 1)
     {
-        CEL_ERR((_T("httpweblistener_do_handshake failed##########################")));
+        CEL_ERR((_T("httpweblistener_do_handshake failed, client %s"),
+            cel_httpwebclient_get_remoteaddr_str(client)));
         cel_httpwebclient_free(client);
         return ;
     }

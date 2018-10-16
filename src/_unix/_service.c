@@ -224,27 +224,32 @@ int _os_service_entry_child(OsServiceEntry *sc_entry, int argc, char **argv)
     }
 }
 
-int _os_service_entry_dispatch(OsServiceEntry *sc_entry, int argc, char **argv)
+int _os_service_entry_dispatch(OsServiceEntry *sc_entry, 
+                               BOOL is_foreground,
+                               int argc, char **argv)
 {
     pid_t pid;
     int null_fd;
     sigset_t set;
 
-    if ((pid = fork()) < 0)
-        return 1;   /**< Create child fork error */
-    if (pid > 0)
-        exit(0);    /**< Parent process exit */
+    if (!is_foreground)
+    {
+        if ((pid = fork()) < 0)
+            return 1;   /**< Create child fork error */
+        if (pid > 0)
+            exit(0);    /**< Parent process exit */
 
-    setsid();       /**< Set session leader */
+        setsid();       /**< Set session leader */
 
-    //chdir("/");
-    umask(0);
-    if ((null_fd = open("/dev/null", 0)) == -1
-        || dup2(null_fd, STDERR_FILENO) == -1
-        || dup2(null_fd, STDOUT_FILENO) == -1 
-        || dup2(null_fd, STDIN_FILENO) == -1)
-        return 1;
-    close(null_fd);
+        //chdir("/");
+        umask(0);
+        if ((null_fd = open("/dev/null", 0)) == -1
+            || dup2(null_fd, STDERR_FILENO) == -1
+            || dup2(null_fd, STDOUT_FILENO) == -1 
+            || dup2(null_fd, STDIN_FILENO) == -1)
+            return 1;
+        close(null_fd);
+    }
 
     cel_signals_init(sc_signals);
 

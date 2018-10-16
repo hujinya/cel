@@ -45,8 +45,10 @@ OsServiceEntry *os_service_entry_create(const TCHAR *name,
                                         CelMainFunc on_start, 
                                         CelVoidFunc on_stop);
 
-#define os_service_entry_dispatch(sc_entry) \
-    (StartServiceCtrlDispatcher(sc_entry->scEntry) ? 0 : -1)
+#define os_service_entry_dispatch(sc_entry, is_foreground) \
+    (is_foreground \
+    ? sc_entry->on_start(argc, argv) \
+    : StartServiceCtrlDispatcher(sc_entry->scEntry) ? 0 : -1)
 
 #ifdef __cplusplus
 }

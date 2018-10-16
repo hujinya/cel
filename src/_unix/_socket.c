@@ -42,8 +42,7 @@ int os_socket_set_keepalive(OsSocket *sock,
 int os_socket_do_async_accept(CelSocketAsyncAcceptArgs *args)
 {
     if ((args->_ol.result.ret = cel_socket_accept(
-        args->socket, args->accept_socket, 
-        (CelSockAddr *)(args->addr_buf))) == -1)
+        args->socket, args->accept_socket, (CelSockAddr *)(args->addr))) == -1)
     {
         //_tprintf("errno = %d\r\n", errno);
         if (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -122,7 +121,10 @@ int os_socket_do_async_recv(CelSocketAsyncRecvArgs *args)
             args->_ol.result.error = errno;
             CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_ERROR);
         }
-        //_tprintf(_T("receive %ld, errno %d\r\n"), args->_ol.result.ret, args->_ol.result.error);
+        /*
+        _tprintf(_T("receive %ld, errno %d\r\n"), 
+        args->_ol.result.ret, args->_ol.result.error);
+        */
         return -1;
     }
     CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_OK);
@@ -175,8 +177,8 @@ int os_socket_do_async_recvfrom(CelSocketAsyncRecvFromArgs *args)
 
 int os_socket_do_async_sendfile(CelSocketAsyncSendFileArgs *args)
 {
-    if ((args->_ol.result.ret 
-        = sendfile(args->socket->fd, args->file, &args->offset, args->count)) == -1)
+    if ((args->_ol.result.ret = sendfile(
+        args->socket->fd, args->file, &args->offset, args->count)) == -1)
     {
         if (errno == EAGAIN || errno == EWOULDBLOCK)
             CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_WANTIN);

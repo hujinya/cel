@@ -150,7 +150,7 @@ static int cel_poll_handle(CelPoll *poll,
         POLLOUT_CLR(poll_data->events);
         break;
     default:
-        CEL_ERR((_T("Undfined event type \"%d\"."), ol->evt_type));
+        CEL_ERR((_T("Undefined event type \"%d\"."), ol->evt_type));
         return -1;
     }
     do

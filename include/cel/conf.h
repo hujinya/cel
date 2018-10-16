@@ -16,15 +16,23 @@
 #define __CEL_CONF_H__
 
 #include "cel/config.h"
-#if defined(_CEL_UNIX)
-#include "cel/_unix/_convert.h"
-#elif defined(_CEL_WIN)
-#include "cel/_win/_convert.h"
-#endif
+#include "cel/json.h"
+
+typedef CelJsonNode CelConfItem;
+typedef CelJson CelConf;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+int cel_conf_init(CelConf *conf);
+void cel_conf_destroy(CelConf *conf);
+
+CelConf *cel_conf_new();
+void cel_conf_free();
+
+int cel_conf_get(CelConf *conf, const char *keys);
+int cel_conf_set(CelConf *conf, const char *keys);
 
 #ifdef __cplusplus
 }

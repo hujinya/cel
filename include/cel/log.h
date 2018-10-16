@@ -88,7 +88,7 @@ typedef struct _CelLogger
     CelLogLevel level[CEL_LOGFACILITY_COUNT];
     TCHAR hostname[CEL_HNLEN];
     TCHAR processname[CEL_FNLEN];
-    CelList *hook_list;
+    CelList *sink_list;
     BOOL is_flush;
     size_t n_flushs;
     size_t n_bufs;
@@ -119,6 +119,8 @@ int cel_logger_hook_register(CelLogger *logger, const TCHAR *name,
                              CelLogMsgWriteFunc write_func, 
                              CelLogMsgFlushFunc flush_func, void *user_data);
 int cel_logger_hook_unregister(CelLogger *logger, const TCHAR *name);
+#define cel_logger_sink_add  cel_logger_hook_register
+#define cel_logger_sink_remove cel_logger_hook_unregister
 
 int cel_logger_puts(CelLogger *logger, 
                     CelLogFacility facility, CelLogLevel level, 
@@ -219,7 +221,7 @@ int cel_logmsg_dbinsert(CelLogMsg **msgs, size_t n, void *user_data);
 #define CEL_ASSERT(cond)  \
 do {                                                           \
   if (!(cond)) {                                               \
-    _ftprintf(stderr, _T("%s(%d)-%s()-#%s"),                   \
+    _ftprintf(stderr, _T("%s(%d)-%s()-#%s")CEL_CRLF,           \
         _T(__FILE__), __LINE__, _T(__FUNCTION__), #cond);      \
     abort();                                                   \
   }                                                            \

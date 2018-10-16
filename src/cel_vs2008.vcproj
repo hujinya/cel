@@ -941,18 +941,6 @@
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath=".\_unix\_service2.c"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
 					RelativePath=".\_unix\_sockaddr.c"
 					>
 					<FileConfiguration
@@ -1082,10 +1070,6 @@
 				</File>
 				<File
 					RelativePath=".\_win\_service.c"
-					>
-				</File>
-				<File
-					RelativePath=".\_win\_service2.c"
 					>
 				</File>
 				<File
@@ -1679,10 +1663,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\include\cel\_win\_service2.h"
-					>
-				</File>
-				<File
 					RelativePath="..\include\cel\_win\_sockaddr.h"
 					>
 				</File>
@@ -1720,10 +1700,6 @@
 				</File>
 				<File
 					RelativePath="..\include\cel\sys\service.h"
-					>
-				</File>
-				<File
-					RelativePath="..\include\cel\sys\service2.h"
 					>
 				</File>
 				<File
@@ -2047,18 +2023,6 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Debug|x64"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\include\cel\_unix\_service2.h"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
 						ExcludedFromBuild="true"
 						>
 						<Tool

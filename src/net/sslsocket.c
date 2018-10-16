@@ -602,13 +602,13 @@ void cel_sslsocket_do_shutdown(CelSocket *sock,
 }
 
 int cel_sslsocket_async_shutdown(CelSslSocket *ssl_sock, 
-                                 CelSslSocketShutdownCallbackFunc ca,
+                                 CelSslSocketShutdownCallbackFunc callback,
                                  CelCoroutine *co)
 {
     CelSslAsyncArgs *args = &(ssl_sock->out);
 
     CEL_ASSERT(callback != NULL || co != NULL);
-    args->shutdown_callback = ca;
+    args->shutdown_callback = callback;
     args->co = co;
     //printf("args->ssl_buf->len = %d\r\n", args->ssl_buf->len);
     cel_ssl_clear_error();

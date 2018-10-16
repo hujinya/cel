@@ -18,15 +18,23 @@
 
 int cel_stream_init(CelStream *s)
 {
-    memset(s ,0, sizeof(CelStream));
+    s->buffer = NULL;
+    s->pointer = NULL;
+    s->capacity = 0;
+    s->length = 0;
     return 0;
 }
 
 void cel_stream_destroy(CelStream *s)
 {
     if (s->buffer != NULL)
+    {
         cel_free(s->buffer);
-    memset(s ,0, sizeof(CelStream));
+        s->buffer = NULL;
+    }
+    s->pointer = NULL;
+    s->capacity = 0;
+    s->length = 0;
 }
 
 int _cel_stream_resize(CelStream *s, size_t size)

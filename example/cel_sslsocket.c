@@ -8,6 +8,7 @@
 static CelEventLoop evt_loop;
 static CelSocket ssl_listener;
 static CelSslContext *ssl_ctx;
+static CelSockAddr addr;
 static CelSslSocket ssl_socket;
 static CelAsyncBuf async_buf;
 static char buf[1024 * 60];
@@ -36,7 +37,7 @@ void send_completion(CelSslSocket *ssl_sock, CelAsyncBuf *buffers, int count,
 {
     puts("send ok");
     cel_sslsocket_destroy(ssl_sock);
-    cel_socket_async_accept(&ssl_listener, &(ssl_sock->sock),
+    cel_socket_async_accept(&ssl_listener, &(ssl_sock->sock), &addr,
         (CelSocketAcceptCallbackFunc)accept_completion, NULL);
 }
 
@@ -125,7 +126,7 @@ int sslsocket_test(int argc, TCHAR *argv[])
     }
     _tprintf(_T("%s listen.\r\n"), cel_sockaddr_ntop(&addr));
     
-    cel_socket_async_accept(&(ssl_listener), &(ssl_socket.sock), 
+    cel_socket_async_accept(&(ssl_listener), &(ssl_socket.sock), &addr,
         (CelSocketAcceptCallbackFunc)accept_completion, NULL);
 
     for (i = 0; i < (4 - 1); i++)

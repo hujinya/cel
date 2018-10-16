@@ -14,6 +14,7 @@
  */
 #include "cel/refcounted.h"
 #include "cel/allocator.h"
+#include "cel/log.h"
 
 int cel_refcounted_init(CelRefCounted *ref_counted, CelFreeFunc free_func)
 {
@@ -25,12 +26,13 @@ int cel_refcounted_init(CelRefCounted *ref_counted, CelFreeFunc free_func)
 
 void cel_refcounted_destroy(CelRefCounted *ref_counted, void *ptr)
 {
-    if (cel_atomic_increment(&(ref_counted->cnt), -1) <= 0)
+    if (cel_atomic_increment(&(ref_counted->cnt), -1) == 0)
     {
         //printf("ref_counted->cnt = %d\r\n", ref_counted->cnt);
         if (ref_counted->free_func != NULL)
             ref_counted->free_func(ptr);
     }
+    CEL_ASSERT(ref_counted->cnt >= 0);
 }
 
 CelRefCounted *cel_refcounted_ref(CelRefCounted *ref_counted)
@@ -47,10 +49,11 @@ void *cel_refcounted_ref_ptr(CelRefCounted *ref_counted, void *ptr)
 
 void cel_refcounted_deref(CelRefCounted *ref_counted, void *ptr)
 {
-    if (cel_atomic_increment(&(ref_counted->cnt), -1) <= 0)
+    if (cel_atomic_increment(&(ref_counted->cnt), -1) == 0)
     {
         //printf("ref_counted->cnt = %d\r\n", ref_counted->cnt);
         if (ref_counted->free_func != NULL)
             ref_counted->free_func(ptr);
     }
+    CEL_ASSERT(ref_counted->cnt >= 0);
 }

@@ -49,6 +49,7 @@ typedef struct _CelSocketAsyncAcceptArgs
     CelOverLapped _ol;
     CelSocket *socket;
     CelSocket *accept_socket;
+    CelSockAddr *addr;
     char addr_buf[ACCEPTEX_RECEIVEDATA_OFFSET];
     CelAsyncResult result;
     CelSocketAcceptCallbackFunc async_callback;
@@ -279,13 +280,14 @@ static __inline int cel_socket_set_sndtimeout(CelSocket *sock, int milliseconds)
 #define cel_socket_do_async_sendfile os_socket_do_async_sendfile
 
 
-int cel_socket_async_accept(CelSocket *sock, CelSocket *new_sock, 
+int cel_socket_async_accept(CelSocket *sock,
+                            CelSocket *new_sock, CelSockAddr *addr,
                             CelSocketAcceptCallbackFunc callback,
                             CelCoroutine *co);
-#define cel_socket_async_cb_accept(sock, callback) \
-    cel_socket_async_accept(sock, callback, NULL)
+#define cel_socket_async_cb_accept(sock, addr, callback) \
+    cel_socket_async_accept(sock, addr, callback, NULL)
 #define cel_socket_async_co_accept(sock, co) \
-    cel_socket_async_accept(sock, NULL, co)
+    cel_socket_async_accept(sock, addr, NULL, co)
 
 int cel_socket_async_connect(CelSocket *sock, CelSockAddr *addr, 
                              CelSocketConnectCallbackFunc callback,

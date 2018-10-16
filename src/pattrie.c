@@ -58,9 +58,9 @@ CelPatTrieNode *cel_pattrie_node_new(CelPatTrieNodeType type,
 {
     CelPatTrieNode *new_node;
 
-    new_node = (CelPatTrieNode *)cel_malloc(sizeof(CelPatTrieNode));
-    CEL_ASSERT(new_node == NULL);
-
+    if ((new_node = 
+        (CelPatTrieNode *)cel_malloc(sizeof(CelPatTrieNode))) == NULL)
+        return NULL;
     if (key != NULL)
     {
         new_node->key = cel_strdup_full(key, 0, key_len);
@@ -71,7 +71,6 @@ CelPatTrieNode *cel_pattrie_node_new(CelPatTrieNodeType type,
         new_node->key = NULL;
         new_node->key_len = 0;
     }
-    CEL_ASSERT(new_node->key == NULL);
 
     new_node->type = type;
     new_node->value = value;

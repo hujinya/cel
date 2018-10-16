@@ -167,39 +167,32 @@ int cel_tcplistener_accept(CelTcpListener *listener, CelTcpClient *client)
 }
 
 static void cel_tcplistener_do_accept(CelTcpListener *listener, 
-                                      CelTcpClient *new_client, 
+                                      CelTcpClient *client, 
                                       CelAsyncResult *result)
 {
     CelTcpListenerAsyncArgs *args = listener->async_args;
 
     memcpy(&(args->result), result, sizeof(CelAsyncResult));
-    if (result->ret == 0)
+    if (result->ret == 0
+        && cel_socket_get_localaddr(&(client->sock), &(client->local_addr)) != NULL
+        /* && cel_socket_get_remoteaddr(&(client->sock), &(client->remote_addr)) != NULL */
+        && (listener->ssl_ctx == NULL
+        || cel_sslsocket_init(&(client->ssl_sock),
+        &(client->sock), listener->ssl_ctx) == 0))
     {
-        if (listener->ssl_ctx == NULL
-            || cel_sslsocket_init(&(new_client->ssl_sock),
-            &(new_client->sock), listener->ssl_ctx) == 0)
-        {
-            if (new_client->ssl_sock.ssl != NULL)
-                cel_ssl_set_endpoint(
-                new_client->ssl_sock.ssl, CEL_SSLEP_SERVER);
-            memcpy(&(new_client->local_addr), 
-                &(listener->addr), sizeof(CelSockAddr));
-            cel_socket_get_localaddr(
-                &(new_client->sock), &(new_client->local_addr));
-            cel_socket_get_remoteaddr(
-                &(new_client->sock), &(new_client->remote_addr));
-            cel_refcounted_init(&(new_client->ref_counted), 
-                (CelFreeFunc)_cel_tcpclient_destroy_derefed);
-        }
-        else
-        {
-            args->result.ret = -1;
-            args->result.error = cel_sys_geterrno();
-            cel_socket_destroy(&(new_client->sock));
-        }
+        if (client->ssl_sock.ssl != NULL)
+            cel_ssl_set_endpoint(client->ssl_sock.ssl, CEL_SSLEP_SERVER);
+        cel_refcounted_init(&(client->ref_counted), 
+            (CelFreeFunc)_cel_tcpclient_destroy_derefed);
+    }
+    else
+    {
+        args->result.ret = -1;
+        args->result.error = cel_sys_geterrno();
+        cel_socket_destroy(&(client->sock));
     }
     if (args->async_callback != NULL)
-        args->async_callback(listener, new_client, &(args->result));
+        args->async_callback(listener, client, &(args->result));
     else
         cel_coroutine_resume(args->co);
 }
@@ -219,7 +212,7 @@ int cel_tcplistener_async_accept(CelTcpListener *listener,
     args->async_callback = async_callback;
     args->co = co;
     if ((args->result.ret = cel_socket_async_accept(
-        &(listener->sock), &(new_client->sock), 
+        &(listener->sock), &(new_client->sock), &(new_client->remote_addr),
         (CelSocketAcceptCallbackFunc)cel_tcplistener_do_accept, NULL)) != -1
         && args->co != NULL)
         cel_coroutine_yield(args->co);
