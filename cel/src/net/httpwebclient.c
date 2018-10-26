@@ -26,6 +26,7 @@ void _cel_httpwebclient_destroy_derefed(CelHttpWebClient *client)
 
     cel_httprequest_destroy(&(client->req));
     cel_httpresponse_destroy(&(client->rsp));
+    client->rt_state = 0;
     cel_httproutedata_destroy(&(client->rt_data));
     client->execute_callback = NULL;
 }
@@ -62,6 +63,7 @@ CelHttpWebClient *cel_httpwebclient_new_httpclient(CelHttpClient *http_client,
     new_client->web_ctx = web_ctx;
     cel_httprequest_init(&(new_client->req));
     cel_httpresponse_init(&(new_client->rsp));
+    new_client->rt_state = 0;
     cel_httproutedata_init(&(new_client->rt_data));
     new_client->execute_callback = NULL;
     cel_refcounted_init(&(new_client->ref_counted),
@@ -135,12 +137,12 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
         }
         return ;
     case CEL_HTTPREQUEST_READING_OK:
-        /* Init response header */
+        /* Init response common header */
         cel_httpresponse_set_header(&(client->rsp), CEL_HTTPHDR_SERVER,
             client->web_ctx->server, strlen(client->web_ctx->server));
         cel_httpresponse_set_header(&(client->rsp), CEL_HTTPHDR_CONNECTION,
             &(client->req.connection), sizeof(CelHttpConnection));
-       /* Process request */
+        /* Process request */
         ver_end = client->web_ctx->prefix.key_len;
         if ((url = cel_httprequest_get_url_path(req)) == NULL
             || cel_keyword_ncmp_a(
@@ -153,9 +155,9 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
                 "Http web request prefix not supported.");
             return ;
         }
-        
-        if ((handler = cel_httproute_handler(
-            &(client->web_ctx->route), 
+
+        if ((handler = cel_httproute_routing(
+            &(client->web_ctx->route), &(client->rt_state),
             cel_httprequest_get_method(req), 
             url + ver_end, 
             &(client->rt_data))) == NULL)
@@ -262,6 +264,7 @@ void cel_httpwebclient_do_send_response(CelHttpWebClient *client,
         //puts("CEL_HTTPCON_KEEPALIVE");
         cel_httprequest_clear(&(client->req));
         cel_httpresponse_clear(&(client->rsp));
+        client->rt_state = 0;
         cel_httproutedata_clear(&(client->rt_data));
         client->execute_callback = NULL;
         client->file_len = 0;
@@ -331,8 +334,8 @@ int cel_httpwebclient_async_send_response_result(CelHttpWebClient *client,
         cel_httpwebclient_free(client);
         return -1;
     }
-   /* if (client->web_ctx->xx_func != NULL)
-        client->web_ctx->xx_func(client, message);*/
+    /* if (client->web_ctx->xx_func != NULL)
+    client->web_ctx->xx_func(client, message);*/
     if (cel_httpclient_async_send_response(&(client->http_client), 
         &(client->rsp),
         (CelHttpSendResponseCallbackFunc)

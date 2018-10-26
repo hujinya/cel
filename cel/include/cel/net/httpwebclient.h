@@ -60,6 +60,7 @@ struct _CelHttpWebClient
     CelHttpWebContext *web_ctx;
     CelHttpRequest req;
     CelHttpResponse rsp;
+    CelHttpRouteState rt_state;
     CelHttpRouteData rt_data;
     size_t file_len;
     CelHttpWebCallbackFunc execute_callback;

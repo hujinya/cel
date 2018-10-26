@@ -23,7 +23,7 @@
 #define _CEL_UNIX
 #endif
 
-#define _CEL_ASSERT  /* log.h */
+//#define _CEL_ASSERT  /* log.h */
 #define _CEL_ERR     /* log.h */
 
 #define GCC_VERSION \

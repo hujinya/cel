@@ -313,7 +313,7 @@ const TCHAR *cel_sockaddr_get_ipstr_r(CelSockAddr *addr,
     return NULL;
 }
 
-TCHAR *cel_sockaddr_get_addrs_r(CelSockAddr *addr, TCHAR *buf, size_t size)
+TCHAR *cel_sockaddr_get_str_r(CelSockAddr *addr, TCHAR *buf, size_t size)
 {
     static volatile int i = 0;
     static TCHAR s_buf[CEL_BUFNUM][CEL_ADDRLEN] = { {_T('\0')}, {_T('\0')} };

@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\cel\include;..\..\mysql_5_5_15\include;..\..\openssl_1_0_2k\include"
+				AdditionalIncludeDirectories="..\..\cel\include;..\..\mysql\include;..\..\openssl\include"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -228,6 +228,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\cel_httpwebclient.c"
+				>
+			</File>
+			<File
+				RelativePath=".\cel_httpweblistener.c"
+				>
+			</File>
+			<File
 				RelativePath=".\cel_json.c"
 				>
 			</File>
@@ -321,14 +329,6 @@
 			</File>
 			<File
 				RelativePath=".\cel_vrrp.c"
-				>
-			</File>
-			<File
-				RelativePath=".\cel_wmipclient.c"
-				>
-			</File>
-			<File
-				RelativePath=".\cel_wmiplistener.c"
 				>
 			</File>
 			<File

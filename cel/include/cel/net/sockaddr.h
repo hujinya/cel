@@ -65,7 +65,7 @@ CelSockAddr *cel_sockaddr_new_str(const TCHAR *str);
 
 void cel_sockaddr_free(CelSockAddr *addr);
 
-TCHAR *cel_sockaddr_get_addrs_r(CelSockAddr *addr, TCHAR *buf, size_t size);
+TCHAR *cel_sockaddr_get_str_r(CelSockAddr *addr, TCHAR *buf, size_t size);
 const TCHAR *cel_sockaddr_get_ipstr_r(CelSockAddr *addr, 
                                       TCHAR *buf, size_t size);
 #define cel_sockaddr_get_ipstr(addr) cel_sockaddr_get_ipstr_r(addr, NULL, 0)
@@ -80,8 +80,8 @@ const TCHAR *cel_sockaddr_get_ipstr_r(CelSockAddr *addr,
  * const TCHAR *cel_sockaddr_ntop(CelSockAddr *addr); 
  * const TCHAR *cel_sockaddr_ntop_r(CelSockAddr *addr, TCHAE *buf, size_t size); 
  */
-#define cel_sockaddr_ntop(addr) cel_sockaddr_get_addrs_r(addr, NULL, 0)
-#define cel_sockaddr_ntop_r cel_sockaddr_get_addrs_r
+#define cel_sockaddr_ntop(addr) cel_sockaddr_get_str_r(addr, NULL, 0)
+#define cel_sockaddr_ntop_r cel_sockaddr_get_str_r
 
 #ifndef _UNICODE
 #define cel_gethostname_r cel_gethostname_r_a

@@ -44,7 +44,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\cel\include;..\..\mysql_5_5_15\include;..\..\openssl_1_0_2k\include"
+				AdditionalIncludeDirectories="..\..\cel\include;..\..\mysql\include;..\..\openssl\include"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -422,6 +422,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\regex.c"
+				>
+			</File>
+			<File
 				RelativePath=".\ringlist.c"
 				>
 			</File>
@@ -521,6 +525,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\net\httpfilter.c"
+					>
+				</File>
+				<File
 					RelativePath=".\net\httplistener.c"
 					>
 				</File>
@@ -602,14 +610,6 @@
 				</File>
 				<File
 					RelativePath=".\net\vrrp.c"
-					>
-				</File>
-				<File
-					RelativePath=".\net\wmipclient.c"
-					>
-				</File>
-				<File
-					RelativePath=".\net\wmiplistener.c"
 					>
 				</File>
 			</Filter>
@@ -1288,6 +1288,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\include\cel\regex.h"
+				>
+			</File>
+			<File
 				RelativePath="..\include\cel\ringlist.h"
 				>
 			</File>
@@ -1399,6 +1403,10 @@
 					>
 				</File>
 				<File
+					RelativePath="..\include\cel\net\httpfilter.h"
+					>
+				</File>
+				<File
 					RelativePath="..\include\cel\net\httplistener.h"
 					>
 				</File>
@@ -1484,14 +1492,6 @@
 				</File>
 				<File
 					RelativePath="..\include\cel\net\vrrp.h"
-					>
-				</File>
-				<File
-					RelativePath="..\include\cel\net\wmipclient.h"
-					>
-				</File>
-				<File
-					RelativePath="..\include\cel\net\wmiplistener.h"
 					>
 				</File>
 			</Filter>

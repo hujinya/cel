@@ -372,8 +372,9 @@ int cel_logger_write(CelLogger *logger,
     if (logger->is_flush)
     {
         CEL_LOGMSG_SPECIFIC_GET();
-        memcpy(log_msg->content, 
-            buf, (size > CEL_LOGMSG_CONTENT_SIZE ? CEL_LOGMSG_CONTENT_SIZE : size));
+        memcpy(log_msg->content, buf, 
+            (size > CEL_LOGMSG_CONTENT_SIZE 
+            ? CEL_LOGMSG_CONTENT_SIZE : size));
         CEL_LOGMSG_WRITE();
         cel_ringlist_push_do_mp(logger->ring_list, log_msg, 1);
         log_specific->msg_buf = NULL;
@@ -381,8 +382,9 @@ int cel_logger_write(CelLogger *logger,
     else
     {
         log_msg = &(log_specific->msg);
-        memcpy(log_msg->content, 
-            buf, (size > CEL_LOGMSG_CONTENT_SIZE ? CEL_LOGMSG_CONTENT_SIZE : size));
+        memcpy(log_msg->content, buf, 
+            (size > CEL_LOGMSG_CONTENT_SIZE 
+            ? CEL_LOGMSG_CONTENT_SIZE : size));
         CEL_LOGMSG_WRITE();
         CEL_LOG_FLUSH();
     }

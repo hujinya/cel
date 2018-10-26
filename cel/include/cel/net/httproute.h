@@ -17,7 +17,16 @@
 
 #include "cel/convert.h"
 #include "cel/pattrie.h"
-#include "cel/net/httpclient.h"
+#include "cel/net/httpfilter.h"
+
+typedef enum _CelHttpRouteState
+{
+    CEL_HTTPROUTEST_BEFORE_START,
+    CEL_HTTPROUTEST_BEFORE_EXEC,
+    //CEL_HTTPROUTEST_AFTER_EXEC,
+    //CEL_HTTPROUTEST_AFTER_FINISH,
+    CEL_HTTPROUTEST_COUNT
+}CelHttpRouteState;
 
 typedef CelPatTrieParams CelHttpRouteData;
 
@@ -27,6 +36,7 @@ typedef int (* CelHttpHandleFunc)(CelHttpClient *client,
 
 typedef struct _CelHttpRoute
 {
+    CelList filters[CEL_HTTPROUTEST_COUNT];
     CelPatTrie root_tries[CEL_HTTPM_CONUT];
 }CelHttpRoute;
 
@@ -66,6 +76,10 @@ void cel_httproute_destroy(CelHttpRoute *route);
 CelHttpRoute *cel_httproute_new(void);
 void cel_httproute_free(CelHttpRoute *route);
 
+int cel_httproute_filter_insert(CelHttpRoute *route, 
+                                CelHttpRouteState state_position, 
+                                CelHttpFilter *filter);
+
 int cel_httproute_add(CelHttpRoute *route, 
                       CelHttpMethod method, const char *path, 
                       CelHttpHandleFunc handle_func);
@@ -89,9 +103,9 @@ int cel_httproute_remove(CelHttpRoute *route,
 #define cel_httproute_put_remove(route, path) \
     cel_httproute_remove(route, CEL_HTTPM_PUT, path)
 
-CelHttpHandleFunc cel_httproute_handler(CelHttpRoute *route,
-                                        CelHttpMethod method, 
-                                        const char *path, 
+CelHttpHandleFunc cel_httproute_routing(CelHttpRoute *route, 
+                                        CelHttpRouteState *state,
+                                        CelHttpMethod method, const char *path,
                                         CelHttpRouteData *rt_data);
 
 #ifdef __cplusplus

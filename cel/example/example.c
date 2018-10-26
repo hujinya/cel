@@ -39,7 +39,7 @@ extern int timerheap_test(int argc ,const char *argv[]);
 extern int timerwheel_test(int argc ,const char *argv[]);
 extern int user_test(int argc, TCHAR *argv[]);
 extern int vrrp_test(int argc, TCHAR *argv[]);
-extern int wmipclient_test(int argc, TCHAR *argv[]);
+extern int httpwebclient_test(int argc, TCHAR *argv[]);
 
 extern int devredirclient_test(int argc, TCHAR *argv[]);
 
