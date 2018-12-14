@@ -116,6 +116,7 @@ struct _CelHttpRequest
     CelHttpMethod method;
     CelHttpVersion ver;
     CelHttpUrl url;
+
     U64 hdr_flags;
     CelVStringA accept;
     CelVStringA accept_charset;
@@ -161,6 +162,11 @@ struct _CelHttpRequest
     CelVStringA user_agent;
     CelVStringA via;
     CelVStringA warning;
+    CelVStringA x_auth_token;
+    CelVStringA x_forward_for;
+    CelVStringA x_forward_host;
+    CelVStringA x_forward_proto;
+    CelVStringA x_real_ip;
     CelVStringA x_requested_with;
     CelRbTree ext_hdrs;
 
@@ -359,8 +365,8 @@ int cel_httprequest_post_file(CelHttpRequest *req,
                               const char *file_path, 
                               long long first, long long last);
 
-int cel_httprequest_post_multipart(CelHttpRequest *req, const char *url,
-                                   CelHttpMultipart *multi_part);
+//int cel_httprequest_post_multipart(CelHttpRequest *req, const char *url,
+//                                   CelHttpMultipart *multi_part);
 
 #ifdef __cplusplus
 }

@@ -145,7 +145,6 @@ void cel_list_clear(CelList *list)
         /* Free item's value */
         if (list->free_func != NULL)
             list->free_func(cur_item);
-        cel_free(cur_item);
         cur_item = next_item;
     }
     list->size = 0;

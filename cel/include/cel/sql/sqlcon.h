@@ -17,9 +17,11 @@
 
 #include "cel/sql/mssql.h"
 #include "cel/sql/mysql.h"
+#include "cel/sql/sqlite.h"
 #include "cel/allocator.h"
 #include "cel/ringlist.h"
-#include "cel/vstring.h"
+//#include "cel/vstring.h"
+#include <stdarg.h>
 
 typedef enum _CelSqlConType
 {
@@ -36,12 +38,17 @@ typedef char** CelSqlRow;
 /* return 0 = continue;-1 = error;1 = break */
 typedef int (* CelSqlRowEachFunc) (void **row, int cols, void *user_data);
 
-typedef void (* CelSqlConDestroyFunc) (CelSqlCon *con);
-typedef int  (* CelSqlConOpenFunc)(CelSqlCon *con);
+typedef int  (* CelSqlConOpenFunc)(CelSqlCon *con,
+                                   const char *host, unsigned int port, 
+                                   const char *name, 
+                                   const char *user, const char *pswd);
 typedef void (* CelSqlConCloseFunc)(CelSqlCon *con);
-typedef long (* CelSqlConExecuteNonequeryFunc)(CelSqlCon *con, const char *sqlstr);
-typedef CelSqlRes* (* CelSqlConExecuteOnequeryFunc)(CelSqlCon *con, const char *sqlstr);
-typedef CelSqlRes* (* CelSqlConExecuteQueryFunc)(CelSqlCon *con, const char *sqlstr);
+typedef long (* CelSqlConExecuteNonequeryFunc)(
+    CelSqlCon *con, const char *sqlstr, unsigned long len);
+typedef CelSqlRes* (* CelSqlConExecuteOnequeryFunc)(
+    CelSqlCon *con, const char *sqlstr, unsigned long len);
+typedef CelSqlRes* (* CelSqlConExecuteQueryFunc)(
+    CelSqlCon *con, const char *sqlstr, unsigned long len);
 typedef long (* CelSqlResRowsFunc)(CelSqlRes *res);
 typedef int (* CelSqlResColsFunc)(CelSqlRes *res);
 typedef unsigned long* (* CelSqlResFetchLengthsFunc)(CelSqlRes *res);
@@ -51,7 +58,6 @@ typedef void (* CelSqlResFreeFunc)(CelSqlRes *res);
 
 typedef struct _CelSqlConClass
 {
-    CelSqlConDestroyFunc con_destroy;
     CelSqlConOpenFunc con_open;
     CelSqlConCloseFunc con_close;
     CelSqlConExecuteNonequeryFunc con_execute_nonequery;
@@ -87,8 +93,10 @@ struct _CelSqlCon
     union {
         CelMysqlCon mysql_con;
     }con;
+    char *host, *user, *passwd, *db;
+    unsigned int port;
     char sqlstr[1024];
-    CelVStringA sql_str;
+    int len;
     CelSqlConClass *kclass;
 };
 
@@ -110,20 +118,37 @@ void cel_sqlcon_free(CelSqlCon *con);
 
 static __inline int cel_sqlcon_open(CelSqlCon *con)
 {
-    return con->kclass->con_open(con);
+    return con->kclass->con_open(
+        con, con->host, con->port, con->db, con->user, con->passwd);
 }
 static __inline void cel_sqlcon_close(CelSqlCon *con)
 {
     con->kclass->con_close(con);
 }
 
+long cel_sqlcon_execute_nonequery(CelSqlCon *con, const char *fmt, ...);
+CelSqlRes *_cel_sqlcon_execute_onequery(CelSqlCon *con);
+CelSqlRes *_cel_sqlcon_execute_query(CelSqlCon *con);
 static __inline 
-long cel_sqlcon_execute_nonequery(CelSqlCon *con, const char *sqlstr)
+CelSqlRes *cel_sqlcon_execute_onequery(CelSqlCon *con, const char *fmt, ...)
 {
-    return con->kclass->con_execute_nonequery(con, sqlstr);
+    va_list args;
+
+    va_start(args, fmt);
+    con->len = _vsntprintf(con->sqlstr, 1024, fmt, args);
+    va_end(args);
+    return _cel_sqlcon_execute_onequery(con);
 }
-CelSqlRes *cel_sqlcon_execute_onequery(CelSqlCon *con, const char *sqlstr);
-CelSqlRes *cel_sqlcon_execute_query(CelSqlCon *con, const char *sqlstr);
+static __inline 
+CelSqlRes *cel_sqlcon_execute_query(CelSqlCon *con, const char *fmt, ...)
+{
+    va_list args;
+
+    va_start(args, fmt);
+    con->len = _vsntprintf(con->sqlstr, 1024, fmt, args);
+    va_end(args);
+    return _cel_sqlcon_execute_query(con);
+}
 
 static __inline long cel_sqlres_rows(CelSqlRes *res)
 {
@@ -156,12 +181,14 @@ static __inline void cel_sqlres_free(CelSqlRes *res)
     }
 }
 
-int cel_sqlcon_execute_onequery_results(CelSqlCon *con, const char *sqlstr,
+int cel_sqlcon_execute_onequery_results(CelSqlCon *con,
                                         CelSqlRowEachFunc each_func, 
-                                        void *user_data);
-int cel_sqlcon_execute_query_results(CelSqlCon *con, const char *sqlstr, 
+                                        void *user_data, 
+                                        const char *fmt, ...);
+int cel_sqlcon_execute_query_results(CelSqlCon *con,
                                      CelSqlRowEachFunc each_func, 
-                                     void *user_data);
+                                     void *user_data,
+                                     const char *fmt, ...);
 
 #ifdef __cplusplus
 }

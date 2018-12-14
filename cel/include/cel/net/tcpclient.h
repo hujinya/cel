@@ -85,18 +85,36 @@ CelTcpClient *cel_tcpclient_new_socket(CelSocket *socket,
 void _cel_tcpclient_free_derefed(CelTcpClient *client);
 void cel_tcpclient_free(CelTcpClient *client);
 
-#define cel_tcpclient_ref(client) \
-    cel_refcounted_ref(&(client->ref_counted), client)
-#define cel_tcpclient_deref(client) \
-    cel_refcounted_deref(&(client->ref_counted), client)
+#define cel_tcpclient_get_localaddr(client) \
+    &(((CelTcpClient *)(client))->local_addr)
+#define cel_tcpclient_get_localaddr_str(client) \
+    cel_sockaddr_ntop(cel_tcpclient_get_localaddr(client))
+#define cel_tcpclient_get_remoteaddr(client) \
+    &(((CelTcpClient *)(client))->remote_addr)
+#define cel_tcpclient_get_remoteaddr_str(client) \
+    cel_sockaddr_ntop(cel_tcpclient_get_remoteaddr(client))
 
-#define cel_tcpclient_is_connected(client) \
-    cel_socket_is_connected((CelSocket *)client)
+static __inline CelRefCounted *cel_tcpclient_ref(CelTcpClient *client) {
+    return cel_refcounted_ref(&(client->ref_counted));
+}
+static __inline CelTcpClient *cel_tcpclient_ref_ptr(CelTcpClient *client) {
+    return (CelTcpClient *)cel_refcounted_ref_ptr(&(client->ref_counted), client);
+}
+static __inline void cel_tcpclient_deref(CelTcpClient *client) {
+    cel_refcounted_deref(&(client->ref_counted), client);
+}
+
+static __inline BOOL cel_tcpclient_is_connected(CelTcpClient *client)
+{
+    return cel_socket_is_connected(&(client->sock));
+}
+#define cel_tcpclient_get_state(client) \
+    cel_socket_get_state((CelSocket *)client)
 
 void cel_tcpclient_set_ssl(CelTcpClient *client, BOOL use_ssl);
 
-#define cel_tcpclient_set_keepalive(client, idle, interval, count) \
-    cel_socket_set_keepalive((CelSocket *)client, idle, interval, count);
+#define cel_tcpclient_set_keepalive(client, on, idle, interval, count) \
+    cel_socket_set_keepalive((CelSocket *)client, on, idle, interval, count)
 
 #define cel_tcpclient_set_linger(client, on, seconds ) \
     cel_socket_set_linger((CelSocket *)client, on, seconds)
@@ -120,15 +138,6 @@ void cel_tcpclient_set_ssl(CelTcpClient *client, BOOL use_ssl);
 #define cel_tcpclient_set_sndtimeout(client, milliseconds) \
     cel_socket_set_sndtimeout((CelSocket *)client, milliseconds)
 
-#define cel_tcpclient_get_localaddr(client) \
-    &(((CelTcpClient *)(client))->local_addr)
-#define cel_tcpclient_get_localaddr_str(client) \
-    cel_sockaddr_ntop(cel_tcpclient_get_localaddr(client))
-#define cel_tcpclient_get_remoteaddr(client) \
-    &(((CelTcpClient *)(client))->remote_addr)
-#define cel_tcpclient_get_remoteaddr_str(client) \
-    cel_sockaddr_ntop(cel_tcpclient_get_remoteaddr(client))
-
 static __inline 
 int cel_tcpclient_connect(CelTcpClient *client, CelSockAddr *remote_addr)
 {
@@ -149,11 +158,11 @@ int cel_tcpclient_handshake(CelTcpClient *client)
 int cel_tcpclient_recv(CelTcpClient *client, CelStream *s);
 int cel_tcpclient_send(CelTcpClient *client, CelStream *s);
 static __inline 
-int cel_tcpclient_shutdown(CelTcpClient *client)
+int cel_tcpclient_shutdown(CelTcpClient *client, int how)
 {
     return (client->ssl_sock.ssl != NULL 
-        ? cel_sslsocket_shutdown(&(client->ssl_sock)) 
-        : cel_socket_shutdown(&(client->sock), 2));
+        ? cel_sslsocket_shutdown(&(client->ssl_sock), how) 
+        : cel_socket_shutdown(&(client->sock), how));
 }
 
 int cel_tcpclient_async_connect(CelTcpClient *client, CelSockAddr *remote_addr,

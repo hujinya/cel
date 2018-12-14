@@ -9,7 +9,7 @@
 			Name="Debug|Win32"
 			>
 			<DebugSettings
-				Command=""
+				Command="E:\work\solution\log\bin\log-agent.exe"
 				WorkingDirectory=""
 				CommandArguments=""
 				Attach="false"

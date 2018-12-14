@@ -16,6 +16,14 @@
 #define __CEL_SYS_SERVICE_H__
 
 #include "cel/config.h"
+
+typedef enum _CelServiceStartMode
+{
+    CEL_SERVICE_START_DAEMON,
+    CEL_SERVICE_START_FOREGROUND,
+    CEL_SERVICE_START_DEBUG
+}CelServiceStartMode;
+
 #if defined(_CEL_UNIX)
 #include "cel/_unix/_service.h"
 #elif defined(_CEL_WIN)

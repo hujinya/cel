@@ -55,7 +55,8 @@ typedef struct _CelEventLoop
 {
     BOOL is_running;
     int max_threads;
-    volatile int wait_threads, wakeup_cnt, timer_wakeup;
+    CelAtomic wait_threads;
+    CelAtomic wakeup_cnt, timer_wakeup;
     CelTimerQueue timer_queue;
     CelPoll poll;
 }CelEventLoop;

@@ -12,19 +12,27 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
  * GNU General Public License for more details.
  */
-#ifndef __CEL_CHANNEL_H__
-#define __CEL_CHANNEL_H__
+#ifndef __CEL_NET_HTTPCONTROLER_H__
+#define __CEL_NET_HTTPCONTROLER_H__
 
-#include "cel/types.h"
+#include "cel/net/httpsession.h"
+
+typedef struct _CelHttpControler
+{
+    int x;
+}CelHttpControler;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-//typedef struct _CelChannel
-//{
-//    
-//}CelChannel;
+int cel_httpcontroler_init(CelHttpControler *controler);
+void cel_httpcontroler_destroy(CelHttpControler *controler);
+
+CelHttpControler *cel_httpcontroler_new();
+void cel_httpcontroler_free(CelHttpControler *controler);
+
+
 
 #ifdef __cplusplus
 }

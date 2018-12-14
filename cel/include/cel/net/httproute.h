@@ -23,21 +23,24 @@ typedef enum _CelHttpRouteState
 {
     CEL_HTTPROUTEST_BEFORE_START,
     CEL_HTTPROUTEST_BEFORE_EXEC,
-    //CEL_HTTPROUTEST_AFTER_EXEC,
-    //CEL_HTTPROUTEST_AFTER_FINISH,
+    CEL_HTTPROUTEST_AFTER_EXEC,
+    CEL_HTTPROUTEST_AFTER_FINISH,
     CEL_HTTPROUTEST_COUNT
 }CelHttpRouteState;
 
 typedef CelPatTrieParams CelHttpRouteData;
 
 typedef int (* CelHttpHandleFunc)(CelHttpClient *client,
-                                  CelHttpRequest *req, CelHttpResponse *rsp, 
+                                  CelHttpRequest *req, CelHttpResponse *rsp,
                                   CelHttpRouteData *rt_dt);
 
 typedef struct _CelHttpRoute
 {
-    CelList filters[CEL_HTTPROUTEST_COUNT];
     CelPatTrie root_tries[CEL_HTTPM_CONUT];
+    //BOOL policy_on;
+    //CelList policies;
+    BOOL filter_on;
+    CelList filters[CEL_HTTPROUTEST_COUNT];
 }CelHttpRoute;
 
 #ifdef __cplusplus

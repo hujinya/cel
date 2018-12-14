@@ -78,14 +78,3 @@ char *cel_guid_generate(char *out)
 
   return cel_guid_rand2str(sixteen_bytes, out);
 }
-
-BOOL cel_guid_isvalid(const char *guid) 
-{
-  return cel_guid_isvalid_internal(guid, FALSE /* strict */);
-}
-
-BOOL cel_guid_isvalid_str(const char *guid) 
-{
-  return cel_guid_isvalid_internal(guid, TRUE /* strict */);
-}
-

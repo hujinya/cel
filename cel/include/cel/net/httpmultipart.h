@@ -81,6 +81,8 @@ void cel_httpmultipart_destroy(CelHttpMultipart *multipart);
 CelHttpMultipart *cel_httpmultipart_new(void);
 void cel_httpmultipart_free(CelHttpMultipart *multipart);
 
+void cel_httpmultipart_clear(CelHttpMultipart *multipart);
+
 static __inline 
 void cel_httpmultipart_set_boundary(CelHttpMultipart *multipart, 
                                     const char *boundary)

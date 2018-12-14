@@ -37,6 +37,9 @@ struct _CelHttpFilter
 extern "C" {
 #endif
 
+int cel_httpfilter_init(CelHttpFilter *filter);
+void cel_httpfilter_destroy(CelHttpFilter *filter);
+
 /** 
  * Cross-origin resource sharing
  * beego/plugins/cors/cors.go 
@@ -44,18 +47,25 @@ extern "C" {
 typedef struct _CelHttpFilterAllowCors
 {
     CelHttpFilter _filter;
-    BOOL is_allow_all_origins;
-    char allow_origins;
+    char *allow_origins;
     BOOL is_allow_credentials;
     char allow_methods;
-    char allow_headers;
-    char expose_headers;
+    char allow_headers[CEL_HTTPHDR_COUNT/8 + 1];
+    char expose_headers[CEL_HTTPHDR_COUNT/8 + 1];
     long max_age;
 }CelHttpFilterAllowCors;
 
+/* 
+ * allow_origins : '*'
+ * allow_methods : 'GET, HEAD, POST, OPTIONS, PUT, PATCH, DELETE'
+ * expose_headers : NULL
+ * allow_headers : '*', allow all headers
+ * is_allow_credentials : False
+ * max_age : None
+ */
 int cel_httpfilter_allowcors_init(CelHttpFilterAllowCors *cors,
                                   const char *allow_origins, 
-                                  const char *allow_credentials,
+                                  BOOL is_allow_credentials,
                                   const char *allow_methods, 
                                   const char *allow_headers, 
                                   const char *expose_headers,

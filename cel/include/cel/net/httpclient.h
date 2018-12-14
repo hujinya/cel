@@ -72,7 +72,7 @@ void cel_httpclient_free(CelHttpClient *client);
     cel_refcounted_deref(&((client)->ref_counted), client)
 
 #define cel_httpclient_is_connected(client) \
-    cel_socket_is_connected((CelSocket *)client)
+    cel_tcpclient_is_connected((CelTcpClient *)client)
 
 #define cel_httpclient_set_nonblock(client, _nonblock) \
     cel_socket_set_nonblock((CelSocket *)client, _nonblock)
@@ -111,9 +111,9 @@ int cel_httpclient_send_request(CelHttpClient *client, CelHttpRequest *req);
 int cel_httpclient_recv_response(CelHttpClient *client, CelHttpResponse *rsp);
 int cel_httpclient_send_response(CelHttpClient *client, CelHttpResponse *rsp);
 static __inline 
-int cel_httpclient_shutdown(CelHttpClient *client)
+int cel_httpclient_shutdown(CelHttpClient *client, int how)
 {
-    return cel_tcpclient_shutdown(&(client->tcp_client));
+    return cel_tcpclient_shutdown(&(client->tcp_client), how);
 }
 
 int cel_httpclient_execute(CelHttpClient *client,

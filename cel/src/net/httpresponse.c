@@ -158,9 +158,11 @@ static size_t s_httprsphdr_offset[] =
     CEL_OFFSET(CelHttpResponse, warning),
 
     CEL_OFFSET(CelHttpResponse, www_authenticate),
-    0, 0, 0, 0,
-
-    CEL_OFFSET(CelHttpResponse, x_powered_by), 0, 0, 
+    0, 0, 0, 0, 
+    
+    0,
+    CEL_OFFSET(CelHttpResponse, x_powered_by),
+    0, 0, 
 };
 
 static __inline const char *cel_http_get_statuscode(CelHttpStatusCode status)
@@ -322,14 +324,18 @@ void cel_httpresponse_free(CelHttpResponse *rsp)
 
 static int cel_httpresponse_reading_header(CelHttpResponse *rsp, CelStream *s)
 {
-    int key_start, key_end, value_start, value_end;
+    int key_start, key_end;
+    int value_start, value_end;
     BYTE ch;
     char *key, *value;
     size_t key_len, value_len;
     int hdr_index;
     CelHttpHeaderHandler *handler;
 
-    key_start = value_start = cel_stream_get_position(s);
+    key_start = cel_stream_get_position(s);
+    key_end  = key_start;
+    value_start = key_start;
+    value_end = key_start;
     //puts(&buf[*cursor]);
     while (cel_stream_get_remaining_length(s) > 1)
     {
@@ -362,8 +368,11 @@ static int cel_httpresponse_reading_header(CelHttpResponse *rsp, CelStream *s)
                     key_end - key_start, value_end - value_start);
                 printf("Key_start %s\r\n", (char *)key_start);*/
                 if ((key_len = key_end - key_start) <= 0
-                    || (value_len = value_end - value_start) <= 0
-                    || (hdr_index = cel_keyword_case_search_a(
+                    || (value_len = value_end - value_start) <= 0)
+                {
+                    CEL_WARNING(("Http response header reading error."));
+                }
+                else if ((hdr_index = cel_keyword_case_search_a(
                     g_case_httphdr, CEL_HTTPHDR_COUNT, 
                     (char *)(cel_stream_get_buffer(s) + key_start),
                     key_len)) == -1)
@@ -377,35 +386,35 @@ static int cel_httpresponse_reading_header(CelHttpResponse *rsp, CelStream *s)
                     (int)value_end - key_start, 
                     (char *)(cel_stream_get_buffer(s) + key_start));*/
                 }
-                else 
+                else if (s_httprsphdr_offset[hdr_index] == 0)
                 {
-                    if (s_httprsphdr_offset[hdr_index] == 0)
-                    {
+                    CEL_WARNING(("Http response header '%.*s' "
+                        "call back is null",
+                        (int)value_end - key_start,
+                        (char *)(cel_stream_get_buffer(s) + key_start)));
+                }
+                else
+                {
+                    handler = (CelHttpHeaderHandler *)
+                        g_case_httphdr[hdr_index].value2;
+                    if (handler->reading_func(
+                        (char *)rsp + s_httprsphdr_offset[hdr_index], 
+                        (char *)(cel_stream_get_buffer(s) + value_start), 
+                        value_len) == -1)
                         CEL_WARNING(("Http response header '%.*s' "
-                            "call back is null",
-                            (int)value_end - key_start,
-                            (char *)(cel_stream_get_buffer(s) + key_start)));
-                    }
+                        "reading return -1(%s)", 
+                        (int)value_end - key_start,
+                        (char *)(cel_stream_get_buffer(s) + key_start), 
+                        cel_geterrstr(cel_sys_geterrno())));
                     else
-                    {
-                        handler = (CelHttpHeaderHandler *)
-                            g_case_httphdr[hdr_index].value2;
-                        if (handler->reading_func(
-                            (char *)rsp + s_httprsphdr_offset[hdr_index], 
-                            (char *)(cel_stream_get_buffer(s) + value_start), 
-                            value_len) == -1)
-                            CEL_WARNING(("Http response header '%.*s' "
-                            "reading return -1(%s)", 
-                            (int)value_end - key_start,
-                            (char *)(cel_stream_get_buffer(s) + key_start), 
-                            cel_geterrstr(cel_sys_geterrno())));
-                        else
-                            CEL_SETFLAG(rsp->hdr_flags, (ULL(1) << hdr_index));
-                    }
+                        CEL_SETFLAG(rsp->hdr_flags, (ULL(1) << hdr_index));
                 }
             }
             rsp->reading_hdr_offset += (value_end - key_start);
             key_start = cel_stream_get_position(s);
+            key_end  = key_start;
+            value_start = key_start;
+            value_end = key_start;
         }
     }
     cel_stream_set_position(s, key_start);

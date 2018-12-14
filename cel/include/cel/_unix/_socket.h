@@ -48,7 +48,7 @@ typedef struct _OsSocket
         CelChannel channel;
     };
     int family, socktype, protocol;
-    BOOL is_connected;
+    int state;
     CelSocketAsyncArgs *in, *out;
     CelRefCounted ref_counted;
 }OsSocket;

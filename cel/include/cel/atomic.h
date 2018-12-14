@@ -32,6 +32,7 @@ extern "C" {
 typedef OsAtomic CelAtomic;
 
 #define cel_atomic_exchange os_atomic_exchange
+/* if ptr == oldval , ptr = newval, return oldval */
 #define cel_atomic_cmp_and_swap os_atomic_cmp_and_swap
 #define cel_atomic_increment os_atomic_increment
 

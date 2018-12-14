@@ -42,7 +42,7 @@ int os_socket_set_keepalive(OsSocket *sock,
 int os_socket_do_async_accept(CelSocketAsyncAcceptArgs *args)
 {
     if ((args->_ol.result.ret = cel_socket_accept(
-        args->socket, args->accept_socket, (CelSockAddr *)(args->addr))) == -1)
+        args->socket, args->new_socket, (CelSockAddr *)(args->addr))) == -1)
     {
         //_tprintf("errno = %d\r\n", errno);
         if (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -55,7 +55,7 @@ int os_socket_do_async_accept(CelSocketAsyncAcceptArgs *args)
         return -1;
     }
     //_tprintf("%ld %p\r\n", args->_ol.result.ret, args);
-    args->socket->is_connected = TRUE;
+    args->new_socket->state = CEL_SOCKET_CONNECTED;
     CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_OK);
 
     return 0;
@@ -83,7 +83,7 @@ int os_socket_do_async_connect(CelSocketAsyncConnectArgs *args)
         }
         return -1;
     }
-    args->socket->is_connected = TRUE;
+    args->socket->state = CEL_SOCKET_CONNECTED;
     CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_OK);
 
     return 0;

@@ -265,19 +265,21 @@ CelKeywordA g_case_httphdr[] =
     { sizeof("via") - 1,
     "via", "Via", &g_httpvstring_handler },                            /* rfc2616.14.45 */
     { sizeof("warning") - 1, 
-    "warning", "CEL_WARNING", &g_httpvstring_handler },                    /* rfc2616.14.46 */
+    "warning", "CEL_WARNING", &g_httpvstring_handler },                /* rfc2616.14.46 */
 
     { sizeof("www-authenticate") - 1, 
     "www-authenticate", "WWW-Authenticate", &g_httpvstring_handler },  /* rfc2616.14.47 */
+    { sizeof("x-auth-token") - 1, 
+    "x-auth-token", "X-Auth-Token", &g_httpvstring_handler },
     { sizeof("x-forwarded-for") - 1, 
-    "x-forwarded-for", "X-Forwarded-For", &g_httpvstring_handler },
+    "x-forwarded-for", "X-Forwarded-For", &g_httpvstring_handler },    /* RFC 7239 X-FORWARD-XXX */
     { sizeof("x-forwarded-host") - 1, 
     "x-forwarded-host", "X-Forwarded-Host", &g_httpvstring_handler },
     { sizeof("x-forwarded-proto") - 1, 
     "x-forwarded-proto", "X-Forwarded-Proto", &g_httpvstring_handler },
+
     { sizeof("x-forwarded-server") - 1, 
     "x-forwarded-server", "X-Forwarded-Server", &g_httpvstring_handler },
-
     { sizeof("x-powered-by") - 1, 
     "x-powered-by", "X-Powered-By", &g_httpvstring_handler },
     { sizeof("x-real-ip") - 1, 

@@ -52,7 +52,7 @@ int os_socket_do_async_accept(CelSocketAsyncAcceptArgs *args)
         //puts("WSAIoctl error");
         return -1;
     }
-    if (cel_socket_init(args->accept_socket, 
+    if (cel_socket_init(args->new_socket, 
         args->socket->family, 
         args->socket->socktype, 
         args->socket->protocol) == -1)
@@ -61,9 +61,9 @@ int os_socket_do_async_accept(CelSocketAsyncAcceptArgs *args)
         return -1;
     }
     /*CEL_DEBUG((_T("acceptex fd %d, accept_fd %d, buf size %d\r\n"),
-        args->socket->fd, args->accept_socket.fd,
+        args->socket->fd, args->new_socket.fd,
         (DWORD)(args->buffer_size - ACCEPTEX_RECEIVEDATA_OFFSET)));*/
-    if (!(args->socket->AcceptEx(args->socket->fd, args->accept_socket->fd, 
+    if (!(args->socket->AcceptEx(args->socket->fd, args->new_socket->fd, 
         args->addr_buf, 0,
         ACCEPTEX_LOCALADDRESS_LEN, ACCEPTEX_REMOTEADDRESS_LEN, 
         &(args->_ol.result.ret), &(args->_ol._ol))) 
@@ -72,7 +72,7 @@ int os_socket_do_async_accept(CelSocketAsyncAcceptArgs *args)
         //CEL_ERR((_T("AcceptEx error")));
         return -1;
     }
-    args->socket->is_connected = TRUE;
+    args->new_socket->state = CEL_SOCKET_CONNECTED;
 
     return 0;
 }
@@ -106,7 +106,7 @@ int os_socket_do_async_connect(CelSocketAsyncConnectArgs *args)
         //_tprintf(_T("WSAIoctl error %d\r\n"), WSAGetLastError());
         return -1;
     }
-    args->socket->is_connected = TRUE;
+    args->socket->state = CEL_SOCKET_CONNECTED;
 
     return 0;
 }

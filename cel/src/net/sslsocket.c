@@ -279,7 +279,7 @@ int cel_sslsocket_recv(CelSslSocket *ssl_sock, CelAsyncBuf *buffers, int count)
     return result;
 }
 
-int cel_sslsocket_shutdown(CelSslSocket *ssl_sock)
+int cel_sslsocket_shutdown(CelSslSocket *ssl_sock, int how)
 {
     int result;
 
@@ -287,7 +287,7 @@ int cel_sslsocket_shutdown(CelSslSocket *ssl_sock)
     {
         if (cel_sslsocket_send_bio_mem(ssl_sock) < 0)
             return -1;
-        cel_socket_shutdown(&(ssl_sock->sock), 2);
+        cel_socket_shutdown(&(ssl_sock->sock), how);
         return result;
     }
     return -1;

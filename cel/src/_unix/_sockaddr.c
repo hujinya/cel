@@ -34,7 +34,8 @@ int cel_sockaddr_init_unix(CelSockAddr *addr, const TCHAR *path)
     return 0;
 }
 
-int cel_sockaddr_init_nl(CelSockAddr *addr, unsigned long pid, unsigned long groups)
+int cel_sockaddr_init_nl(CelSockAddr *addr, 
+                         unsigned long pid, unsigned long groups)
 {
     addr->addr_nl.nl_family = AF_NETLINK;
     addr->addr_nl.nl_pid = pid;

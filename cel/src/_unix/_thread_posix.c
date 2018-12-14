@@ -30,7 +30,9 @@ int os_cond_timedwait(OsCond *cond, OsMutex *mutex, int milliseconds)
 
     gettimeofday(&now, NULL);
     abstime.tv_nsec = now.tv_usec * 1000 + (milliseconds % 1000) * 1000000L; 
-    abstime.tv_sec = now.tv_sec + milliseconds / 1000L + abstime.tv_nsec / 1000000000L;
+    abstime.tv_sec = now.tv_sec 
+        + milliseconds / 1000L 
+        + abstime.tv_nsec / 1000000000L;
     abstime.tv_nsec = abstime.tv_nsec % 1000000000L;
     return pthread_cond_timedwait(cond, mutex, &abstime);
 }

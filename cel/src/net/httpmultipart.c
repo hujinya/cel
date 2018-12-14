@@ -57,10 +57,11 @@ int cel_httpmultipart_init(CelHttpMultipart *multipart)
 
 void cel_httpmultipart_destroy(CelHttpMultipart *multipart)
 {
+    //puts("cel_httpmultipart_destroy");
     cel_vstring_destroy_a(&(multipart->boundary));
+    multipart->reading_state = CEL_HTTPMULTIPART_ENTITY_BOUNDARY;
     multipart->reading_entity = NULL;
-    cel_list_foreach(&(multipart->entity_list), 
-        (CelEachFunc)cel_httpmultipart_entity_free, NULL);
+    cel_list_destroy(&(multipart->entity_list));
 }
 
 CelHttpMultipart *cel_httpmultipart_new(void)
@@ -80,6 +81,7 @@ CelHttpMultipart *cel_httpmultipart_new(void)
 
 void cel_httpmultipart_free(CelHttpMultipart *multipart)
 {
+    
     cel_httpmultipart_destroy(multipart);
     cel_free(multipart);
 }
@@ -162,6 +164,7 @@ int cel_httpmultipart_reading_value(CelHttpMultipart *multipart,
         cel_stream_read_u8(s, ch);
         _size++;
         if (ch == '-' && ch1 == '-'
+            && _size > 4
             && (size = cel_httpmultipart_reading_boundary(
             multipart, s, len - _size)) != -1)
         {

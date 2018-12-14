@@ -23,8 +23,15 @@ extern "C" {
 
 char *cel_guid_rand2str(const U64 bytes[2], char *out);
 char *cel_guid_generate(char *out);
-BOOL cel_guid_isvalid(const char *guid);
-BOOL cel_guid_isvalid_str(const char *guid);
+BOOL cel_guid_isvalid_internal(const char *guid, BOOL strict);
+static __inline BOOL cel_guid_isvalid(const char *guid)
+{
+    return cel_guid_isvalid_internal(guid, FALSE /* strict */);
+}
+static __inline BOOL cel_guid_isvalid_str(const char *guid)
+{
+    return cel_guid_isvalid_internal(guid, TRUE /* strict */);
+}
 
 #ifdef __cplusplus
 }

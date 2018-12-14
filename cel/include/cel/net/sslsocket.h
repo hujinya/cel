@@ -95,7 +95,7 @@ int cel_sslsocket_send(CelSslSocket *ssl_sock,
                        CelAsyncBuf *buffers, int count);
 int cel_sslsocket_recv(CelSslSocket *ssl_sock, 
                        CelAsyncBuf *buffers, int count);
-int cel_sslsocket_shutdown(CelSslSocket *ssl_sock);
+int cel_sslsocket_shutdown(CelSslSocket *ssl_sock, int how);
 
 
 int cel_sslsocket_async_handshake(CelSslSocket *ssl_sock,

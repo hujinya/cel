@@ -169,6 +169,7 @@ int cel_taskscheduler_init(CelTaskScheduler *scheduler, CelFreeFunc task_free)
         &(scheduler->tasks[1]), (CelCompareFunc)cel_task_compare, task_free);
     scheduler->expired_tasks = &(scheduler->tasks[0]);
     scheduler->unexpired_tasks = &(scheduler->tasks[1]);
+
     return 0;
 }
 
@@ -283,7 +284,7 @@ int cel_taskscheduler_expired(CelTaskScheduler *scheduler)
     if (mday != scheduler->tms.tm_mday)
     {
         cel_taskscheduler_switch(scheduler);
-    }    
+    }
 
     return ret;
 }

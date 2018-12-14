@@ -16,19 +16,28 @@
 #define __CEL_NET_TCPPROXY_H__
 
 #include "cel/net/tcplistener.h"
+#include "cel/arraylist.h"
 
-typedef struct _CelTcpProxyListener
+typedef struct _CelTcpProxy
 {
     CelTcpListener listener;
 }CelTcpProxyListener;
 
-typedef struct _CelTcpProxySession
+typedef struct _CelTcpFrontend CelTcpFrontend;
+typedef struct _CelTcpBackend CelTcpBackend;
+
+struct _CelTcpFrontend
 {
-    CelTcpClient frontend;
-    CelTcpClient backend;
-    CelStream rs;
-    CelStream ss;
-}CelTcpProxySession;
+    CelTcpClient client;
+    CelArrayList be_list;
+};
+
+struct _CelTcpBackend
+{
+    CelTcpClient client;
+    unsigned long stream_id;
+    CelTcpFrontend *fe;
+};
 
 #ifdef __cplusplus
 extern "C" {

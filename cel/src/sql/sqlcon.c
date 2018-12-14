@@ -18,7 +18,6 @@
 
 static CelSqlConClass mysql_kclass = 
 {
-    (CelSqlConDestroyFunc)cel_mysqlcon_destroy,
     (CelSqlConOpenFunc)cel_mysqlcon_open,
     (CelSqlConCloseFunc)cel_mysqlcon_close,
     (CelSqlConExecuteNonequeryFunc)cel_mysqlcon_execute_nonequery,
@@ -37,24 +36,31 @@ int cel_sqlcon_init(CelSqlCon *con, CelSqlConType type,
                     const char *name, 
                     const char *user, const char *pswd)
 {
+    memset(con, 0, sizeof(CelSqlCon));
+    CEL_PTR_STRDUP(con->host, host);
+    CEL_PTR_STRDUP(con->user, user);
+    CEL_PTR_STRDUP(con->passwd, pswd);
+    CEL_PTR_STRDUP(con->db, name);
+    con->port = port;
     switch (type)
     {
     case CEL_SQLCON_MYSQL:
-        if (cel_mysqlcon_init(
-            &(con->con.mysql_con), host, port, name, user, pswd) == -1)
-            return -1;
         con->sqlstr[0] = '\0';
         con->kclass = &mysql_kclass;
-        break;
+        return cel_sqlcon_open(con);
     default:
-        return -1;
+        break;
     }
-    return 0;
+    return -1;
 }
 
 void cel_sqlcon_destroy(CelSqlCon *con)
 {
-    con->kclass->con_destroy(con);
+    con->kclass->con_close(con);
+    CEL_PTR_FREE(con->host);
+    CEL_PTR_FREE(con->user);
+    CEL_PTR_FREE(con->passwd);
+    CEL_PTR_FREE(con->db);
 }
 
 CelSqlCon *cel_sqlcon_new(CelSqlConType type, 
@@ -80,12 +86,39 @@ void cel_sqlcon_free(CelSqlCon *con)
     cel_free(con);
 }
 
-CelSqlRes *cel_sqlcon_execute_onequery(CelSqlCon *con, const char *sqlstr)
+long cel_sqlcon_execute_nonequery(CelSqlCon *con, const char *fmt, ...)
+{
+    long affected_rows;
+    va_list args;
+
+    va_start(args, fmt);
+    con->len = _vsntprintf(con->sqlstr, 1024, fmt, args);
+    va_end(args);
+    if ((affected_rows = con->kclass->con_execute_nonequery(
+        con, con->sqlstr, con->len)) == -1)
+    {
+        cel_sqlcon_close(con);
+        if (cel_sqlcon_open(con) == -1)
+            return -1;
+        return con->kclass->con_execute_nonequery(con, con->sqlstr, con->len);
+    }
+    return affected_rows;
+}
+
+CelSqlRes *_cel_sqlcon_execute_onequery(CelSqlCon *con)
 {
     CelSqlRes *res;
     if ((res = cel_malloc(sizeof(CelSqlRes))) != NULL)
     {
-        if ((res->_res = con->kclass->con_execute_onequery(con, sqlstr)) != NULL)
+        if ((res->_res = con->kclass->con_execute_onequery(
+            con, con->sqlstr, con->len)) == NULL)
+        {
+            cel_sqlcon_close(con);
+            if (cel_sqlcon_open(con) == -1)
+                return NULL;
+        }
+        if ((res->_res = con->kclass->con_execute_onequery(
+            con, con->sqlstr, con->len)) != NULL)
         {
             res->kclass = con->kclass;
             return res;
@@ -95,12 +128,22 @@ CelSqlRes *cel_sqlcon_execute_onequery(CelSqlCon *con, const char *sqlstr)
     return NULL;
 }
 
-CelSqlRes *cel_sqlcon_execute_query(CelSqlCon *con, const char *sqlstr)
+CelSqlRes *_cel_sqlcon_execute_query(CelSqlCon *con)
 {
     CelSqlRes *res;
     if ((res = cel_malloc(sizeof(CelSqlRes))) != NULL)
     {
-        if ((res->_res = con->kclass->con_execute_query(con, sqlstr)) != NULL)
+        //printf("_cel_sqlcon_execute_query %s %d\r\n", con->sqlstr, con->len);
+        if ((res->_res = con->kclass->con_execute_query(
+            con, con->sqlstr, con->len)) == NULL)
+        {
+            cel_sqlcon_close(con);
+            if (cel_sqlcon_open(con) == -1)
+                return NULL;
+        }
+        //printf("_cel_sqlcon_execute_query2 %s %d\r\n", con->sqlstr, con->len);
+        if ((res->_res = con->kclass->con_execute_query(
+            con, con->sqlstr, con->len)) != NULL)
         {
             res->kclass = con->kclass;
             return res;
@@ -111,15 +154,19 @@ CelSqlRes *cel_sqlcon_execute_query(CelSqlCon *con, const char *sqlstr)
 }
 
 int cel_sqlcon_execute_onequery_results(CelSqlCon *con, 
-                                        const char *sqlstr, 
-                                        CelSqlRowEachFunc each_func, 
-                                        void *user_data)
+                                        CelSqlRowEachFunc each_func,
+                                        void *user_data,
+                                        const char *fmt, ...)
 {
     int ret, cols;
     CelSqlRes *res;
     CelSqlRow row;
+    va_list args;
 
-    if ((res = cel_sqlcon_execute_onequery(con, sqlstr)) == NULL)
+    va_start(args, fmt);
+    con->len = _vsntprintf(con->sqlstr, 1024, fmt, args);
+    va_end(args);
+    if ((res = _cel_sqlcon_execute_onequery(con)) == NULL)
         return -1;
     cols = cel_sqlres_cols(res);
     if ((row = cel_sqlres_fetch_row(res)) == NULL)
@@ -140,15 +187,20 @@ int cel_sqlcon_execute_onequery_results(CelSqlCon *con,
     return 0;
 }
 
-int cel_sqlcon_execute_query_results(CelSqlCon *con, const char *sqlstr, 
+int cel_sqlcon_execute_query_results(CelSqlCon *con,
                                      CelSqlRowEachFunc each_func, 
-                                     void *user_data)
+                                     void *user_data,
+                                     const char *fmt, ...)
 {
     int ret, cols;
     CelSqlRes *res;
     CelSqlRow row;
+    va_list args;
 
-    if ((res = cel_sqlcon_execute_query(con, sqlstr)) == NULL)
+    va_start(args, fmt);
+    _vsntprintf(con->sqlstr, 1024, fmt, args);
+    va_end(args);
+    if ((res = _cel_sqlcon_execute_query(con)) == NULL)
         return -1;
     cols = cel_sqlres_cols(res);
     while ((row = cel_sqlres_fetch_row(res)) == NULL)

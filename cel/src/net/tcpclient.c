@@ -201,7 +201,7 @@ void cel_tcpclient_do_connect(CelTcpClient *client, CelAsyncResult *result)
         if (client->ssl_sock.use_ssl)
             cel_ssl_set_endpoint(client->ssl_sock.ssl, CEL_SSLEP_CLIENT);
         cel_socket_get_localaddr(&(client->sock), &(client->local_addr));
-        //cel_socket_get_remoteaddr(&(client->sock), &(client->remote_addr));
+        cel_socket_get_remoteaddr(&(client->sock), &(client->remote_addr));
     }
     memcpy(&(args->result), result, sizeof(CelAsyncResult));
     if (args->connect_callback != NULL)

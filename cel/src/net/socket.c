@@ -22,7 +22,7 @@ void _cel_socket_destroy_derefed(CelSocket *sock)
 {
     SOCKET sock_fd;
 
-    sock->is_connected = FALSE;
+    sock->state = CEL_SOCKET_INIT;
     if (sock->in != NULL)
     {
         cel_free(sock->in);
@@ -64,7 +64,7 @@ int cel_socket_init(CelSocket *sock, int family, int socktype, int protocol)
         sock->family = family;
         sock->socktype = socktype;
         sock->protocol = protocol;
-        sock->is_connected = FALSE;
+        sock->state = CEL_SOCKET_INIT;
 #ifdef _CEL_WIN
         sock->AcceptEx = NULL;
         sock->TransmitFile = NULL;
@@ -211,12 +211,12 @@ int cel_socket_accept(CelSocket *sock,
     client_sock->family = sock->family;
     client_sock->socktype = sock->socktype;
     client_sock->protocol = sock->protocol;
-    sock->is_connected = TRUE;
+    sock->state = TRUE;
 #ifdef _CEL_WIN
     client_sock->AcceptEx = NULL;
     client_sock->TransmitFile = NULL;
 #endif
-    sock->in = sock->out = NULL;
+    client_sock->in = client_sock->out = NULL;
     cel_refcounted_init(&(client_sock->ref_counted),
         (CelFreeFunc)_cel_socket_destroy_derefed);
     return 0;
@@ -227,14 +227,16 @@ void cel_socket_do_accept(CelSocketAsyncAcceptArgs *args)
 #ifdef _CEL_WIN
     if (args->_ol.result.ret == 0)
     {
-        cel_socket_update_acceptcontext(args->accept_socket, args->socket);
-        memcpy(args->addr, 
-            args->addr_buf + ACCEPTEX_LOCALADDRESS_LEN, sizeof(CelSockAddr));
+        cel_socket_update_acceptcontext(
+            args->new_socket, args->socket);
+        cel_socket_get_remoteaddr(args->new_socket, args->addr);
+        /*memcpy(args->addr, 
+            args->addr_buf + ACCEPTEX_LOCALADDRESS_LEN, sizeof(CelSockAddr));*/
     }
 #endif
     if (args->async_callback != NULL)
         args->async_callback(
-        args->socket, args->accept_socket, &(args->_ol.result));
+        args->socket, args->new_socket, &(args->_ol.result));
     else
         cel_coroutine_resume(args->co);
 }
@@ -259,8 +261,9 @@ int cel_socket_async_accept(CelSocket *sock,
     args->accept_args.async_callback = callback;
     args->accept_args.co = co;
     args->accept_args.socket = sock;
-    args->accept_args.accept_socket = new_sock;
+    args->accept_args.new_socket = new_sock;
     args->accept_args.addr = addr;
+    
     if ((args->accept_args.result.ret = cel_poll_post(
         sock->channel.poll, sock->channel.handle, (CelOverLapped *)args)) == -1)
     {
@@ -278,7 +281,7 @@ int cel_socket_connect(CelSocket *sock, CelSockAddr *remote_addr)
     if (connect((sock)->fd, 
         &((remote_addr)->addr), cel_sockaddr_get_len(remote_addr)) == 0)
     {
-        sock->is_connected = TRUE;
+        sock->state = TRUE;
         return 0;
     }
     return -1;

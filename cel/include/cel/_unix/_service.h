@@ -46,10 +46,10 @@ OsServiceEntry *os_service_entry_create(const TCHAR *name,
                                         CelVoidFunc on_stop);
 
 int _os_service_entry_dispatch(OsServiceEntry *sc_entry,
-                               BOOL is_foreground,
+                               CelServiceStartMode start_mode,
                                int argc, char **argv);
-#define os_service_entry_dispatch(sc_entry, is_foreground) \
-    _os_service_entry_dispatch(sc_entry, is_foreground, argc, argv)
+#define os_service_entry_dispatch(sc_entry, start_mode) \
+    _os_service_entry_dispatch(sc_entry, start_mode, argc, argv)
 
 BOOL os_service_is_running(const TCHAR *name);
 BOOL os_service_stop(const TCHAR *name);

@@ -1478,7 +1478,7 @@ void *cel_allocate(size_t size)
         //_tprintf(_T("size %d, span size %d\r\n"), 
         //    size, span->n_pages * (1 << PAGE_SHIFT));
     }
-    //_tprintf(_T("new block %p")CEL_CRLF, new_block);
+    //_tprintf(_T("new block %p size %d")CEL_CRLF, new_block, size);
     return new_block;
 }
 
@@ -1491,6 +1491,7 @@ void cel_deallocate(void *buf)
     span = (CelSpan *)cel_radixtree_get(
         &(s_pageheap.page_map), ((uintptr_t)buf) >> PAGE_SHIFT);
     CEL_ASSERT(span != NULL);
+    //_tprintf(_T("free block %p")CEL_CRLF, buf);
    /*CEL_DEBUG((_T("Deallocate %p(0x%x), span %p index %d."), 
         buf, ((uintptr_t)buf) >> PAGE_SHIFT, span->start, span->index));*/
     if ((index = span->index) != 0)

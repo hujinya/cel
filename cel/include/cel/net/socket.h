@@ -19,6 +19,10 @@
 #include "cel/poll.h"
 #include "cel/net/sockaddr.h"
 
+#define CEL_SOCKET_INIT       0
+#define CEL_SOCKET_CONNECTED  1
+#define CEL_SOCKET_SHUTDOWN  -1
+
 #define ACCEPTEX_LOCALADDRESS_LEN (sizeof(CelSockAddr) + 16)
 #define ACCEPTEX_REMOTEADDRESS_LEN (sizeof(CelSockAddr) + 16)
 #define ACCEPTEX_RECEIVEDATA_OFFSET \
@@ -48,7 +52,7 @@ typedef struct _CelSocketAsyncAcceptArgs
 {
     CelOverLapped _ol;
     CelSocket *socket;
-    CelSocket *accept_socket;
+    CelSocket *new_socket;
     CelSockAddr *addr;
     char addr_buf[ACCEPTEX_RECEIVEDATA_OFFSET];
     CelAsyncResult result;
@@ -147,7 +151,11 @@ void cel_socket_free(CelSocket *sock);
 #define cel_socket_deref(sock) \
     cel_refcounted_deref(&((sock)->ref_counted), sock);
 
-#define cel_socket_shutdown(sock, how) shutdown((sock)->fd, how)
+static __inline int cel_socket_shutdown(CelSocket *sock, int how) 
+{
+    sock->state = CEL_SOCKET_SHUTDOWN;
+    return shutdown((sock)->fd, how);
+}
 #define cel_socket_bind(sock, sock_addr)\
     bind((sock)->fd, &((sock_addr)->addr), cel_sockaddr_get_len(sock_addr))
 int cel_socket_bind_host(CelSocket *sock, 
@@ -178,7 +186,11 @@ int cel_socket_recvfrom(CelSocket *sock, CelAsyncBuf *buffers, int buffer_count,
 
 static __inline BOOL cel_socket_is_connected(CelSocket *sock)
 {
-    return sock->is_connected;
+    return (sock->state == CEL_SOCKET_CONNECTED);
+}
+static __inline int cel_socket_get_state(CelSocket *sock)
+{
+    return sock->state;
 }
 
 static __inline int cel_socket_get_errno(CelSocket *sock)

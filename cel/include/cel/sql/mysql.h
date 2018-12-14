@@ -22,30 +22,24 @@
 extern "C" {
 #endif
 
-typedef struct st_mysql_ex 
-{
-    struct st_mysql mysql;
-    char *host, *user, *passwd, *db;
-    unsigned int port;
-}CelMysqlCon;
-
+typedef struct st_mysql CelMysqlCon;
 typedef struct st_mysql_res CelMysqlRes;
 typedef struct st_mysql_field CelMysqlField;
 typedef char** CelMysqlRow;
 
-int cel_mysqlcon_init(CelMysqlCon *con, 
-                      const char *dbhost, unsigned int dbport, 
-                      const char *dbname, 
-                      const char *dbuser, const char *dbpswd);
-void cel_mysqlcon_destroy(CelMysqlCon *con);
-
-int cel_mysqlcon_open(CelMysqlCon *con);
+int cel_mysqlcon_open(CelMysqlCon *con,
+                      const char *host, unsigned int port, 
+                      const char *name, 
+                      const char *user, const char *pswd);
 void cel_mysqlcon_close(CelMysqlCon *con);
 
-long cel_mysqlcon_execute_nonequery(CelMysqlCon *con, const char *sqlstr);
+long cel_mysqlcon_execute_nonequery(CelMysqlCon *con, 
+                                    const char *sqlstr, unsigned long len);
 CelMysqlRes *cel_mysqlcon_execute_onequery(CelMysqlCon *con, 
-                                           const char *sqlstr);
-CelMysqlRes *cel_mysqlcon_execute_query(CelMysqlCon *con, const char *sqlstr);
+                                           const char *sqlstr, 
+                                           unsigned long len);
+CelMysqlRes *cel_mysqlcon_execute_query(CelMysqlCon *con, 
+                                        const char *sqlstr, unsigned long len);
 
 #define cel_mysqlres_next(res) (mysql_fetch_row(res) == NULL ? 0 : 1)
 

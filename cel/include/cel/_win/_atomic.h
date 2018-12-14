@@ -28,7 +28,7 @@ typedef volatile S32 OsAtomic;
 #define os_atomic_load(ptr) (*(ptr))
 
 #define os_atomic_exchange(ptr, newval) _InterlockedExchange(ptr, newval);
-/* if ptr == oldval , ptr = oldval, return oldval */
+/* if ptr == oldval , ptr = newval, return oldval */
 #define os_atomic_cmp_and_swap(ptr, oldval, newval, mem_order) \
     _InterlockedCompareExchange(ptr, newval, oldval)
 #define os_atomic_increment(ptr, increment) \

@@ -167,16 +167,17 @@ static int cel_eventloop_handle(CelEventLoop *evt_loop, CelEventCtlBlock *ecb)
 
 int cel_eventloop_do(CelEventLoop *evt_loop)
 {
-    int wakeup_cnt, n_expireds;
+    CelAtomic timer_wakeup;
     long timeout;
     CelOverLapped *ol = NULL;
-    CelTimer *expireds[2];
+    CelTimer *expireds;
    
     /*CEL_DEBUG((_T("wakeup_cnt = %d, %d, pid %d"), 
         evt_loop->wakeup_cnt, evt_loop->timer_wakeup, (int)cel_thread_getid()));*/
     if (evt_loop->wakeup_cnt != evt_loop->timer_wakeup)
     {
-        wakeup_cnt = evt_loop->wakeup_cnt = evt_loop->timer_wakeup;
+        evt_loop->wakeup_cnt = evt_loop->timer_wakeup;
+        timer_wakeup = evt_loop->timer_wakeup;
         if ((timeout = 
             cel_timerqueue_pop_timeout(&(evt_loop->timer_queue), NULL)) != 0)
         {
@@ -193,43 +194,40 @@ int cel_eventloop_do(CelEventLoop *evt_loop)
               */
             if (ol != NULL)
             {
-                if (wakeup_cnt == evt_loop->timer_wakeup)
+                if (timer_wakeup == evt_loop->timer_wakeup)
                 {
-                    evt_loop->timer_wakeup++;
+                    cel_atomic_increment(&(evt_loop->timer_wakeup), 1);
                     if (evt_loop->wait_threads > 0)
                         cel_eventloop_wakeup(evt_loop);
                 }
                 cel_eventloop_handle(evt_loop, (CelEventCtlBlock *)ol);
                 return 0;
-            } 
+            }
         }
-        while ((n_expireds = cel_timerqueue_pop_expired(
-            &(evt_loop->timer_queue), expireds, 2, NULL)) > 0)
+        if (cel_timerqueue_pop_expired(
+            &(evt_loop->timer_queue), &expireds, 1, NULL) > 0)
         {
-            if (wakeup_cnt == evt_loop->timer_wakeup)
+            if (timer_wakeup == evt_loop->timer_wakeup)
             {
-                evt_loop->timer_wakeup++;
+                cel_atomic_increment(&(evt_loop->timer_wakeup), 1);
                 if (evt_loop->wait_threads > 0)
                     cel_eventloop_wakeup(evt_loop);
             }
-            cel_eventloop_handle(evt_loop, (CelEventCtlBlock *)expireds[0]);
-            if (n_expireds < 2) 
-                break;
-            cel_eventloop_handle(evt_loop, (CelEventCtlBlock *)expireds[1]);
+            cel_eventloop_handle(evt_loop, (CelEventCtlBlock *)expireds);
         }
-        if (wakeup_cnt == evt_loop->timer_wakeup)
-            evt_loop->timer_wakeup++;
+        if (timer_wakeup == evt_loop->timer_wakeup)
+            cel_atomic_increment(&(evt_loop->timer_wakeup), 1);
     }
     else
     {
         //_tprintf(_T("wait_timeout -1, pid %d\r\n"), (int)cel_thread_getid());
-        evt_loop->wait_threads++;
+        cel_atomic_increment(&(evt_loop->wait_threads), 1);
         if (cel_poll_wait(&(evt_loop->poll), &ol, -1) == -1)
         {
             cel_eventloop_exit(evt_loop);
             return 0;
         }
-        evt_loop->wait_threads--;
+        cel_atomic_increment(&(evt_loop->wait_threads), -1);
         //_tprintf(_T("wait_timeout -1 end, pid %d\r\n"), 
         //    (int)cel_thread_getid());
         if (ol != NULL)

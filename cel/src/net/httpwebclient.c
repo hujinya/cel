@@ -95,6 +95,35 @@ void cel_httpwebclient_free(CelHttpWebClient *client)
     cel_refcounted_destroy(&(client->ref_counted), client);
 }
 
+#include "cel/net/if.h"
+
+void cel_httpwebclient_update_remoteaddr(CelHttpWebClient *client, 
+                                         CelHttpRequest *req)
+{
+    int i;
+    char *ipstr, _ipstr[CEL_IPSTRLEN];
+
+    if ((ipstr = cel_httprequest_get_header(
+        req, CEL_HTTPHDR_X_FORWARDED_FOR)) != NULL)
+    {
+        i = 0;
+        while (ipstr[i] != '\0' && ipstr[i] != ',')
+        {
+            _ipstr[i] = ipstr[i];
+            i++;
+        }
+        _ipstr[i] = '\0';
+        cel_sockaddr_init_ipstr(
+            &(client->http_client.tcp_client.remote_addr), _ipstr, 0);
+    }
+    else if((ipstr = cel_httprequest_get_header(
+        req, CEL_HTTPHDR_X_REAL_IP)) != NULL)
+    {
+        cel_sockaddr_init_ipstr(
+            &(client->http_client.tcp_client.remote_addr), ipstr, 0);
+    }
+}
+
 void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
                                        CelHttpRequest *req,
                                        CelAsyncResult *result)
@@ -137,11 +166,31 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
         }
         return ;
     case CEL_HTTPREQUEST_READING_OK:
+        cel_httpwebclient_update_remoteaddr(client, req);
         /* Init response common header */
         cel_httpresponse_set_header(&(client->rsp), CEL_HTTPHDR_SERVER,
             client->web_ctx->server, strlen(client->web_ctx->server));
         cel_httpresponse_set_header(&(client->rsp), CEL_HTTPHDR_CONNECTION,
-            &(client->req.connection), sizeof(CelHttpConnection));
+            &(req->connection), sizeof(CelHttpConnection));
+        cel_httpresponse_set_header(&(client->rsp), 
+            CEL_HTTPHDR_ACCESS_CONTROL_ALLOW_ORIGIN, 
+            "*", 1);
+        /* Process options method */
+        if (req->method == CEL_HTTPM_OPTIONS)
+        {
+            cel_httpresponse_set_header(&(client->rsp), 
+                CEL_HTTPHDR_ACCESS_CONTROL_ALLOW_CREDENTIALS, 
+                "true", 4);
+            cel_httpresponse_set_header(&(client->rsp), 
+                CEL_HTTPHDR_ACCESS_CONTROL_ALLOW_METHODS, 
+                "DELETE,GET,OPTIONS,POST,PUT", 27);
+            cel_httpresponse_set_header(&(client->rsp), 
+                CEL_HTTPHDR_ACCESS_CONTROL_ALLOW_HEADERS, 
+                "Content-type,X-Auth-Token", 25);
+            cel_httpwebclient_async_send_response_result(client,
+                CEL_HTTPWEB_OK, 0, NULL);
+            return ;
+        }
         /* Process request */
         ver_end = client->web_ctx->prefix.key_len;
         if ((url = cel_httprequest_get_url_path(req)) == NULL

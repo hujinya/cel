@@ -30,136 +30,93 @@
 #endif
 #include <mysql/mysql.h>
 
-int cel_mysqlcon_init(CelMysqlCon *con,
-                      const char *dbhost, unsigned int dbport, 
-                      const char *dbname, 
-                      const char *dbuser, const char *dbpswd)
-{
-    memset(con, 0, sizeof(CelMysqlCon));
-    CEL_PTR_STRDUP(con->host, dbhost);
-    CEL_PTR_STRDUP(con->user, dbuser);
-    CEL_PTR_STRDUP(con->passwd, dbpswd);
-    CEL_PTR_STRDUP(con->db, dbname);
-    con->port = dbport;
-
-    return cel_mysqlcon_open(con);
-}
-
-void cel_mysqlcon_destroy(CelMysqlCon *con)
-{
-    mysql_close(&con->mysql);
-    CEL_PTR_FREE(con->host);
-    CEL_PTR_FREE(con->user);
-    CEL_PTR_FREE(con->passwd);
-    CEL_PTR_FREE(con->db);
-}
-
-int cel_mysqlcon_open(CelMysqlCon *con)
+int cel_mysqlcon_open(CelMysqlCon *con,
+                      const char *host, unsigned int port, 
+                      const char *name, 
+                      const char *user, const char *pswd)
 {
     my_bool reconnect = 1;
 
-    if (mysql_init(&con->mysql) == NULL)
+    if (mysql_init(con) == NULL)
     {
-        CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_init:%s."), mysql_error(&con->mysql)));
+        CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_init:%s."), mysql_error(con)));
         return -1;
     }
-    if (mysql_options(&con->mysql, MYSQL_SET_CHARSET_NAME, "utf8") != 0
-        || mysql_options(&con->mysql, MYSQL_OPT_RECONNECT, &reconnect) != 0)
+    if (mysql_options(con, MYSQL_SET_CHARSET_NAME, "utf8") != 0
+        || mysql_options(con, MYSQL_OPT_RECONNECT, &reconnect) != 0)
     {
-        CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_options:%s."), mysql_error(&con->mysql)));
+        CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_options:%s."), mysql_error(con)));
         return -1;
     }
-    if (mysql_real_connect(&con->mysql, 
-        con->host, con->user, con->passwd, 
-        con->db, con->port, NULL, 0) == NULL)
+    if (mysql_real_connect(con, host, user, pswd, name, port, NULL, 0) == NULL)
     {
-        CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_real_connect:%s."), mysql_error(&con->mysql)));
+        CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_real_connect:%s."), mysql_error(con)));
         return -1;
     }
 
     return 0;
-}
+    }
 
 void cel_mysqlcon_close(CelMysqlCon *con)
 {
-    mysql_close(&con->mysql);
+    mysql_close(con);
 }
 
-long cel_mysqlcon_execute_nonequery(CelMysqlCon *con, const char *sqlstr)
+long cel_mysqlcon_execute_nonequery(CelMysqlCon *con, 
+                                    const char *sqlstr, unsigned long len)
 {
     CelMysqlRes *res;
     long affected_rows;
 
-    if (con == NULL) return -1;
+    if (con == NULL) 
+        return -1;
 
-    if (mysql_real_query(
-        &con->mysql, sqlstr, (unsigned long)strlen(sqlstr)) != 0)
+    if (mysql_real_query(con, sqlstr, len) != 0)
     {
-        CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_real_query:%s."), mysql_error(&con->mysql)));
-        mysql_close(&con->mysql);
-        if (cel_mysqlcon_open(con) == -1)
-            return -1;
-        if (mysql_real_query(
-            &con->mysql, sqlstr, (unsigned long)strlen(sqlstr)) != 0)
-        {
-            CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_real_query:%s."), mysql_error(&con->mysql)));
-            return -1;
-        }
+        CEL_SETERR((CEL_ERR_MYSQL, 
+            _T("mysql_real_query:%s."), mysql_error(con)));
+        return -1;
     }
-    if ((res = mysql_store_result(&con->mysql)) != NULL)
+    if ((res = mysql_store_result(con)) != NULL)
     {
         mysql_free_result(res);
     }
-    affected_rows = (long)mysql_affected_rows(&con->mysql);
-    //printf(_T("affected_rows %d\r\n"), affected_rows);
+    affected_rows = (long)mysql_affected_rows(con);
+    //printf(_T("%s affected_rows %ld\r\n"), sqlstr, affected_rows);
 
     return affected_rows;
 }
 
-CelMysqlRes *cel_mysqlcon_execute_onequery(CelMysqlCon *con, const char *sqlstr)
+CelMysqlRes *cel_mysqlcon_execute_onequery(CelMysqlCon *con,
+                                           const char *sqlstr, 
+                                           unsigned long len)
 {
-    if (con == NULL) return NULL;
+    if (con == NULL) 
+        return NULL;
 
-    if (mysql_real_query(
-        &con->mysql, sqlstr, (unsigned long)strlen(sqlstr)) != 0)
+    if (mysql_real_query(con, sqlstr, len) != 0)
     {
-        CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_real_query:%s."), mysql_error(&con->mysql)));
-        mysql_close(&con->mysql);
-        if (cel_mysqlcon_open(con) == -1)
-        {
-            return NULL;
-        }
-        if (mysql_real_query(
-            &con->mysql, sqlstr, (unsigned long)strlen(sqlstr)) != 0)
-        {
-            CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_real_query:%s."),mysql_error(&con->mysql)));
-            return NULL;
-        }
+        CEL_SETERR((CEL_ERR_MYSQL,
+            _T("mysql_real_query:%s."), mysql_error(con)));
+        mysql_close(con);
+        return NULL;
     }
-    return mysql_store_result(&con->mysql);
+    return mysql_store_result(con);
 }
 
-CelMysqlRes *cel_mysqlcon_execute_query(CelMysqlCon *con, const char *sqlstr)
+CelMysqlRes *cel_mysqlcon_execute_query(CelMysqlCon *con,
+                                        const char *sqlstr, unsigned long len)
 {
-    if (con == NULL) return NULL;
+    if (con == NULL) 
+        return NULL;
 
-    if (mysql_real_query(
-        &con->mysql, sqlstr, (unsigned long)strlen(sqlstr)) != 0)
+    if (mysql_real_query(con, sqlstr, len) != 0)
     {
-        CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_real_query:%s."),mysql_error(&con->mysql)));
-        mysql_close(&con->mysql);
-        if (cel_mysqlcon_open(con) == -1)
-        {
-            return NULL;
-        }
-        if (mysql_real_query(
-            &con->mysql, sqlstr, (unsigned long)strlen(sqlstr)) != 0)
-        {
-            CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_real_query:%s."),mysql_error(&con->mysql)));
-            return NULL;
-        }
+        CEL_SETERR((CEL_ERR_MYSQL,
+            _T("mysql_real_query:%s."),mysql_error(con)));
+        return NULL;
     }
-    return mysql_store_result(&con->mysql);
+    return mysql_store_result(con);
 }
 
 int cel_mysqlres_get_int(CelMysqlRes *res, int col_index, int *value)
@@ -196,7 +153,8 @@ int cel_mysqlres_get_string(CelMysqlRes *res, int col_index,
 const char *cel_mysqlres_field_name(CelMysqlRes *res, 
                                     unsigned int field_offset)
 {
-    if ((res->fields == NULL && mysql_fetch_field(res) == NULL)
+    if ((res->fields == NULL 
+        && mysql_fetch_field(res) == NULL)
         || res->field_count > field_offset)
     {
         CEL_SETERR((CEL_ERR_MYSQL, _T("Mysql fetch field error.")));

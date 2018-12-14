@@ -54,7 +54,6 @@ void cel_httpweblistener_do_handshake(CelHttpWebClient *client,
         cel_httpwebclient_free(client);
         return ;
     }
-    //puts("httpweblistener_do_handshake ok");
     if (cel_httpclient_async_recv_request(&(client->http_client), 
         &(client->req), 
         (CelHttpRecvRequestCallbackFunc)
@@ -68,7 +67,6 @@ static void cel_httpweblistener_do_accept(CelHttpWebListener *listener,
 {
     CelHttpWebClient *new_client;
 
-    //puts("cel_httpweblistener_do_accept");
     if (result->ret == -1)
     {
         CEL_ERR((_T("Http web request listener %s do accept %d.(%s)"), 

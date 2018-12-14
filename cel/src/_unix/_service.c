@@ -225,14 +225,14 @@ int _os_service_entry_child(OsServiceEntry *sc_entry, int argc, char **argv)
 }
 
 int _os_service_entry_dispatch(OsServiceEntry *sc_entry, 
-                               BOOL is_foreground,
+                               CelServiceStartMode start_mode,
                                int argc, char **argv)
 {
     pid_t pid;
     int null_fd;
     sigset_t set;
 
-    if (!is_foreground)
+    if (start_mode == CEL_SERVICE_START_DAEMON)
     {
         if ((pid = fork()) < 0)
             return 1;   /**< Create child fork error */
@@ -250,8 +250,12 @@ int _os_service_entry_dispatch(OsServiceEntry *sc_entry,
             return 1;
         close(null_fd);
     }
-
     cel_signals_init(sc_signals);
+    if (start_mode ==  CEL_SERVICE_START_DEBUG)
+    {
+        sc_entry->on_start(argc, argv);
+        return 0;
+    }
 
     sigemptyset(&set);
     sigaddset(&set, SIGTERM);

@@ -198,7 +198,8 @@ static __inline U32 cel_httpframeheader_get_stream_id(CelHttp2FrameHeader *hdr)
     return (ntohl(hdr->_id) & 0x7FFFFFFF);
 }
 
-static __inline void cel_httpframeheader_set_stream_id(CelHttp2FrameHeader *hdr, U32 id)
+static __inline 
+void cel_httpframeheader_set_stream_id(CelHttp2FrameHeader *hdr, U32 id)
 {
     hdr->id = id;
     hdr->r = 0;

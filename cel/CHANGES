@@ -1,3 +1,17 @@
+* Mon Oct 29 2018 Hu Jinya <hjy@gzsunrun.cn> 1.1.0.26
+- 优化数据库接口。
+- 修正cel_httpmultipart_reading_value上传文件格式错误后台段错误问题。
+- 修正cel_httprequest_clear,cel_httprequest_destroy未释放multipart、body_content_type问题。
+- 修正cel_list_clear重复free对象段错误问题。
+- 修正cel_socket_accept清空socket->in指针导致内存泄露。
+- 修正os_socket_do_async_accept设置is_connected状态错误,
+  字段is_connecte修改为state。
+
+* Mon Oct 29 2018 Hu Jinya <hjy@gzsunrun.cn> 1.0.10.20
+- 优化多线程下CelEventLoop定时器事件阻塞导致网络事件无法响应。
+- 修复windows平台AcceptEx无法获取客户端地址BUG。
+- 增加CelHttpWebClient代理地址解析，可通过代理头部获取客户端实际地址。
+
 * Tue Aug 21 2018 Hu Jinya <hjy@gzsunrun.cn> 1.0.9.19
 - 增加CelSqlCon, CelSqlConPool。
 - 修复CEL库的调试接口，增加CEL_DEBUG、CEL_WARNING、CEL_ERR相关宏定义。
