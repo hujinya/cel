@@ -48,16 +48,16 @@ typedef enum _CelHttpRequsetWritingState
 /* Request method */
 typedef enum _CelHttpMethod
 {
-   CEL_HTTPM_UNDEFINED = -1,
-   CEL_HTTPM_CONNECT = 0,
-   CEL_HTTPM_DELETE = 1,
-   CEL_HTTPM_GET = 2,
-   CEL_HTTPM_HEAD = 3,
-   CEL_HTTPM_OPTIONS = 4,
-   CEL_HTTPM_POST = 5,
-   CEL_HTTPM_PUT = 6,
-   CEL_HTTPM_TRACE = 7,
-   CEL_HTTPM_CONUT = 8
+    CEL_HTTPM_UNDEFINED = -1,
+    CEL_HTTPM_CONNECT = 0,
+    CEL_HTTPM_DELETE = 1,
+    CEL_HTTPM_GET = 2,
+    CEL_HTTPM_HEAD = 3,
+    CEL_HTTPM_OPTIONS = 4,
+    CEL_HTTPM_POST = 5,
+    CEL_HTTPM_PUT = 6,
+    CEL_HTTPM_TRACE = 7,
+    CEL_HTTPM_CONUT = 8
 }CelHttpMethod;
 
 typedef enum _CelHttpScheme

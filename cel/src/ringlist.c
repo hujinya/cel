@@ -23,7 +23,8 @@ int cel_ringlist_init(CelRingList *ring_list, size_t size,
 {
     size = cel_power2min((int)size);
     //printf("size = %d\r\n", size);
-    if ((ring_list->ring = (void **)cel_malloc(sizeof(void *) * size)) == NULL)
+    if ((ring_list->ring = 
+        (void **)cel_malloc(sizeof(void *) * size)) == NULL)
         return -1;
     ring_list->size = size;
     ring_list->value_free = value_free;
@@ -34,6 +35,25 @@ int cel_ringlist_init(CelRingList *ring_list, size_t size,
     ring_list->c_tail = 0;
 
     return 0;
+}
+
+void cel_ringlist_clear(CelRingList *ring_list)
+{
+    unsigned int idx; 
+
+    while (ring_list->c_head != ring_list->p_tail)
+    {
+        idx = ((ring_list->c_head) & (ring_list->mask));
+        CEL_ASSERT(ring_list->ring[idx] != NULL);
+        if (ring_list->value_free != NULL)
+            ring_list->value_free(ring_list->ring[idx]);
+        ring_list->ring[idx] = NULL;
+        (ring_list->c_head)++;
+    }
+    ring_list->p_head = 0;
+    ring_list->p_tail = 0;
+    ring_list->c_head = 0;
+    ring_list->c_tail = 0;
 }
 
 void cel_ringlist_destroy(CelRingList *ring_list)
@@ -61,11 +81,6 @@ void cel_ringlist_free(CelRingList *ring_list)
 {
     cel_ringlist_destroy(ring_list);
     cel_free(ring_list);
-}
-
-void cel_ringlist_clear(CelRingList *ring_list)
-{
-    CEL_ERR((_T("cel_ringlist_clear is null")));
 }
 
 static __inline 

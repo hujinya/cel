@@ -13,10 +13,8 @@
  * GNU General Public License for more details.
  */
 #include "cel/sql/mysql.h"
-#include "cel/allocator.h"
 #include "cel/log.h"
 #include "cel/error.h"
-#include "cel/thread.h"
 #ifdef _CEL_UNIX
 #include <sys/types.h>
 #include <arpa/inet.h>

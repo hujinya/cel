@@ -46,17 +46,17 @@ int os_socket_do_async_accept(CelSocketAsyncAcceptArgs *args)
     {
         //_tprintf("errno = %d\r\n", errno);
         if (errno == EAGAIN || errno == EWOULDBLOCK)
-            CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_WANTIN);
+            CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_WANTIN);
         else
         {
             args->_ol.result.error = errno;
-            CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_ERROR);
+            CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_ERROR);
         }
         return -1;
     }
     //_tprintf("%ld %p\r\n", args->_ol.result.ret, args);
     args->new_socket->state = CEL_SOCKET_CONNECTED;
-    CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_OK);
+    CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_OK);
 
     return 0;
 }
@@ -72,19 +72,19 @@ int os_socket_do_async_connect(CelSocketAsyncConnectArgs *args)
     {
         //_tprintf(_T("errno = %d\r\n"), cel_sys_geterrno());
         if (errno == EINPROGRESS /*|| errno == EALREADY*/)
-            CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_WANTOUT);
+            CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_WANTOUT);
         else
         {
             if (POLLERROR_CHK(args->_ol._ol.events)
                 && (errno == EALREADY || errno == EINVAL))
                 cel_seterrno(ETIMEDOUT);
             args->_ol.result.error = errno;
-            CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_ERROR);
+            CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_ERROR);
         }
         return -1;
     }
     args->socket->state = CEL_SOCKET_CONNECTED;
-    CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_OK);
+    CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_OK);
 
     return 0;
 }
@@ -95,16 +95,16 @@ int os_socket_do_async_send(CelSocketAsyncSendArgs *args)
         (struct iovec *)args->buffers, args->buffer_count)) == -1)
     {
         if (errno == EAGAIN || errno == EWOULDBLOCK)
-            CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_WANTOUT);
+            CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_WANTOUT);
         else
         {
             args->_ol.result.error = errno;
-            CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_ERROR);
+            CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_ERROR);
         }
         return -1;
     }
     //_tprintf(_T("send %ld, errno %d\r\n"), args->_ol.result.ret, errno);
-    CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_OK);
+    CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_OK);
 
     return 0;
 }
@@ -115,11 +115,11 @@ int os_socket_do_async_recv(CelSocketAsyncRecvArgs *args)
         (struct iovec *)args->buffers, args->buffer_count)) == -1)
     {
         if (errno == EAGAIN || errno == EWOULDBLOCK)
-            CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_WANTIN);
+            CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_WANTIN);
         else
         {
             args->_ol.result.error = errno;
-            CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_ERROR);
+            CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_ERROR);
         }
         /*
         _tprintf(_T("receive %ld, errno %d\r\n"), 
@@ -127,7 +127,7 @@ int os_socket_do_async_recv(CelSocketAsyncRecvArgs *args)
         */
         return -1;
     }
-    CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_OK);
+    CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_OK);
     //_tprintf(_T("XXXXreceive %ld, errno %d\r\n"), args->_ol.result.ret, errno);
 
     return 0;
@@ -140,15 +140,15 @@ int os_socket_do_async_sendto(CelSocketAsyncSendToArgs *args)
         (struct sockaddr *)(args->addr), cel_sockaddr_get_len(args->addr))) == -1)
     {
         if (errno == EAGAIN || errno == EWOULDBLOCK)
-            CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_WANTOUT);
+            CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_WANTOUT);
         else
         {
             args->_ol.result.error = errno;
-            CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_ERROR);
+            CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_ERROR);
         }
         return -1;
     }
-    CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_OK);
+    CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_OK);
 
     return 0;
 }
@@ -162,15 +162,15 @@ int os_socket_do_async_recvfrom(CelSocketAsyncRecvFromArgs *args)
         (struct sockaddr *)(&args->addr), &len)) == -1)
     {
         if (errno == EAGAIN || errno == EWOULDBLOCK)
-            CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_WANTIN);
+            CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_WANTIN);
         else
         {
             args->_ol.result.error = errno;
-            CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_ERROR);
+            CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_ERROR);
         }
         return -1;
     }
-    CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_OK);
+    CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_OK);
 
     return 0;
 }
@@ -181,15 +181,15 @@ int os_socket_do_async_sendfile(CelSocketAsyncSendFileArgs *args)
         args->socket->fd, args->file, &args->offset, args->count)) == -1)
     {
         if (errno == EAGAIN || errno == EWOULDBLOCK)
-            CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_WANTIN);
+            CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_WANTIN);
         else
         {
             args->_ol.result.error = errno;
-            CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_ERROR);
+            CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_ERROR);
         }
         return -1;
     }
-    CEL_POLLSTATE_SET(&(args->_ol), CEL_POLLSTATE_OK);
+    CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_OK);
 
     return 0;
 }

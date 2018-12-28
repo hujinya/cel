@@ -23,6 +23,11 @@
 #include "cel/ringlist.h"
 #include <stdarg.h>
 
+#define CEL_LOGMSG_CONTENT_SIZE        512  /* Bytes */
+#define CEL_LOGGER_BUF_NUM             10 * 1024
+#define CEL_LOGGER_FLUSH_NUM           1024
+#define CEL_LOGGER_CACHE_PATH          "./cache/log/"
+
 typedef enum _CelLogSeverity
 {
     CEL_LOGLEVEL_UNDEFINED = -1,
@@ -63,8 +68,6 @@ typedef enum _CelLogFacility
     CEL_LOGFACILITY_COUNT
 }CelLogFacility;
 
-#define CEL_LOGMSG_CONTENT_SIZE        512  /* Bytes */
-
 typedef struct _CelLogMsg
 {
     CelLogSeverity level;         /**< RFC3164.4.1.1 */
@@ -79,9 +82,6 @@ typedef struct _CelLogMsg
 typedef int (* CelLogMsgWriteFunc) (CelLogMsg **msgs, size_t n, void *ud);
 typedef int (* CelLogMsgFlushFunc) (void *ud);
 
-#define CEL_LOGGER_BUF_NUM      10 * 1024
-#define CEL_LOGGER_FLUSH_NUM         1024
-
 typedef struct _CelLogger
 {
     CelLogFacility facility;
@@ -94,7 +94,7 @@ typedef struct _CelLogger
     size_t n_bufs;
     CelRingList *free_list;
     CelRingList *ring_list;
-    CelLogMsg **msg_ptrs;
+    CelLogMsg **mem_caches;
 }CelLogger;
 
 #ifdef __cplusplus

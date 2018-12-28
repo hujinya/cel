@@ -65,7 +65,7 @@ CelLogger g_logger = {
     CEL_LOGGER_BUF_NUM,
     NULL,     /* free list */
     NULL,     /* ring list */
-    NULL      /* msg_ptrs */
+    NULL      /* mem_caches */
 };
 
 void cel_logger_facility_set(CelLogger *logger, CelLogFacility facility)
@@ -90,7 +90,7 @@ int cel_logger_buffer_num_set(CelLogger *logger, size_t num)
     if (logger == NULL)
         logger = &g_logger;
     cel_multithread_mutex_lock(CEL_MT_MUTEX_LOG);
-    if (logger->msg_ptrs == NULL
+    if (logger->mem_caches == NULL
         && num >= logger->n_flushs)
     {
         logger->n_bufs = cel_power2min((int)num);
@@ -106,7 +106,7 @@ int cel_logger_flush_num_set(CelLogger *logger, size_t num)
     if (logger == NULL)
         logger = &g_logger;
     cel_multithread_mutex_lock(CEL_MT_MUTEX_LOG);
-    if (logger->msg_ptrs == NULL
+    if (logger->mem_caches == NULL
         && num <= logger->n_bufs)
     {
         logger->n_flushs = num;
@@ -175,7 +175,63 @@ int cel_logger_hook_unregister(CelLogger *logger, const TCHAR *name)
     return -1;
 }
 
-static int cel_logger_logging(CelLogger *logger, CelLogMsg **msgs, size_t n)
+static int cel_logger_cache_file_write(CelLogger *logger)
+{
+    return -1;
+    /*int i = 0, n;
+    char file_path[CEL_PATHLEN];
+    FILE *fp;
+    CelLogMsg *msg;
+    CelDateTime timestamp_cached;
+    char strtime[26];
+
+    cel_datetime_init_now(&timestamp_cached);
+    cel_datetime_strfltime(&timestamp_cached, strtime, 26, _T("%Y%m%d%H%M%S"));
+    snprintf(file_path, CEL_PATHLEN, "%s%s%ld.log", 
+        cel_fullpath_a(CEL_LOGGER_CACHE_PATH), strtime, cel_getticks());
+
+    cel_multithread_mutex_lock(CEL_MT_MUTEX_LOG);
+    if ((fp = fopen(file_path, "wb+")) == NULL 
+        && (cel_mkdirs_a(cel_filedir_a(file_path), S_IRUSR|S_IWUSR) == -1
+        || (fp = fopen(file_path, "wb+")) == NULL))
+    {
+        cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
+        CEL_ERR((_T("cel_httprequest_save_body_data failed")));
+        return -1;
+    }
+    n = cel_ringlist_pop_do_sp(
+        logger->ring_list, logger->file_caches, logger->n_bufs);
+    timestamp_cached = 0;
+    while (i < n)
+    {
+        msg = logger->file_caches[i];
+        if (timestamp_cached != msg->timestamp)
+        {
+            timestamp_cached = msg->timestamp;
+            cel_datetime_strfltime(
+                &(msg->timestamp), strtime, 26, _T("%b %d %X"));
+        }
+        if (_ftprintf(fp, _T("<%s>%s [%ld]: %s.")CEL_CRLF, 
+            ((msg->facility << 3) | msg->level), 
+            strtime, msg->pid,  msg->content) == EOF)
+        {
+            _putts("write cache file failed.");
+            break;
+        }
+    }
+    cel_fclose(fp);
+    cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
+    cel_ringlist_push_do_sp(logger->free_list, logger->file_caches[0], n);
+
+    return n;*/
+}
+
+static int cel_logger_cache_file_read(CelLogger *logger, CelLogMsg **msgs, size_t n)
+{
+    return -1;
+}
+
+static int cel_logger_writing(CelLogger *logger, CelLogMsg **msgs, size_t n)
 {
     CelLogerHookItem *hook1, *hook2;
 
@@ -189,7 +245,7 @@ static int cel_logger_logging(CelLogger *logger, CelLogMsg **msgs, size_t n)
     return 0;
 }
 
-static int _cel_loggger_flush(CelLogger *logger)
+static int cel_loggger_flushing(CelLogger *logger)
 {
     CelLogerHookItem *hook1, *hook2;
 
@@ -210,19 +266,19 @@ int _cel_logger_freelist_init(CelLogger *logger)
     CelLogMsg *msgs;
 
     cel_multithread_mutex_lock(CEL_MT_MUTEX_LOG);
-    if (logger->msg_ptrs == NULL)
+    if (logger->mem_caches == NULL)
     {
         logger->n_bufs = cel_power2min(logger->n_bufs);
-        if ((logger->msg_ptrs = (CelLogMsg **)_cel_sys_malloc(
+        if ((logger->mem_caches = (CelLogMsg **)_cel_sys_malloc(
             (sizeof(void *) + sizeof(CelLogMsg)) * logger->n_bufs)) == NULL)
         {
             cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
             return -1;
         }
-        msgs = (CelLogMsg *)(logger->msg_ptrs + logger->n_bufs);
+        msgs = (CelLogMsg *)(logger->mem_caches + logger->n_bufs);
         for (i = 0; i < logger->n_bufs; i++)
         {
-            logger->msg_ptrs[i] = &msgs[i];
+            logger->mem_caches[i] = &msgs[i];
         }
         /*printf("size %d * %d = %d\r\n", 
             sizeof(CelLogMsg), logger->n_bufs, 
@@ -230,22 +286,22 @@ int _cel_logger_freelist_init(CelLogger *logger)
         if ((logger->ring_list = 
             cel_ringlist_new(logger->n_bufs, NULL)) == NULL)
         {
-            _cel_sys_free(logger->msg_ptrs);
-            logger->msg_ptrs = NULL;
+            _cel_sys_free(logger->mem_caches);
+            logger->mem_caches = NULL;
             cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
             return -1;
         }
         if ((logger->free_list = 
             cel_ringlist_new(logger->n_bufs, NULL)) == NULL)
         {
-            _cel_sys_free(logger->msg_ptrs);
-            logger->msg_ptrs = NULL;
+            _cel_sys_free(logger->mem_caches);
+            logger->mem_caches = NULL;
             cel_ringlist_free(logger->free_list);
             cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
             return -1;
         }
         i = cel_ringlist_push_do_sp(logger->free_list,
-            logger->msg_ptrs[0], logger->n_bufs);
+            logger->mem_caches[0], logger->n_bufs);
         //printf("i = %d %d\r\n", i, logger->n_bufs);
         logger->is_flush = TRUE;
     }
@@ -256,20 +312,33 @@ int _cel_logger_freelist_init(CelLogger *logger)
 int cel_logger_flush(CelLogger *logger)
 {
     int n;
+    BOOL is_mem;
 
-    if (logger->msg_ptrs == NULL)
+    if (logger->mem_caches == NULL)
         _cel_logger_freelist_init(logger);
     //printf("n_msg %ld\r\n", cel_getticks());
-    if ((n = cel_ringlist_pop_do_sp(
-        logger->ring_list, logger->msg_ptrs, logger->n_bufs)) > 0)
+    if (!cel_multithread_mutex_trylock(CEL_MT_MUTEX_LOG))
+        return 0;
+    is_mem = FALSE;
+    if ((n = cel_logger_cache_file_read(
+        logger, logger->mem_caches, logger->n_bufs)) <= 0)
+    {
+        n = cel_ringlist_pop_do_sp(
+            logger->ring_list, logger->mem_caches, logger->n_bufs);
+        is_mem = TRUE;
+    }
+    cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
+    if (n > 0)
     {
         if (logger->sink_list == NULL)
-            cel_logmsg_puts(logger->msg_ptrs, n, NULL);
+            cel_logmsg_puts(logger->mem_caches, n, NULL);
         else 
-            cel_logger_logging(logger, logger->msg_ptrs, n);
-        cel_ringlist_push_do_sp(logger->free_list, logger->msg_ptrs[0], n);
+            cel_logger_writing(logger, logger->mem_caches, n);
+        if (is_mem)
+            cel_ringlist_push_do_sp(
+            logger->free_list, logger->mem_caches[0], n);
         if (logger->sink_list != NULL)
-            _cel_loggger_flush(logger);
+            cel_loggger_flushing(logger);
     }
     //printf("n_msg = %d %ld\r\n", n, cel_getticks());
 
@@ -302,11 +371,14 @@ static CelLogSpecific *_cel_logger_specific_get()
 
 #define CEL_LOGMSG_SPECIFIC_GET() do { \
     if ((log_msg = (log_specific->msg_buf)) == NULL) { \
-    if (cel_ringlist_pop_do_mp( \
-        logger->free_list, &(log_specific->msg_buf), 1) < 1) { \
-        _putts(_T("Drop message.")); \
-        return -1; } \
-    log_msg = log_specific->msg_buf; }\
+        if (cel_ringlist_pop_do_mp( \
+            logger->free_list, &(log_specific->msg_buf), 1) < 1) { \
+            if (cel_logger_cache_file_write(logger) == -1 \
+                || cel_ringlist_pop_do_mp( \
+                logger->free_list, &(log_specific->msg_buf), 1) < 1) { \
+                _putts(_T("Drop message.")); \
+                return -1; } } \
+        log_msg = log_specific->msg_buf; }\
 }while(0)
 
 #define CEL_LOGMSG_WRITE() do { \
@@ -323,9 +395,9 @@ static CelLogSpecific *_cel_logger_specific_get()
     if (logger->sink_list == NULL) \
         cel_logmsg_puts(&log_msg, 1, NULL); \
     else \
-        cel_logger_logging(logger, &log_msg, 1); \
+        cel_logger_writing(logger, &log_msg, 1); \
     if (logger->sink_list != NULL) \
-        _cel_loggger_flush(logger); \
+        cel_loggger_flushing(logger); \
 }while(0)
 
 int cel_logger_puts(CelLogger *logger,
@@ -383,7 +455,7 @@ int cel_logger_write(CelLogger *logger,
     {
         log_msg = &(log_specific->msg);
         memcpy(log_msg->content, buf, 
-            (size > CEL_LOGMSG_CONTENT_SIZE 
+            (size > CEL_LOGMSG_CONTENT_SIZE  
             ? CEL_LOGMSG_CONTENT_SIZE : size));
         CEL_LOGMSG_WRITE();
         CEL_LOG_FLUSH();

@@ -30,7 +30,7 @@
 #define CEL_HTTPBODY_BUF_LEN_MAX     8192
 
 #define CEL_HTTPBODY_CACHE_LEN_MAX   1024 * 1024 * 1024
-#define CEL_HTTPBODY_CACHE_PATH      "./cache/bdy/"
+#define CEL_HTTPBODY_CACHE_PATH      "./cache/http/"
 
 typedef enum _CelHttpError
 {

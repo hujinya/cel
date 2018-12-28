@@ -98,59 +98,61 @@ long cel_sqlcon_execute_nonequery(CelSqlCon *con, const char *fmt, ...)
         con, con->sqlstr, con->len)) == -1)
     {
         cel_sqlcon_close(con);
-        if (cel_sqlcon_open(con) == -1)
+        if (cel_sqlcon_open(con) == -1
+            || (affected_rows = con->kclass->con_execute_nonequery(
+            con, con->sqlstr, con->len)) == -1)
             return -1;
-        return con->kclass->con_execute_nonequery(con, con->sqlstr, con->len);
     }
     return affected_rows;
 }
 
 CelSqlRes *_cel_sqlcon_execute_onequery(CelSqlCon *con)
 {
-    CelSqlRes *res;
-    if ((res = cel_malloc(sizeof(CelSqlRes))) != NULL)
+    CelSqlRes *_res, *res;
+
+    if ((_res = con->kclass->con_execute_onequery(
+        con, con->sqlstr, con->len)) == NULL)
     {
-        if ((res->_res = con->kclass->con_execute_onequery(
+        cel_sqlcon_close(con);
+        if (cel_sqlcon_open(con) == -1
+            || (_res = con->kclass->con_execute_onequery(
             con, con->sqlstr, con->len)) == NULL)
-        {
-            cel_sqlcon_close(con);
-            if (cel_sqlcon_open(con) == -1)
-                return NULL;
-        }
-        if ((res->_res = con->kclass->con_execute_onequery(
-            con, con->sqlstr, con->len)) != NULL)
-        {
-            res->kclass = con->kclass;
-            return res;
-        }
-        cel_free(res);
+            return NULL;
     }
-    return NULL;
+    if ((res = cel_malloc(sizeof(CelSqlRes))) == NULL)
+    {
+        con->kclass->res_free(_res);
+        return NULL;
+    }
+    res->_res = _res;
+    res->kclass = con->kclass;
+
+    return res;
 }
 
 CelSqlRes *_cel_sqlcon_execute_query(CelSqlCon *con)
 {
-    CelSqlRes *res;
-    if ((res = cel_malloc(sizeof(CelSqlRes))) != NULL)
+    CelSqlRes *_res, *res;
+
+    //printf("_cel_sqlcon_execute_query %s %d\r\n", con->sqlstr, con->len);
+    if ((_res = con->kclass->con_execute_query(
+        con, con->sqlstr, con->len)) == NULL)
     {
-        //printf("_cel_sqlcon_execute_query %s %d\r\n", con->sqlstr, con->len);
-        if ((res->_res = con->kclass->con_execute_query(
+        cel_sqlcon_close(con);
+        if (cel_sqlcon_open(con) == -1
+            || (_res = con->kclass->con_execute_query(
             con, con->sqlstr, con->len)) == NULL)
-        {
-            cel_sqlcon_close(con);
-            if (cel_sqlcon_open(con) == -1)
-                return NULL;
-        }
-        //printf("_cel_sqlcon_execute_query2 %s %d\r\n", con->sqlstr, con->len);
-        if ((res->_res = con->kclass->con_execute_query(
-            con, con->sqlstr, con->len)) != NULL)
-        {
-            res->kclass = con->kclass;
-            return res;
-        }
-        cel_free(res);
+            return NULL;
     }
-    return NULL;
+    //printf("_cel_sqlcon_execute_query2 %s %d\r\n", con->sqlstr, con->len);
+    if ((res = cel_malloc(sizeof(CelSqlRes))) == NULL)
+    {
+        con->kclass->res_free(_res);
+        return NULL;
+    }
+    res->_res = _res;
+    res->kclass = con->kclass;
+    return res;
 }
 
 int cel_sqlcon_execute_onequery_results(CelSqlCon *con, 

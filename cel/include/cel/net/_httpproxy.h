@@ -17,18 +17,27 @@
 
 #include "cel/net/httplistener.h"
 
-typedef struct _CelHttpProxyListener
+typedef struct _CelHttpProxy
 {
     CelHttpListener listener;
-}CelHttpProxyListener;
+}CelHttpProxy;
 
-typedef struct _CelHttpProxySession
+typedef struct _CelHttpFrontend
 {
-    CelHttpClient frontend;
-    CelHttpClient backend;
+    CelHttpClient client;
+}CelHttpFrontend;
+
+typedef struct _CelHttpBackend
+{
+    CelHttpClient client;
+}CelHttpBackend;
+
+typedef struct _HttpMsg
+{
+    CelStream s;
     CelHttpRequest req;
     CelHttpResponse rsp;
-}CelHttpProxySession;
+}HttpMsg;
 
 #ifdef __cplusplus
 extern "C" {

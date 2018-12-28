@@ -202,6 +202,7 @@ int cel_tcplistener_async_accept(CelTcpListener *listener,
                                  CelTcpAcceptCallbackFunc async_callback,
                                  CelCoroutine *co)
 {
+    int ret;
     CelTcpListenerAsyncArgs *args;
 
     if (listener->async_args == NULL
@@ -211,10 +212,13 @@ int cel_tcplistener_async_accept(CelTcpListener *listener,
     args = listener->async_args;
     args->async_callback = async_callback;
     args->co = co;
-    if ((args->result.ret = cel_socket_async_accept(
+    if ((ret = cel_socket_async_accept(
         &(listener->sock), &(new_client->sock), &(new_client->remote_addr),
         (CelSocketAcceptCallbackFunc)cel_tcplistener_do_accept, NULL)) != -1
-        && args->co != NULL)
-        cel_coroutine_yield(args->co);
+        && co != NULL)
+    {
+        args->result.ret = ret;
+        cel_coroutine_yield(co);
+    }
     return args->result.ret;
 }

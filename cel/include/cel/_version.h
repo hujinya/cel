@@ -3,7 +3,7 @@
 #define MAJOR 1
 #define MINOR 1
 #define REVISION 0
-#define BUILD 26
+#define BUILD 31
 #define EXTRA ""
 #define OS "\S"
 #define PLATFORM "Linux 3.10.0-327.el7.x86_64"

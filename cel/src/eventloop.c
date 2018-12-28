@@ -15,6 +15,7 @@
 #include "cel/eventloop.h"
 #include "cel/allocator.h"
 #include "cel/error.h"
+//#define _CEL_ASSERT
 #include "cel/log.h"
 
 static CelQueuedEvent s_wakeupevent = { CEL_EVENT_WAKEUP, NULL, NULL };
@@ -159,7 +160,8 @@ static int cel_eventloop_handle(CelEventLoop *evt_loop, CelEventCtlBlock *ecb)
         cel_poll_queued(&(evt_loop->poll), (CelOverLapped *)(&s_exitevent));
         break;
     default:
-        CEL_ERR((_T("Event type %d undefined."), ecb->evt_type));
+        CEL_ERR((_T("Event %p type %d undefined.\r\n"), ecb, ecb->evt_type));
+        CEL_ASSERT(TRUE);
         break;
     }
     return 0;

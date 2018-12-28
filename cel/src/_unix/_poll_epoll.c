@@ -16,7 +16,9 @@
 #ifdef _CEL_UNIX
 #include "cel/allocator.h"
 #include "cel/error.h"
+//#define _CEL_ASSERT
 #include "cel/log.h"
+
 
 int cel_eventchannel_init(CelChannel *evt_ch)
 {
@@ -35,13 +37,13 @@ static int cel_eventchannel_do_async_read(CelEventReadAsyncArgs *args)
     {
         if ((args->ol.result.error = errno) == EAGAIN 
             || args->ol.result.error == EWOULDBLOCK)
-            CEL_POLLSTATE_SET(&(args->ol), CEL_POLLSTATE_WANTIN);
+            CEL_CHANNEL_SET(args->ol._ol.state, CEL_CHANNEL_WANTIN);
         else
-            CEL_POLLSTATE_SET(&(args->ol), CEL_POLLSTATE_ERROR);
+            CEL_CHANNEL_SET(args->ol._ol.state, CEL_CHANNEL_ERROR);
         return -1;
     }
     //_tprintf(_T("**event channel read %lld\r\n"), args->value);
-    CEL_POLLSTATE_SET(&(args->ol), CEL_POLLSTATE_OK);
+    CEL_CHANNEL_SET(args->ol._ol.state, CEL_CHANNEL_OK);
     args->ol.result.ret = sizeof(eventfd_t);
     return 0;
 }
@@ -66,14 +68,18 @@ int cel_eventchannel_read_async(CelEventReadAsyncArgs *args)
 
 int cel_poll_init(CelPoll *poll, int max_threads, int max_fileds)
 {
+    if (max_threads <= 0)
+        return -1;
     if (max_fileds < 1024)
         max_fileds = 1024;
-    if ((poll->epoll_datas = (struct _CelPollData *)
-        cel_calloc(max_fileds, sizeof(CelPollData))) != NULL)
+    if ((poll->epoll_datas = (struct _CelPollData **)
+        cel_calloc(max_fileds, sizeof(CelPollData *))) != NULL)
     {
+        //printf("epoll_datas %ld bytes", max_fileds * sizeof(CelPollData *));
         if ((poll->events = (struct epoll_event *)
             cel_calloc(EVENTS_MAX, sizeof(struct epoll_event))) != NULL)
         {
+            //printf("events %ld bytes", EVENTS_MAX * sizeof(struct epoll_event));
             if ((poll->epoll_fd = epoll_create(max_fileds)) > 0)
             {
                 if (cel_asyncqueue_init(&(poll->async_queue), NULL) != -1)
@@ -100,11 +106,21 @@ int cel_poll_init(CelPoll *poll, int max_threads, int max_fileds)
 
 void cel_poll_destroy(CelPoll *poll)
 {
+    int i;
+
     close(poll->epoll_fd);
     cel_eventchannel_destroy(&(poll->wakeup_ch));
     cel_asyncqueue_destroy(&poll->async_queue);
     cel_mutex_destroy(&(poll->event_locker));
     cel_mutex_destroy(&(poll->wait_locker));
+    for (i = 0; i < poll->max_fileds; i++)
+    {
+        if (poll->epoll_datas[i] != NULL)
+        {
+            cel_free(poll->epoll_datas[i]);
+            poll->epoll_datas[i] = NULL;
+        }
+    }
     cel_free(poll->epoll_datas);
     cel_free(poll->events);
 }
@@ -115,12 +131,16 @@ int cel_poll_add(CelPoll *poll, CelChannel *channel, void *key)
     CelPollData *poll_data;
     struct epoll_event ctl_event;
 
-    if (fileds <= 0 || fileds >= poll->max_fileds)
+    if (fileds <= 0 
+        || fileds >= poll->max_fileds
+        || (poll->epoll_datas[fileds] == NULL
+        && (poll->epoll_datas[fileds] = 
+        cel_calloc(1, sizeof(CelPollData))) == NULL))
     {
         CEL_ERR((_T("Poll add %d failed."), fileds));
         return -1;
     }
-    poll_data = &(poll->epoll_datas[fileds]);
+    poll_data = poll->epoll_datas[fileds];
     poll_data->key = key;
     poll_data->events = 0;
     poll_data->out_ol = poll_data->in_ol = NULL;
@@ -128,7 +148,8 @@ int cel_poll_add(CelPoll *poll, CelChannel *channel, void *key)
     ctl_event.data.fd = fileds;
     if (epoll_ctl(poll->epoll_fd, EPOLL_CTL_ADD, fileds, &ctl_event) != 0)
     {
-        CEL_ERR((_T("epoll_ctl():%s"), cel_geterrstr(cel_sys_geterrno())));
+        CEL_ERR((_T("epoll_ctl %d failed(%s)"), 
+            fileds, cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
     //_tprintf(_T("ctl_event fd %d\r\n"), ctl_event.data.fd);
@@ -151,13 +172,14 @@ static int cel_poll_handle(CelPoll *poll,
         break;
     default:
         CEL_ERR((_T("Undefined event type \"%d\"."), ol->evt_type));
+        CEL_ASSERT(TRUE);
         return -1;
     }
     do
     {
         if (ol->handle_func(ol) == -1)
         {
-            if (CEL_POLLSTATE_CHECK(ol, CEL_POLLSTATE_WANTIN))
+            if (CEL_CHANNEL_CHECK(ol->_ol.state, CEL_CHANNEL_WANTIN))
             {
                 cel_poll_lock(poll, &(poll->event_locker));
                 if (POLLIN_CHK(poll_data->events) 
@@ -166,15 +188,15 @@ static int cel_poll_handle(CelPoll *poll,
                     ol->_ol.events = poll_data->events;
                     POLLIN_CLR(poll_data->events);
                     cel_poll_unlock(poll, &(poll->event_locker));
-                    CEL_DEBUG((_T("Poll in event")));
                     continue;
                 }
                 ol->evt_type = CEL_EVENT_CHANNELIN;
                 poll_data->in_ol = ol;
                 cel_poll_unlock(poll, &(poll->event_locker));
+                //printf("in %p fd %d\r\n", ol, ol->_ol.fileds);
                 return 0;
             }
-            else if (CEL_POLLSTATE_CHECK(ol, CEL_POLLSTATE_WANTOUT))
+            else if (CEL_CHANNEL_CHECK(ol->_ol.state, CEL_CHANNEL_WANTOUT))
             {
                 cel_poll_lock(poll, &(poll->event_locker));
                 if (POLLOUT_CHK(poll_data->events) 
@@ -183,12 +205,12 @@ static int cel_poll_handle(CelPoll *poll,
                     ol->_ol.events = poll_data->events;
                     POLLOUT_CLR(poll_data->events);
                     cel_poll_unlock(poll, &(poll->event_locker));
-                    CEL_DEBUG((_T("Poll out event")));
                     continue;
                 }
                 ol->evt_type = CEL_EVENT_CHANNELOUT;
                 poll_data->out_ol = ol;
                 cel_poll_unlock(poll, &(poll->event_locker));
+                //printf("out %p fd %d\r\n", ol, ol->_ol.fileds);
                 return 0;
             }
         }
@@ -203,27 +225,26 @@ int cel_poll_post(CelPoll *poll, int fileds, CelOverLapped *ol)
     int ret;
     CelPollData *poll_data;
 
-    if (fileds <= 0 || fileds >= poll->max_fileds)
+    if (fileds <= 0 
+        || fileds >= poll->max_fileds
+        || (poll_data = poll->epoll_datas[fileds]) == NULL)
     {
         CEL_ERR((_T("Poll post %d failed."), fileds));
         return -1;
     }
-    poll_data = &(poll->epoll_datas[fileds]);
+    ol->_ol.fileds = fileds;
     ol->result.key = poll_data->key;
-    ret = cel_poll_handle(poll, ol, poll_data);
-    if (ret == -1)
-        return -1;
-    else if (ret == 1)
+    if ((ret = cel_poll_handle(poll, ol, poll_data)) == 1)
     {
-        //CEL_DEBUG((_T("fileds %d, error %d\r\n"), fileds, ol->error));
         cel_poll_push(poll, ol);
         if (poll->max_threads <= 1 && poll->is_waited)
         {
             cel_eventchannel_write(&(poll->wakeup_ch), 1);
             //_putts(_T("eventchannel_write"));
         }
+        return 0;
     }
-    return 0;
+    return ret;
 }
 
 static int cel_poll_do(CelPoll *poll, int milliseconds)
@@ -245,7 +266,7 @@ static int cel_poll_do(CelPoll *poll, int milliseconds)
     for (i = 0; i < n_events; i++)
     {
         event = &(poll->events[i]);
-        poll_data = &(poll->epoll_datas[event->data.fd]);
+        poll_data = poll->epoll_datas[event->data.fd];
         //CEL_DEBUG((_T("events 0x%x, fd %d"), event->events, event->data.fd));
         if (POLLIN_CHK(event->events) || POLLERROR_CHK(event->events))
         {
@@ -258,8 +279,7 @@ static int cel_poll_do(CelPoll *poll, int milliseconds)
             }
             if (ol != NULL)
             {
-                //CEL_DEBUG((_T("Read %d %p"), event->data.fd, ol));
-                ol->_ol.fileds = event->data.fd;
+                CEL_ASSERT(ol->_ol.fileds == event->data.fd);
                 ol->_ol.events = event->events;
                 poll_data->in_ol = NULL;
                 cel_poll_push(poll, ol);
@@ -276,8 +296,7 @@ static int cel_poll_do(CelPoll *poll, int milliseconds)
             }
             if (ol != NULL)
             {
-                //CEL_DEBUG((_T("Write %d %p"), event->data.fd, ol));
-                ol->_ol.fileds = event->data.fd;
+                CEL_ASSERT(ol->_ol.fileds == event->data.fd);
                 ol->_ol.events = event->events;
                 poll_data->out_ol = NULL;
                 cel_poll_push(poll, ol);
@@ -323,19 +342,20 @@ int cel_poll_wait(CelPoll *poll, CelOverLapped **ol, int milliseconds)
     }
     if ((*ol) != NULL && CEL_CHECKFLAG((*ol)->evt_type, CEL_EVENT_CHANNEL))
     {
-        //CEL_DEBUG((_T("fd %d state %d\r\n"), (*ol)->_ol.fileds, (*ol)->_ol.state));
-        if (!CEL_POLLSTATE_ISCOMPLETED(*ol))
+        /* printf(_T("ol %p type %d fd %d state %d\r\n"), 
+            *ol, (*ol)->evt_type, (*ol)->_ol.fileds, (*ol)->_ol.state);  */
+        if (!CEL_CHANNEL_ISCOMPLETED((*ol)->_ol.state))
         {
-            poll_data = &(poll->epoll_datas[(*ol)->_ol.fileds]);
-            if ((ret = cel_poll_handle(poll, *ol, poll_data)) == -1)
-            {
-                return -1;
-            }
-            else if (ret == 0)
+            poll_data = poll->epoll_datas[(*ol)->_ol.fileds];
+            CEL_ASSERT(poll_data != NULL);
+            if ((ret = cel_poll_handle(poll, *ol, poll_data)) == 0)
             {
                 //_tprintf(_T("ol %p, type %d = NULL\r\n"), *ol, (*ol)->evt_type);
                 *ol = NULL;
+                return 0;
             }
+            CEL_ASSERT(CEL_CHECKFLAG((*ol)->evt_type, CEL_EVENT_CHANNEL));
+            return ret;
         }
     }
     return 0;

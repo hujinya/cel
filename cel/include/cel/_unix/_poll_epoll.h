@@ -41,6 +41,16 @@ extern "C" {
 #define POLLIN_CLR(events) (events) &= (~EPOLLIN)
 #define POLLOUT_CLR(events) (events) &= (~EPOLLOUT)
 
+#define CEL_CHANNEL_WANTIN     0x01
+#define CEL_CHANNEL_WANTOUT    0x02
+#define CEL_CHANNEL_COMPLETED  0x10
+#define CEL_CHANNEL_ERROR      0x11
+#define CEL_CHANNEL_OK         0x12
+#define CEL_CHANNEL_SET(_state, value) (_state) = value
+#define CEL_CHANNEL_CHECK(_state, value) (_state) == value
+#define CEL_CHANNEL_ISCOMPLETED(_state) \
+    (((_state) & CEL_CHANNEL_COMPLETED) == CEL_CHANNEL_COMPLETED)
+
 typedef struct _CelChannel
 {
     int handle;
@@ -89,16 +99,6 @@ void cel_eventchannel_destroy(CelChannel *evt_ch);
     eventfd_write((evt_ch)->handle, value)
 int cel_eventchannel_read_async(CelEventReadAsyncArgs *args);
 
-#define CEL_POLLSTATE_WANTIN     0x01
-#define CEL_POLLSTATE_WANTOUT    0x02
-#define CEL_POLLSTATE_COMPLETED  0x10
-#define CEL_POLLSTATE_ERROR      0x11
-#define CEL_POLLSTATE_OK         0x12
-#define CEL_POLLSTATE_SET(ol, _state) (ol)->_ol.state = _state
-#define CEL_POLLSTATE_CHECK(ol, _state) (ol)->_ol.state == _state
-#define CEL_POLLSTATE_ISCOMPLETED(ol) \
-    (((ol)->_ol.state & CEL_POLLSTATE_COMPLETED) == CEL_POLLSTATE_COMPLETED)
-
 typedef struct _CelPollData
 {
     int events;
@@ -115,7 +115,7 @@ typedef struct _CelPoll
     BOOL is_waited;
     CelMutex wait_locker;
     CelMutex event_locker;
-    CelPollData *epoll_datas;
+    CelPollData **epoll_datas;
     struct epoll_event *events;
     CelAsyncQueue async_queue;
 

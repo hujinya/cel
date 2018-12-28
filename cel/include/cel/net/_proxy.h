@@ -15,17 +15,13 @@
 #ifndef __CEL_NET_PROXY_H__
 #define __CEL_NET_PROXY_H__
 
-#include "cel/net/_socks5.h"
+#include "cel/net/_tcpproxy.h"
+#include "cel/net/_httpproxy.h"
 
-typedef struct _CelProxyServer
-{
-    int y;
-}CelProxyServer;
-
-typedef struct _CelProxySession
+typedef struct _CelProxy
 {
     int x;
-}CelProxySession;
+}CelProxy;
 
 #ifdef __cplusplus
 extern "C" {

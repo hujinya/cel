@@ -63,11 +63,6 @@ int cel_eventloopgroup_init(CelEventLoopGroup *group,
     CelCpuMask mask;
     CelEventLoopThread *evt_loop_thread;
 
-    if (is_shared
-        && (group->evt_loop = 
-        cel_eventloop_new(n_threads, max_fileds)) == NULL)
-        return -1;
-    group->is_shared = is_shared;
     n_cpus = (int)cel_getnprocs();
     if (n_threads <= 0)
         n_threads = n_cpus;
@@ -75,6 +70,13 @@ int cel_eventloopgroup_init(CelEventLoopGroup *group,
         n_threads = n_threads / 2;
     else if (n_threads < 4)
         n_threads = 4;
+
+    if (is_shared
+        && (group->evt_loop = 
+        cel_eventloop_new(n_threads, max_fileds)) == NULL)
+        return -1;
+    group->is_shared = is_shared;
+    
     if ((group->evt_loop_threads = (CelEventLoopThread *)
         cel_calloc(1, sizeof(CelEventLoopThread) * n_threads)) != NULL)
     {

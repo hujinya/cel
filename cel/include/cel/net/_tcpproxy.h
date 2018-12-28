@@ -17,6 +17,7 @@
 
 #include "cel/net/tcplistener.h"
 #include "cel/arraylist.h"
+#include "cel/queue.h"
 
 typedef struct _CelTcpProxy
 {
@@ -26,17 +27,25 @@ typedef struct _CelTcpProxy
 typedef struct _CelTcpFrontend CelTcpFrontend;
 typedef struct _CelTcpBackend CelTcpBackend;
 
+typedef struct _CelTcpMessge
+{
+    CelStream s;
+    size_t e_size, size;
+}CelTcpMessge;
+
 struct _CelTcpFrontend
 {
     CelTcpClient client;
-    CelArrayList be_list;
+    CelArrayList backend_list;
+    CelQueue write_queue;
 };
 
 struct _CelTcpBackend
 {
     CelTcpClient client;
     unsigned long stream_id;
-    CelTcpFrontend *fe;
+    CelTcpFrontend *frontend;
+    CelQueue write_queue;
 };
 
 #ifdef __cplusplus

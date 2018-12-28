@@ -95,7 +95,7 @@ CelSqlCon *cel_sqlconpool_get(CelSqlConPool *pool)
     /*
     printf(" cel_sqlconpool_get count %d min %d total %d\r\n", 
         cel_ringlist_get_count(&(pool->frees)), pool->min, pool->n_conns);
-        */
+    */
     if (cel_ringlist_pop_do_mp(&(pool->frees), &con, 1) == 1)
     {
         CEL_DEBUG((_T("cel_sqlconpool_get %p"), con));

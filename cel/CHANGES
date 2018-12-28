@@ -1,11 +1,17 @@
-* Mon Oct 29 2018 Hu Jinya <hjy@gzsunrun.cn> 1.1.0.26
-- 优化数据库接口。
-- 修正cel_httpmultipart_reading_value上传文件格式错误后台段错误问题。
-- 修正cel_httprequest_clear,cel_httprequest_destroy未释放multipart、body_content_type问题。
-- 修正cel_list_clear重复free对象段错误问题。
-- 修正cel_socket_accept清空socket->in指针导致内存泄露。
-- 修正os_socket_do_async_accept设置is_connected状态错误,
-  字段is_connecte修改为state。
+* Mon Dec 21 2018 Hu Jinya <hjy@gzsunrun.cn> 1.1.0.31
+- 优化CelSqlCon数据库相关函数接口。
+- 修复cel_httpmultipart_reading_value上传文件格式错误后台段错误问题。
+- 修复cel_httprequest_clear,cel_httprequest_destroy未释放
+  multipart、body_content_type问题。
+- 修复cel_list_clear重复free对象段错误问题。
+- 修复cel_socket_accept清空socket->in指针导致内存泄露。
+- 修复os_socket_do_async_accept设置is_connected状态错误,字段is_connecte修改为state。
+- 修复CelSqlCon重复查询两次问题，第一次查询结果CelSqlRes未释放，造成内存泄露。
+- 优化unix下CelPoll初始化一次性分配内存占用内存太多问题。
+- 修复unix下cel_poll_post未初始化fileds的问题。
+- 修正CelSocket、CelTcpClient异步请求完成后co变量已经被释放，再做co判断导致崩溃。
+- 修正cel_eventloopgroup_init创建evt_loop时未初始化n_threads导致poll加锁失败，
+  异步完成事件指针出错段错误。
 
 * Mon Oct 29 2018 Hu Jinya <hjy@gzsunrun.cn> 1.0.10.20
 - 优化多线程下CelEventLoop定时器事件阻塞导致网络事件无法响应。
@@ -42,39 +48,39 @@
 
 * Thu May 24 2018 Hu Jinya <hu_jinya@163.com> 1.0.6.7
 - cel_long_equal类型转换问题导致windows下hashtable查找出错。
-- 修正http chunked编解码last chunk多出\r\n问题。
+- 修复http chunked编解码last chunk多出\r\n问题。
 - 增加http头部keep-alive小写兼容。
-- 修正httpmultipart上传文件末尾多出\r\n问题。
+- 修复httpmultipart上传文件末尾多出\r\n问题。
 - 增加eventloopgroup。
-- 修正_atoll在vs2013版本重定义冲突，最新的VC集成了该函数。
+- 修复_atoll在vs2013版本重定义冲突，最新的VC集成了该函数。
 - 增加CEL_MT_KEY_USERX。
 
 * Tue Aug 29 2017 Hu Jinya <hu_jinya@163.com> 1.0.5
-- http相关库更新。
+- 优化http相关库更新。
 
 * Thu Apr 13 2017 Hu Jinya <hu_jinya@163.com> 1.0.4
-- 修改windows自旋锁循环判断BUG。
+- 修复windows自旋锁循环判断BUG。
 - 增加alloctor库。
-- 修改cel_getmemperf在centos 7上不兼容。
-- 修改windows下cel_userpswd不生效问题。
-- 修改user_unix下用户ID和组ID的生成算法，centos 7兼容。
+- 修复cel_getmemperf在centos 7上不兼容。
+- 修复windows下cel_userpswd不生效问题。
+- 修复user_unix下用户ID和组ID的生成算法，centos 7兼容。
 
 * Mon Oct 10 2016 Hu Jinya <hu_jinya@163.com> 1.0.3
-- cel_datetime_init_strtime_a把sscanf写成scanf时导致http在解析Date头部时卡死；
-- cel_socket_async_accept设置buffer_size大于ACCEPTEX_RECEIVEDATA_OFFSET时，
+- 修复cel_datetime_init_strtime_a把sscanf写成scanf时导致http在解析Date头部时卡死；
+- 修复cel_socket_async_accept设置buffer_size大于ACCEPTEX_RECEIVEDATA_OFFSET时，
   如果客户端一直不发数据，会导致卡死；
 - 增加taskscheduler库。
-- cel_service_pidfile_exist服务异常自动重启时判断异常会导致服务自动退出。
+- 修复cel_service_pidfile_exist服务异常自动重启时判断异常会导致服务自动退出。
 - 优化json库，支持value为"",解决json文件最后一行为数字解析出错BUG。
-- cel_error支持多字节和UNICODE。
+- 增加cel_error支持多字节和UNICODE。
    
 * Thu May 12 2016 Hu Jinya <hu_jinya@163.com> 1.0.2
-- 修改json解析bug。
+- 修复json解析bug。
  
 * Fri Apr 15 2016 Hu Jinya <hu_jinya@163.com> 1.0.1
-- cel_httprequest_get_query()修改内存拷贝越界问题;
-- ssl目录合并到net目录，删除过时异步接口;
-- cel_socket_set_rcvtimeout() 超时值设置时需要转换为秒和微秒，否则提示溢出;
-- socket_unix 异步连接发生EALREADY，EINVAL强制改为ETIMEDOUT，避免应用返回错误提示信息;
+- 修复cel_httprequest_get_query()修改内存拷贝越界问题;
+- 优化ssl目录合并到net目录，删除过时异步接口;
+- 修复cel_socket_set_rcvtimeout() 超时值设置时需要转换为秒和微秒，否则提示溢出;
+- 修复socket_unix 异步连接发生EALREADY，EINVAL强制改为ETIMEDOUT，避免应用返回错误提示信息;
 - 增加balancer函数库;
-- cel_vstring_init()针对CHAR与WACHR需要单独定义。
+- 增加cel_vstring_init()针对CHAR与WACHR需要单独定义。
