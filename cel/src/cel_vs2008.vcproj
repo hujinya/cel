@@ -1140,6 +1140,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\cel.rc"
+				>
+			</File>
+			<File
 				RelativePath="..\CHANGES"
 				>
 			</File>
@@ -1311,6 +1315,10 @@
 			</File>
 			<File
 				RelativePath="..\include\cel\regex.h"
+				>
+			</File>
+			<File
+				RelativePath=".\resource.h"
 				>
 			</File>
 			<File

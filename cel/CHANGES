@@ -1,3 +1,8 @@
+* Mon Dec 01 2019 Hu Jinya <hjy@gzsunrun.cn> 1.1.1.34
+- 修正cel_httpwebclient_async_send_response_result状态码201、203、204会自动填充body问题。
+- 优化应用使用时CelSqlCon不再需要加载mysql\sqllite等头文件。
+- 修正cel_httpwebclient_do_recv_request支持跨域访问。
+
 * Mon Dec 21 2018 Hu Jinya <hjy@gzsunrun.cn> 1.1.0.31
 - 优化CelSqlCon数据库相关函数接口。
 - 修复cel_httpmultipart_reading_value上传文件格式错误后台段错误问题。

@@ -69,11 +69,11 @@ CelEventLoop *cel_eventloop_new( int n_threads, int max_fileds);
 void cel_eventloop_free(CelEventLoop *evt_loop);
 
 #define cel_eventloop_is_running(evt_loop) (evt_loop)->is_running
-int cel_eventloop_do(CelEventLoop *evt_loop);
+int cel_eventloop_do_work(CelEventLoop *evt_loop);
 static __inline void cel_eventloop_run(CelEventLoop *evt_loop)
 {
     while (cel_eventloop_is_running(evt_loop) 
-        && cel_eventloop_do(evt_loop) != -1);
+        && cel_eventloop_do_work(evt_loop) != -1);
     //_tprintf(_T("Thread %d exit.%s\r\n"), (int)cel_thread_getid());
 }
 void cel_eventloop_wakeup(CelEventLoop *evt_loop);

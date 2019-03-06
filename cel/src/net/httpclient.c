@@ -83,8 +83,7 @@ CelHttpClient *cel_httpclient_new_family(int family, CelSslContext *ssl_ctx)
     {
         if (cel_httpclient_init_family(client, family, ssl_ctx) != -1)
         {
-            cel_refcounted_init(
-                &(client->ref_counted), 
+            cel_refcounted_init(&(client->ref_counted), 
                 (CelFreeFunc)_cel_httpclient_free_derefed);
             return client;
         }

@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\cel\include;..\..\mysql\include;..\..\openssl\include"
+				AdditionalIncludeDirectories="..\..\cel\include;..\..\openssl\include"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -58,7 +58,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="../../cel/lib/cel.lib ../../openssl_1_0_2k/lib/libeay32.lib ../../openssl_1_0_2k/lib/ssleay32.lib ../../mysql_5_5_15/lib/libmysql.lib"
+				AdditionalDependencies="../../cel/lib/cel.lib ../../openssl/lib/libeay32.lib ../../openssl/lib/ssleay32.lib"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
 			/>

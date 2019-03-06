@@ -167,7 +167,7 @@ static int cel_eventloop_handle(CelEventLoop *evt_loop, CelEventCtlBlock *ecb)
     return 0;
 }
 
-int cel_eventloop_do(CelEventLoop *evt_loop)
+int cel_eventloop_do_work(CelEventLoop *evt_loop)
 {
     CelAtomic timer_wakeup;
     long timeout;
@@ -239,7 +239,7 @@ int cel_eventloop_do(CelEventLoop *evt_loop)
     return 0;
 }
 
-int cel_eventloop_do2(CelEventLoop *evt_loop, CelCoroutineScheduler *schd)
+int cel_eventloop_do_work2(CelEventLoop *evt_loop, CelCoroutineScheduler *schd)
 {
     //int wakeup_cnt, n_expireds;
     //long timeout;

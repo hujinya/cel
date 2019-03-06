@@ -129,7 +129,7 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
                                        CelAsyncResult *result)
 {
     size_t ver_end;
-    char *url;
+    char *url, *origin;
     CelHttpHandleFunc handler;
 
     /*printf("cel_httpwebclient_do_recv_request,"
@@ -172,15 +172,21 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
             client->web_ctx->server, strlen(client->web_ctx->server));
         cel_httpresponse_set_header(&(client->rsp), CEL_HTTPHDR_CONNECTION,
             &(req->connection), sizeof(CelHttpConnection));
+        if ((origin = cel_httprequest_get_header(
+            &(client->req), CEL_HTTPHDR_ORIGIN)) == NULL)
+            origin = cel_httprequest_get_header(
+            &(client->req), CEL_HTTPHDR_REFERER);
+        if (origin != NULL)
+            cel_httpresponse_set_header(&(client->rsp), 
+            CEL_HTTPHDR_ACCESS_CONTROL_ALLOW_ORIGIN, origin, strlen(origin));
+        else
+            cel_httpresponse_set_header(&(client->rsp), 
+            CEL_HTTPHDR_ACCESS_CONTROL_ALLOW_ORIGIN, "*", 1);
         cel_httpresponse_set_header(&(client->rsp), 
-            CEL_HTTPHDR_ACCESS_CONTROL_ALLOW_ORIGIN, 
-            "*", 1);
+            CEL_HTTPHDR_ACCESS_CONTROL_ALLOW_CREDENTIALS, "true", 4);
         /* Process options method */
         if (req->method == CEL_HTTPM_OPTIONS)
         {
-            cel_httpresponse_set_header(&(client->rsp), 
-                CEL_HTTPHDR_ACCESS_CONTROL_ALLOW_CREDENTIALS, 
-                "true", 4);
             cel_httpresponse_set_header(&(client->rsp), 
                 CEL_HTTPHDR_ACCESS_CONTROL_ALLOW_METHODS, 
                 "DELETE,GET,OPTIONS,POST,PUT", 27);
@@ -344,9 +350,6 @@ int cel_httpwebclient_async_send_response_result(CelHttpWebClient *client,
     switch (status)
     {
     case CEL_HTTPSC_REQUEST_OK:
-    case CEL_HTTPSC_CREATED:
-    case CEL_HTTPSC_ACCEPTED:
-    case CEL_HTTPSC_NO_CONTENT:
         cel_httpresponse_set_statuscode(&(client->rsp), status);
         if (client->rsp.writing_body_offset == 0)
         {
@@ -360,6 +363,12 @@ int cel_httpwebclient_async_send_response_result(CelHttpWebClient *client,
                 cel_httpresponse_write(&(client->rsp), 
                 CEL_HTTPWEB_SUCCESSED_MSG, CEL_HTTPWEB_SUCCESSED_MSG_LEN);
         }
+        cel_httpresponse_end(&(client->rsp));
+        break;
+    case CEL_HTTPSC_CREATED:
+    case CEL_HTTPSC_ACCEPTED:
+    case CEL_HTTPSC_NO_CONTENT:
+        cel_httpresponse_set_statuscode(&(client->rsp), status);
         cel_httpresponse_end(&(client->rsp));
         break;
     case CEL_HTTPSC_BAD_REQUEST:
