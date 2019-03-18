@@ -49,7 +49,8 @@ int cel_sqlcon_init(CelSqlCon *con, CelSqlConType type,
     {
     case CEL_SQLCON_MYSQL:
         con->st_con = cel_calloc(1, sizeof(CelMysqlCon));
-        con->sqlstr[0] = '\0';
+		cel_vstring_init_a(&(con->sqlstr));
+		cel_vstring_resize_a(&(con->sqlstr), 1024);
         con->kclass = &mysql_kclass;
         return cel_sqlcon_open(con);
     default:
@@ -61,6 +62,7 @@ int cel_sqlcon_init(CelSqlCon *con, CelSqlConType type,
 void cel_sqlcon_destroy(CelSqlCon *con)
 {
     cel_sqlcon_close(con);
+	cel_vstring_destroy(&(con->sqlstr));
     CEL_PTR_FREE(con->st_con);
     CEL_PTR_FREE(con->host);
     CEL_PTR_FREE(con->user);
@@ -97,15 +99,15 @@ long cel_sqlcon_execute_nonequery(CelSqlCon *con, const char *fmt, ...)
     va_list args;
 
     va_start(args, fmt);
-    con->len = _vsntprintf(con->sqlstr, 1024, fmt, args);
+	con->sqlstr.size = _vsntprintf(con->sqlstr.str, con->sqlstr.capacity, fmt, args);
     va_end(args);
     if ((affected_rows = con->kclass->con_execute_nonequery(
-        con->st_con, con->sqlstr, con->len)) == -1)
+        con->st_con, con->sqlstr.str, con->sqlstr.size)) == -1)
     {
         cel_sqlcon_close(con);
         if (cel_sqlcon_open(con) == -1
             || (affected_rows = con->kclass->con_execute_nonequery(
-            con->st_con, con->sqlstr, con->len)) == -1)
+            con->st_con, con->sqlstr.str, con->sqlstr.size)) == -1)
             return -1;
     }
     return affected_rows;
@@ -116,12 +118,12 @@ CelSqlRes *_cel_sqlcon_execute_onequery(CelSqlCon *con)
     CelSqlRes *_res, *res;
 
     if ((_res = con->kclass->con_execute_onequery(
-        con->st_con, con->sqlstr, con->len)) == NULL)
+		con->st_con, con->sqlstr.str, con->sqlstr.size)) == NULL)
     {
         cel_sqlcon_close(con);
         if (cel_sqlcon_open(con) == -1
             || (_res = con->kclass->con_execute_onequery(
-            con->st_con, con->sqlstr, con->len)) == NULL)
+			con->st_con, con->sqlstr.str, con->sqlstr.size)) == NULL)
             return NULL;
     }
     if ((res = cel_malloc(sizeof(CelSqlRes))) == NULL)
@@ -141,12 +143,12 @@ CelSqlRes *_cel_sqlcon_execute_query(CelSqlCon *con)
     CelSqlRes *res;
 
     if ((st_res = con->kclass->con_execute_query(
-        con->st_con, con->sqlstr, con->len)) == NULL)
+		con->st_con, con->sqlstr.str, con->sqlstr.size)) == NULL)
     {
         cel_sqlcon_close(con);
         if (cel_sqlcon_open(con) == -1
             || (st_res = con->kclass->con_execute_query(
-            con->st_con, con->sqlstr, con->len)) == NULL)
+            con->st_con, con->sqlstr.str, con->sqlstr.size)) == NULL)
             return NULL;
     }
     if ((res = cel_malloc(sizeof(CelSqlRes))) == NULL)
@@ -170,7 +172,7 @@ int cel_sqlcon_execute_onequery_results(CelSqlCon *con,
     va_list args;
 
     va_start(args, fmt);
-    con->len = _vsntprintf(con->sqlstr, 1024, fmt, args);
+    con->sqlstr.size = _vsntprintf(con->sqlstr.str, con->sqlstr.capacity, fmt, args);
     va_end(args);
     if ((res = _cel_sqlcon_execute_onequery(con)) == NULL)
         return -1;
@@ -204,7 +206,7 @@ int cel_sqlcon_execute_query_results(CelSqlCon *con,
     va_list args;
 
     va_start(args, fmt);
-    _vsntprintf(con->sqlstr, 1024, fmt, args);
+    con->sqlstr.size = _vsntprintf(con->sqlstr.str, con->sqlstr.capacity, fmt, args);
     va_end(args);
     if ((res = _cel_sqlcon_execute_query(con)) == NULL)
         return -1;

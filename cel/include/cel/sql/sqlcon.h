@@ -17,7 +17,7 @@
 
 #include "cel/allocator.h"
 #include "cel/ringlist.h"
-//#include "cel/vstring.h"
+#include "cel/vstring.h"
 #include <stdarg.h>
 
 typedef enum _CelSqlConType
@@ -85,8 +85,7 @@ struct _CelSqlCon
     void *st_con;
     char *host, *user, *passwd, *db;
     unsigned int port;
-    char sqlstr[1024];
-    int len;
+	CelVStringA sqlstr;
     CelSqlConClass *kclass;
 };
 
@@ -116,6 +115,11 @@ static __inline void cel_sqlcon_close(CelSqlCon *con)
     con->kclass->con_close(con->st_con);
 }
 
+static __inline int cel_sqlcon_sqlstr_resize(CelSqlCon *con, size_t size)
+{
+	return cel_vstring_resize_a(&(con->sqlstr), size);
+}
+
 long cel_sqlcon_execute_nonequery(CelSqlCon *con, const char *fmt, ...);
 CelSqlRes *_cel_sqlcon_execute_onequery(CelSqlCon *con);
 CelSqlRes *_cel_sqlcon_execute_query(CelSqlCon *con);
@@ -125,7 +129,7 @@ CelSqlRes *cel_sqlcon_execute_onequery(CelSqlCon *con, const char *fmt, ...)
     va_list args;
 
     va_start(args, fmt);
-    con->len = _vsntprintf(con->sqlstr, 1024, fmt, args);
+	con->sqlstr.size = _vsntprintf(con->sqlstr.str, con->sqlstr.capacity, fmt, args);
     va_end(args);
     return _cel_sqlcon_execute_onequery(con);
 }
@@ -135,7 +139,7 @@ CelSqlRes *cel_sqlcon_execute_query(CelSqlCon *con, const char *fmt, ...)
     va_list args;
 
     va_start(args, fmt);
-    con->len = _vsntprintf(con->sqlstr, 1024, fmt, args);
+    con->sqlstr.size = _vsntprintf(con->sqlstr.str, con->sqlstr.capacity, fmt, args);
     va_end(args);
     return _cel_sqlcon_execute_query(con);
 }
