@@ -999,7 +999,7 @@ long long cel_httpbodycache_read(CelHttpBodyCache *cache,
     {
         last = cache->size - 1;
     }
-    if (buf_size < last - first)
+    if (buf_size < last + 1 - first)
         last = first + buf_size;
     if (cache->fp != NULL)
     {
@@ -1038,6 +1038,8 @@ long long cel_httpbodycache_save_file(CelHttpBodyCache *cache,
             first, last, cache->size));
         return -1;
     }
+	/*printf("cel_httpbodycache_save_file cache_size %d, first = %d, last = %d\r\n", 
+		cache->size, first, last);*/
     if ((fp = fopen(file_path, "wb+")) == NULL 
         && (cel_mkdirs_a(cel_filedir_a(file_path), S_IRUSR|S_IWUSR) == -1
         || (fp = fopen(file_path, "wb+")) == NULL))
@@ -1049,7 +1051,7 @@ long long cel_httpbodycache_save_file(CelHttpBodyCache *cache,
     {
         _fseeki64(cache->fp, first, SEEK_SET);
         cel_stream_resize(&(cache->buf), cache->buf_max_size);
-        while (first < last)
+        while (first <= last)
         {
             _size = fread(cache->buf.buffer,
                 1, cache->buf_max_size, cache->fp);
@@ -1061,7 +1063,7 @@ long long cel_httpbodycache_save_file(CelHttpBodyCache *cache,
     else
     {
         size = fwrite(cel_stream_get_buffer(&(cache->buf)) + first,
-            1, (size_t)(last - first), fp);
+            1, (size_t)(last + 1 - first), fp);
     }
     fclose(fp);
 

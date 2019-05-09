@@ -405,7 +405,9 @@ int cel_fmove(const TCHAR *old_file, const TCHAR *new_file)
 {
     if (rename(old_file, new_file) == 0)
         return 0;
-    if (cel_fsync(new_file, old_file) == -1)
+    if ((cel_fsync(new_file, old_file) == -1
+		&& cel_mkdirs_a(cel_filedir_a(new_file), S_IRUSR|S_IWUSR) == -1)
+		|| cel_fsync(new_file, old_file) == -1)
     {
         CEL_ERR((_T("file move %s"), cel_geterrstr(cel_sys_geterrno())));
         return -1;

@@ -97,12 +97,13 @@ void cel_httpwebclient_free(CelHttpWebClient *client)
 
 #include "cel/net/if.h"
 
-void cel_httpwebclient_update_remoteaddr(CelHttpWebClient *client, 
-                                         CelHttpRequest *req)
+void cel_httpwebclient_update_host(CelHttpWebClient *client,
+								   CelHttpRequest *req)
 {
     int i;
     char *ipstr, _ipstr[CEL_IPSTRLEN];
 
+	//update server host
     if ((ipstr = cel_httprequest_get_header(
         req, CEL_HTTPHDR_X_FORWARDED_FOR)) != NULL)
     {
@@ -122,6 +123,8 @@ void cel_httpwebclient_update_remoteaddr(CelHttpWebClient *client,
         cel_sockaddr_init_ipstr(
             &(client->http_client.tcp_client.remote_addr), ipstr, 0);
     }
+	//update client host
+
 }
 
 void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
@@ -166,7 +169,7 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
         }
         return ;
     case CEL_HTTPREQUEST_READING_OK:
-        cel_httpwebclient_update_remoteaddr(client, req);
+        cel_httpwebclient_update_host(client, req);
         /* Init response common header */
         cel_httpresponse_set_header(&(client->rsp), CEL_HTTPHDR_SERVER,
             client->web_ctx->server, strlen(client->web_ctx->server));

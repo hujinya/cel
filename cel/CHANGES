@@ -1,6 +1,8 @@
-* Mon Apr 15 2019 Hu Jinya <hjy@gzsunrun.cn> 1.1.2.35
+* Fri Apr 15 2019 Hu Jinya <hjy@gzsunrun.cn> 1.1.2.37
 - 增加CelSqlCon支持sqlstr长度可设置，默认长度为1024。
 - 修正cel_httpmultipart_reading_value文件末尾多出boundary问题。
+- 修正cel_fmove不能自动创建目录的问题。
+- 修正cel_httpbodycache_save_file读取缓存漏掉一个字节问题。
 
 * Mon Jan 01 2019 Hu Jinya <hjy@gzsunrun.cn> 1.1.1.34
 - 修正cel_httpwebclient_async_send_response_result状态码201、203、204会自动填充body问题。
