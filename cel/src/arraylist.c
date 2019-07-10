@@ -76,7 +76,7 @@ BOOL cel_arraylist_maybe_larger(CelArrayList *array_list, size_t *new_capacity)
             *new_capacity = cel_capacity_get_min(array_list->capacity);
             return TRUE;
         }
-        CEL_ERR((_T("Number %d exceeds the maximum capacity %d."), 
+        CEL_SETERR((CEL_ERR_LIB,  _T("Number %d exceeds the maximum capacity %d."), 
             array_list->capacity, CEL_CAPACITY_MAX));
     }
     return FALSE;

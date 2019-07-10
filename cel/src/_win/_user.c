@@ -23,11 +23,6 @@
 #define STATUS_SUCCESS 0x00000000L
 #endif
 
-/* CEL_DEBUG defines */
-#define CEL_DEBUG(args)   /* cel_log_debug args */
-#define CEL_WARNING(args) CEL_SETERRSTR(args)/* cel_log_warning args */
-#define CEL_ERR(args)   CEL_SETERRSTR(args)/* cel_log_err args */
-
 static DWORD UpdateDefaultPassword(WCHAR * pwszSecret)
 {
 
@@ -231,7 +226,7 @@ int os_userpswd(TCHAR *username, TCHAR *oldpassword, TCHAR *newpassword)
             cel_gethostname_w(), lpszUserName, lpszOldPassword, lpszNewPassword);
     }
     if (dwRet != NERR_Success)
-        CEL_ERR((_T("Failed call to change user password, return %lu"), dwRet));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Failed call to change user password, return %lu"), dwRet));
     return (dwRet == NERR_Success ? 0 : -1);
 }
 

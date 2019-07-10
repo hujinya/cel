@@ -30,7 +30,7 @@ int cel_objectpool_init(CelObjectPool *obj_pool,
 {
     if (object_size <= 0)
     {
-        CEL_ERR((_T("Invalid object size \"%d\"."), object_size));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Invalid object size \"%d\"."), object_size));
         return -1;
     }
     obj_pool->max = (max_num <= -1 ? -1 : max_num);
@@ -54,7 +54,7 @@ void cel_objectpool_destroy(CelObjectPool *obj_pool)
 
     if (obj_pool == NULL || obj_pool->self != obj_pool)
     {
-        CEL_ERR((_T("Invalid object pool pointer.")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Invalid object pool pointer.")));
         return ;
     }
     while (obj_pool->free_list != NULL)
@@ -97,14 +97,14 @@ void *cel_objectpool_get(CelObjectPool *obj_pool)
 
     if (obj_pool == NULL || obj_pool->self != obj_pool)
     {
-        CEL_ERR((_T("Invalid object pool pointer.")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Invalid object pool pointer.")));
         return NULL;
     }
     if (obj_pool->free_list == NULL)
     {
         if (obj_pool->n > obj_pool->max)
         {
-            CEL_WARNING((_T("")));
+            CEL_SETERR((CEL_ERR_LIB,  _T("")));
             return NULL;
         }
         if ((new_obj = (CelObjectChunk *)cel_malloc(obj_pool->size)) != NULL)
@@ -139,7 +139,7 @@ void cel_objectpool_return(void *obj)
     obj_pool = free_obj->obj_pool;
     if (obj_pool->self != obj_pool || obj_pool->n_used == 0)
     {
-        CEL_ERR((_T("Invalid object pointer.")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Invalid object pointer.")));
         return;
     }
     free_obj->next_free = (CelObjectChunk *)obj_pool->free_list;

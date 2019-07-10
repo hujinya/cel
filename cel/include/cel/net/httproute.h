@@ -94,6 +94,8 @@ int cel_httproute_add(CelHttpRoute *route,
     cel_httproute_add(route, CEL_HTTPM_DELETE, path, handle_func)
 #define cel_httproute_put_add(route, path, handle_func) \
     cel_httproute_add(route, CEL_HTTPM_PUT, path, handle_func)
+#define cel_httproute_patch_add(route, path, handle_func) \
+    cel_httproute_add(route, CEL_HTTPM_PATCH, path, handle_func)
 
 int cel_httproute_remove(CelHttpRoute *route, 
                          CelHttpMethod method, const char *path);
@@ -105,6 +107,8 @@ int cel_httproute_remove(CelHttpRoute *route,
     cel_httproute_remove(route, CEL_HTTPM_DELETE, path)
 #define cel_httproute_put_remove(route, path) \
     cel_httproute_remove(route, CEL_HTTPM_PUT, path)
+#define cel_httproute_patch_remove(route, path) \
+    cel_httproute_remove(route, CEL_HTTPM_PATCH, path)
 
 CelHttpHandleFunc cel_httproute_routing(CelHttpRoute *route, 
                                         CelHttpRouteState *state,

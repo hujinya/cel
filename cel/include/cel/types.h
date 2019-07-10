@@ -68,6 +68,8 @@ typedef int               BOOL;
 #define ULLFMT            "%llu"   /* As in printf("%llu", ...) */
 #endif
 
+#define CEL_UMASK         S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH
+
 #define CEL_GNLEN           128    /* Group name length */
 #define CEL_UNLEN           128    /* User name length */
 #define CEL_PWLEN           128    /* Password length */

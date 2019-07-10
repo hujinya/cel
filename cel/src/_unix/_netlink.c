@@ -73,7 +73,7 @@ int cel_nlmsg_build(struct nlmsghdr *nlmsg, size_t size,
 
     if ((nlmsg_len = NLMSG_ALIGN(sizeof(struct nlmsghdr))) > size)
     {
-        CEL_ERR((_T("Length %d is too short, excepted %d."), size, nlmsg_len));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Length %d is too short, excepted %d."), size, nlmsg_len));
         return -1;
     }
     nlmsg->nlmsg_len = nlmsg_len; 
@@ -96,7 +96,7 @@ int cel_nlmsg_add_ifinfomsg(struct nlmsghdr *nlmsg, size_t size,
     nlmsg_len2 = NLMSG_ALIGN(nlmsg->nlmsg_len + sizeof(struct ifinfomsg));
     if (nlmsg_len2 > size)
     {
-        CEL_ERR((_T("Length %d is too short, excepted %d."), size, nlmsg_len2));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Length %d is too short, excepted %d."), size, nlmsg_len2));
         return -1;
     }
     ifi = (struct ifinfomsg *)((char *)nlmsg + nlmsg_len1);
@@ -123,7 +123,7 @@ int cel_nlmsg_add_ifaddrmsg(struct nlmsghdr *nlmsg, size_t size,
     nlmsg_len2 = NLMSG_ALIGN(nlmsg->nlmsg_len + sizeof(struct ifaddrmsg));
     if (nlmsg_len2 > size)
     {
-        CEL_ERR((_T("Length %d is too short, excepted %d."), size, nlmsg_len2));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Length %d is too short, excepted %d."), size, nlmsg_len2));
         return -1;
     }
     ifa = (struct ifaddrmsg *)((char *)nlmsg + nlmsg_len1);
@@ -150,7 +150,7 @@ int cel_nlmsg_add_rtmsg(struct nlmsghdr *nlmsg, size_t size,
     nlmsg_len2 = NLMSG_ALIGN(nlmsg->nlmsg_len + sizeof(struct ifaddrmsg));
     if (nlmsg_len2 > size)
     {
-        CEL_ERR((_T("Length %d is too short, excepted %d."), size, nlmsg_len2));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Length %d is too short, excepted %d."), size, nlmsg_len2));
         return -1;
     }
     rt = (struct rtmsg *)((char *)nlmsg + nlmsg_len1);
@@ -179,7 +179,7 @@ int cel_nlmsg_add_rtattr(struct nlmsghdr *nlmsg, size_t size,
     nlmsg_len2 = NLMSG_ALIGN(nlmsg->nlmsg_len) + rta_len;
     if (nlmsg_len2 > size)
     {
-        CEL_ERR((_T("Length %d is too short, excepted %d."), size, nlmsg_len2));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Length %d is too short, excepted %d."), size, nlmsg_len2));
         return -1;
     }
     rta = (struct rtattr *)((char *)nlmsg + nlmsg_len1);

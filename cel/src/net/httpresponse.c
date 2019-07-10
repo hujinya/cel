@@ -370,7 +370,7 @@ static int cel_httpresponse_reading_header(CelHttpResponse *rsp, CelStream *s)
                 if ((key_len = key_end - key_start) <= 0
                     || (value_len = value_end - value_start) <= 0)
                 {
-                    CEL_WARNING(("Http response header reading error."));
+                    CEL_DEBUG(("Http response header reading error."));
                 }
                 else if ((hdr_index = cel_keyword_case_search_a(
                     g_case_httphdr, CEL_HTTPHDR_COUNT, 
@@ -388,7 +388,7 @@ static int cel_httpresponse_reading_header(CelHttpResponse *rsp, CelStream *s)
                 }
                 else if (s_httprsphdr_offset[hdr_index] == 0)
                 {
-                    CEL_WARNING(("Http response header '%.*s' "
+                    CEL_DEBUG(("Http response header '%.*s' "
                         "call back is null",
                         (int)value_end - key_start,
                         (char *)(cel_stream_get_buffer(s) + key_start)));
@@ -401,7 +401,7 @@ static int cel_httpresponse_reading_header(CelHttpResponse *rsp, CelStream *s)
                         (char *)rsp + s_httprsphdr_offset[hdr_index], 
                         (char *)(cel_stream_get_buffer(s) + value_start), 
                         value_len) == -1)
-                        CEL_WARNING(("Http response header '%.*s' "
+                        CEL_DEBUG(("Http response header '%.*s' "
                         "reading return -1(%s)", 
                         (int)value_end - key_start,
                         (char *)(cel_stream_get_buffer(s) + key_start), 
@@ -429,7 +429,7 @@ static long cel_httpresponse_reading_body_content(CelHttpResponse *rsp,
     if (rsp->content_length > CEL_HTTPBODY_CACHE_LEN_MAX
         || len > CEL_HTTPBODY_CACHE_LEN_MAX - rsp->reading_body_offset)
     {
-        CEL_ERR((_T("Httpresponse body too large.")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Httpresponse body too large.")));
         return -1;
     }
     if (rsp->body_reading_callback != NULL)
@@ -486,7 +486,7 @@ start:
     {
         if (cel_httpresponse_reading_body_content(rsp, s, len1) != len1)
         {
-            CEL_ERR((_T("cel_httpresponse_reading_body_content error")));
+            CEL_SETERR((CEL_ERR_LIB,  _T("cel_httpresponse_reading_body_content error")));
             rsp->reading_state = CEL_HTTP_ERROR;
             return -1;
         }
@@ -500,7 +500,7 @@ start:
         {
             if (cel_httpresponse_reading_body_content(rsp, s, len2) != len2)
             {
-                CEL_ERR((_T("cel_httpresponse_reading_body_content error")));
+                CEL_SETERR((CEL_ERR_LIB,  _T("cel_httpresponse_reading_body_content error")));
                 rsp->reading_state = CEL_HTTP_ERROR;
                 return -1;
             }
@@ -539,7 +539,7 @@ int cel_httpresponse_reading(CelHttpResponse *rsp, CelStream *s)
             (char *)(cel_stream_get_buffer(s) + start),
             end - start - 1)) == -1)
         {
-            CEL_ERR((_T("Invalid http response version.")));
+            CEL_SETERR((CEL_ERR_LIB,  _T("Invalid http response version.")));
             rsp->reading_state = CEL_HTTP_ERROR;
             return -1;
         }
@@ -568,7 +568,7 @@ int cel_httpresponse_reading(CelHttpResponse *rsp, CelStream *s)
         if ((rsp->status = (CelHttpStatusCode)atoi(
             (char *)(cel_stream_get_buffer(s) + start))) <= 0)
         {
-            CEL_ERR((_T("Invalid http response status code.")));
+            CEL_SETERR((CEL_ERR_LIB,  _T("Invalid http response status code.")));
             rsp->reading_state = CEL_HTTP_ERROR;
             return -1;
         }
@@ -615,7 +615,7 @@ int cel_httpresponse_reading(CelHttpResponse *rsp, CelStream *s)
     case CEL_HTTPRESPONSE_READING_OK:
         break;
     default:
-        CEL_ERR((_T("Invalid http response state %d."), rsp->reading_state));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Invalid http response state %d."), rsp->reading_state));
         rsp->reading_state = CEL_HTTP_ERROR;
         return -1;
     }
@@ -752,7 +752,7 @@ int cel_httpresponse_writing(CelHttpResponse *rsp, CelStream *s)
     case CEL_HTTPRESPONSE_WRITING_OK:
         break;
     default :
-        CEL_ERR((_T("Invalid http response writing state %d."), 
+        CEL_SETERR((CEL_ERR_LIB,  _T("Invalid http response writing state %d."), 
             rsp->writing_state));
         rsp->writing_state = CEL_HTTP_ERROR;
         return -1;
@@ -768,7 +768,7 @@ void *cel_httpresponse_get_header(CelHttpResponse *rsp,
 
     if (s_httprsphdr_offset[hdr_index] == 0)
     {
-        CEL_ERR((_T("Http response header(%s) unsupported."), 
+        CEL_SETERR((CEL_ERR_LIB,  _T("Http response header(%s) unsupported."), 
             g_case_httphdr[hdr_index].key_word));
         return NULL;
     }
@@ -790,7 +790,7 @@ int cel_httpresponse_set_header(CelHttpResponse *rsp,
     if (s_httprsphdr_offset[hdr_index] == 0)
     {
         rsp->writing_error = CEL_HTTP_ERROR;
-        CEL_ERR((_T("Http response header(%s) unsupported."), 
+        CEL_SETERR((CEL_ERR_LIB,  _T("Http response header(%s) unsupported."), 
             g_case_httphdr[hdr_index].key_word));
         return -1;
     }
@@ -1169,11 +1169,11 @@ static int cel_httpresponse_body_write_file(CelHttpResponse *rsp,
         if ((rsp->body_cache.fp = fopen(
             cel_vstring_str_a(file_path), "wb+")) == NULL 
             && (cel_mkdirs_a(cel_filedir_a(cel_vstring_str_a(file_path)), 
-            S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH) == -1 
+            CEL_UMASK) == -1 
             || (rsp->body_cache.fp = fopen(
             cel_vstring_str_a(file_path), "wb+")) == NULL))
         {
-            CEL_ERR((_T("cel_httpresponse_body_write_file failed")));
+            CEL_SETERR((CEL_ERR_LIB,  _T("cel_httpresponse_body_write_file failed")));
             return -1;
         }
     }

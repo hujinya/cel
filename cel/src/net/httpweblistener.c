@@ -49,7 +49,7 @@ void cel_httpweblistener_do_handshake(CelHttpWebClient *client,
 {
     if (result->ret != 1)
     {
-        CEL_ERR((_T("httpweblistener_do_handshake failed, client %s"),
+        CEL_SETERR((CEL_ERR_LIB,  _T("httpweblistener_do_handshake failed, client %s"),
             cel_httpwebclient_get_remoteaddr_str(client)));
         cel_httpwebclient_free(client);
         return ;
@@ -69,7 +69,7 @@ static void cel_httpweblistener_do_accept(CelHttpWebListener *listener,
 
     if (result->ret == -1)
     {
-        CEL_ERR((_T("Http web request listener %s do accept %d.(%s)"), 
+        CEL_SETERR((CEL_ERR_LIB,  _T("Http web request listener %s do accept %d.(%s)"), 
             cel_httpweblistener_get_localaddrs(listener), 
             result->ret, cel_geterrstr(result->error)));
         cel_httpweblistener_post_accept(listener);
@@ -78,7 +78,7 @@ static void cel_httpweblistener_do_accept(CelHttpWebListener *listener,
     if ((new_client = cel_httpwebclient_new_httpclient(
         http_client, listener->web_ctx)) == NULL)
     {
-        CEL_ERR((_T("cel_httpwebclient_new_httpclient return null")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_httpwebclient_new_httpclient return null")));
         cel_httpclient_destroy(http_client);
         cel_httpweblistener_post_accept(listener);
         return ;
@@ -113,7 +113,7 @@ static void cel_httpweblistener_do_accept(CelHttpWebListener *listener,
             } 
         }
     }
-    CEL_ERR((_T("Http web request client %s init failed(%s)."), 
+    CEL_SETERR((CEL_ERR_LIB,  _T("Http web request client %s init failed(%s)."), 
         cel_httpwebclient_get_remoteaddr_str(new_client), 
         cel_geterrstr(cel_sys_geterrno())));
     cel_httpwebclient_free(new_client);

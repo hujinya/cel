@@ -123,7 +123,7 @@ static int cel_eventloop_handle(CelEventLoop *evt_loop, CelEventCtlBlock *ecb)
     case CEL_EVENT_CHANNELOUT:
         if (ecb->ol.async_callback == NULL)
         {
-            CEL_ERR((_T("Event loop channel event error")));
+            CEL_SETERR((CEL_ERR_LIB, _T("Event loop channel event error")));
             return -1;
         }
         ecb->ol.async_callback(&(ecb->ol));
@@ -160,7 +160,7 @@ static int cel_eventloop_handle(CelEventLoop *evt_loop, CelEventCtlBlock *ecb)
         cel_poll_queued(&(evt_loop->poll), (CelOverLapped *)(&s_exitevent));
         break;
     default:
-        CEL_ERR((_T("Event %p type %d undefined.\r\n"), ecb, ecb->evt_type));
+		CEL_SETERR((CEL_ERR_LIB, _T("Event %p type %d undefined."), ecb, ecb->evt_type));
         CEL_ASSERT(TRUE);
         break;
     }

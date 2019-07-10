@@ -192,11 +192,11 @@ static int cel_logger_cache_file_write(CelLogger *logger)
 
     cel_multithread_mutex_lock(CEL_MT_MUTEX_LOG);
     if ((fp = fopen(file_path, "wb+")) == NULL 
-        && (cel_mkdirs_a(cel_filedir_a(file_path), S_IRUSR|S_IWUSR) == -1
+        && (cel_mkdirs_a(cel_filedir_a(file_path), CEL_UMASK) == -1
         || (fp = fopen(file_path, "wb+")) == NULL))
     {
         cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
-        CEL_ERR((_T("cel_httprequest_save_body_data failed")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_httprequest_save_body_data failed")));
         return -1;
     }
     n = cel_ringlist_pop_do_sp(
@@ -680,8 +680,7 @@ int cel_logmsg_fwrite(CelLogMsg **msgs, size_t n, void *path)
                 (TCHAR *)path, filename);
             //_putts(path);
             if ((s_fp = cel_fopen(file_path, _T("a"))) == NULL 
-                && (cel_mkdirs((TCHAR *)path, 
-                S_IRWXU|S_IRGRP|S_IXGRP|S_IROTH|S_IXOTH) == -1 
+                && (cel_mkdirs((TCHAR *)path, CEL_UMASK) == -1
                 || (s_fp = cel_fopen(file_path, _T("a"))) == NULL))
             {
                 _putts(cel_geterrstr(cel_sys_geterrno()));

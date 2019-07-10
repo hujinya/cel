@@ -97,7 +97,7 @@ int cel_tcpclient_init_str(CelTcpClient *client,
     if (cel_sockaddr_str_split(addrs, &hints.ai_family, &node, &service) != 0
         || (ret = GetAddrInfo(node, service, &hints, &addr_info)) != 0)
     {
-        CEL_ERR((_T("GetAddrInfo():%s."), gai_strerror(ret)));
+        CEL_SETERR((CEL_ERR_LIB,  _T("GetAddrInfo():%s."), gai_strerror(ret)));
         return -1;
     }
     result = addr_info;
@@ -309,7 +309,7 @@ int cel_tcpclient_send(CelTcpClient *client, CelStream *s)
     if ((args->async_buf.buf = cel_stream_get_pointer(s))== NULL
         || (args->async_buf.len = cel_stream_get_remaining_length(s)) <= 0)
     {
-        CEL_ERR((_T("tcpclient %d send buf %p, len %ld"), 
+        CEL_SETERR((CEL_ERR_LIB,  _T("tcpclient %d send buf %p, len %ld"), 
             client->sock.fd, 
             cel_stream_get_pointer(s), cel_stream_get_remaining_length(s)));
         return -1;
@@ -353,7 +353,7 @@ int cel_tcpclient_async_send(CelTcpClient *client, CelStream *s,
     if ((args->async_buf.buf = cel_stream_get_pointer(s))== NULL
         || (args->async_buf.len = cel_stream_get_remaining_length(s)) <= 0)
     {
-        CEL_ERR((_T("tcpclient %d send buf %p, len %ld"), 
+        CEL_SETERR((CEL_ERR_LIB,  _T("tcpclient %d send buf %p, len %ld"), 
             client->sock.fd, 
             cel_stream_get_pointer(s), cel_stream_get_remaining_length(s)));
         return -1;
@@ -385,7 +385,7 @@ int cel_tcpclient_recv(CelTcpClient *client, CelStream *s)
     if ((args->async_buf.buf = cel_stream_get_pointer(s))== NULL
         || (args->async_buf.len = cel_stream_get_remaining_capacity(s)) <= 0)
     {
-        CEL_ERR((_T("tcpclient %d recv buf %p, len %ld"), 
+        CEL_SETERR((CEL_ERR_LIB,  _T("tcpclient %d recv buf %p, len %ld"), 
             client->sock.fd, 
             cel_stream_get_pointer(s), cel_stream_get_remaining_capacity(s)));
         return -1;
@@ -436,7 +436,7 @@ int cel_tcpclient_async_recv(CelTcpClient *client, CelStream *s,
     if ((args->async_buf.buf = cel_stream_get_pointer(s))== NULL
         || (args->async_buf.len = cel_stream_get_remaining_capacity(s)) <= 0)
     {
-        CEL_ERR((_T("tcpclient %d recv buf %p, len %ld"), 
+        CEL_SETERR((CEL_ERR_LIB,  _T("tcpclient %d recv buf %p, len %ld"), 
             client->sock.fd, 
             cel_stream_get_pointer(s), cel_stream_get_remaining_capacity(s)));
         return -1;

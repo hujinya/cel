@@ -56,7 +56,7 @@ CelHttpWebClient *cel_httpwebclient_new_httpclient(CelHttpClient *http_client,
         sizeof(CelHttpWebClient), http_client->tcp_client.sock.fd)
         : cel_malloc(sizeof(CelHttpWebClient)))) == NULL)
     {
-        CEL_ERR((_T("Http web client new return null.")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Http web client new return null.")));
         return NULL;
     }
     memcpy(&(new_client->http_client), http_client, sizeof(CelHttpClient));
@@ -150,9 +150,9 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
         if (result->ret <= 0)
         {
             //if (req->reading_state > CEL_HTTPREQUEST_READING_METHOD)
-                CEL_ERR((_T("cel_httpwebclient_do_recv_request %s return -1"),
-                    cel_httpwebclient_get_remoteaddr_str(client)));
-            cel_httpwebclient_free(client);
+			CEL_SETERR((CEL_ERR_LIB,  _T("cel_httpwebclient_do_recv_request %s return -1"),
+				cel_httpwebclient_get_remoteaddr_str(client)));
+			cel_httpwebclient_free(client);
         }
         else
         {
@@ -162,9 +162,9 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
                 cel_httpwebclient_do_recv_request) == -1)
             {
                 //if (req->reading_state > CEL_HTTPREQUEST_READING_METHOD)
-                    CEL_ERR((_T("cel_httpclient_async_recv_request %s return -1"),
-                        cel_httpwebclient_get_remoteaddr_str(client)));
-                cel_httpwebclient_free(client);
+				CEL_SETERR((CEL_ERR_LIB,  _T("cel_httpclient_async_recv_request %s return -1"),
+					cel_httpwebclient_get_remoteaddr_str(client)));
+				cel_httpwebclient_free(client);
             }
         }
         return ;
@@ -206,7 +206,7 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
             || cel_keyword_ncmp_a(
             &client->web_ctx->prefix, url, ver_end) != 0)
         {
-            CEL_ERR((_T("Http web request prefix '[%d]%s' not supported"), 
+            CEL_SETERR((CEL_ERR_LIB,  _T("Http web request prefix '[%d]%s' not supported"), 
                 cel_httprequest_get_method(req), url));
             cel_httpwebclient_async_send_response_result(client, 
                 CEL_HTTPWEB_UNSUPPORTED_OPERATION_EXCEPTION, 0,
@@ -220,7 +220,7 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
             url + ver_end, 
             &(client->rt_data))) == NULL)
         {
-            CEL_ERR((_T("Http web request '[%d]%s' not supported"), 
+            CEL_SETERR((CEL_ERR_LIB,  _T("Http web request '[%d]%s' not supported"), 
                 cel_httprequest_get_method(req), url + ver_end));
             cel_httpwebclient_async_send_response_result(client,
                 CEL_HTTPWEB_UNSUPPORTED_OPERATION_EXCEPTION, 0,
@@ -230,7 +230,7 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
         if (handler(&(client->http_client), 
             req, &(client->rsp), &(client->rt_data)) == -1)
         {
-            CEL_ERR((_T("Http web request '[%d]%s' handler failed"), 
+            CEL_SETERR((CEL_ERR_LIB,  _T("Http web request '[%d]%s' handler failed"), 
                 cel_httprequest_get_method(req), url + ver_end));
             cel_httpwebclient_async_send_response_result(client,
                 CEL_HTTPWEB_IO_EXCEPTION, 0,
@@ -238,7 +238,7 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
         }
         break;
     default:
-        CEL_ERR((_T("Http web request state '%d' invaild"), 
+        CEL_SETERR((CEL_ERR_LIB,  _T("Http web request state '%d' invaild"), 
                 req->reading_state));
         cel_httpwebclient_async_send_response_result(client, 
             CEL_HTTPWEB_UNSUPPORTED_OPERATION_EXCEPTION, 0,
@@ -288,7 +288,7 @@ void _cel_httpwebclient_execute_callback(CelHttpWebClient *client,
         if (cel_httpclient_async_shutdown(&(client->http_client), 
             (CelHttpShutdownCallbackFunc)cel_httpwebclient_do_shutdown) == -1)
         {
-            CEL_ERR((_T("cel_httpwebclient_async_send_response_file %s return -1"),
+            CEL_SETERR((CEL_ERR_LIB,  _T("cel_httpwebclient_async_send_response_file %s return -1"),
                 cel_httpwebclient_get_remoteaddr_str(client)));
             cel_httpwebclient_free(client);
         }
@@ -310,7 +310,7 @@ void cel_httpwebclient_do_send_response(CelHttpWebClient *client,
     }
     if (result->ret <= 0)
     {
-        CEL_ERR((_T("cel_httpwebclient_do_send_response %s return -1"),
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_httpwebclient_do_send_response %s return -1"),
             cel_httpwebclient_get_remoteaddr_str(client)));
         cel_httpwebclient_free(client);
         return ;
@@ -338,7 +338,7 @@ void cel_httpwebclient_do_send_response(CelHttpWebClient *client,
         if (cel_httpclient_async_shutdown(&(client->http_client), 
             (CelHttpShutdownCallbackFunc)cel_httpwebclient_do_shutdown) == -1)
         {
-            CEL_ERR((_T("cel_httpwebclient_do_send_response %s shutdown return -1"),
+            CEL_SETERR((CEL_ERR_LIB,  _T("cel_httpwebclient_do_send_response %s shutdown return -1"),
                 cel_httpwebclient_get_remoteaddr_str(client)));
             cel_httpwebclient_free(client);
         }
@@ -391,7 +391,7 @@ int cel_httpwebclient_async_send_response_result(CelHttpWebClient *client,
         cel_httpresponse_end(&(client->rsp));
         break;
     default:
-        CEL_ERR((_T("cel_httpwebclient_result error")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_httpwebclient_result error")));
         cel_httpwebclient_free(client);
         return -1;
     }
@@ -402,7 +402,7 @@ int cel_httpwebclient_async_send_response_result(CelHttpWebClient *client,
         (CelHttpSendResponseCallbackFunc)
         cel_httpwebclient_do_send_response) == -1)
     {
-        CEL_ERR((_T("cel_httpwebclient_async_send_response_result %s error"),
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_httpwebclient_async_send_response_result %s error"),
             cel_httpwebclient_get_remoteaddr_str(client)));
         cel_httpwebclient_free(client);
         return -1;
@@ -425,7 +425,7 @@ int cel_httpwebclient_async_send_response_file(CelHttpWebClient *client,
         (CelHttpSendResponseCallbackFunc)
         cel_httpwebclient_do_send_response) == -1)
     {
-        CEL_ERR((_T("cel_httpwebclient_async_send_response_file %s return -1"),
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_httpwebclient_async_send_response_file %s return -1"),
             cel_httpwebclient_get_remoteaddr_str(client)));
         cel_httpwebclient_free(client);
         return -1;
@@ -444,7 +444,7 @@ int cel_httpwebclient_async_send_response_redirect(CelHttpWebClient *client,
         (CelHttpSendResponseCallbackFunc)
         cel_httpwebclient_do_send_response) == -1)
     {
-        CEL_ERR((_T("cel_httpwebclient_async_send_response_redirect %s return -1"),
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_httpwebclient_async_send_response_redirect %s return -1"),
             cel_httpwebclient_get_remoteaddr_str(client)));
         cel_httpwebclient_free(client);
         return -1;

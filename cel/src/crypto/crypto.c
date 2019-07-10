@@ -13,6 +13,7 @@
  * GNU General Public License for more details.
  */
 #include "cel/crypto/crypto.h"
+#include "cel/error.h"
 #include "cel/log.h"
 
 #ifndef HAVE_OPENSSL_CRYPTO_H
@@ -116,7 +117,7 @@ static void cel_cryptothread_locking_callback(int mode, int type,
     if (mode & CRYPTO_LOCK)
     {
         if (cel_mutex_lock(&(s_cryptomutex[type])) != 0)
-            CEL_ERR((_T("Crypto mutex %d lock failed.\r\n"), type));
+            CEL_SETERR((CEL_ERR_LIB,  _T("Crypto mutex %d lock failed."), type));
         s_cryptomutex_count[type]++;
         /*_tprintf(_T("Type %d lock %ld, thread %d\r\n"), 
             type, s_cryptomutex_count[type], (int)cel_thread_getid());*/
@@ -149,7 +150,7 @@ int cel_cryptomutex_register(CelCryptoThreadIdFunc threadidfunc,
             s_cryptomutex_count[i] = 0;
             if (cel_mutex_init(&(s_cryptomutex[i]), NULL) != 0)
             {
-                CEL_ERR((_T("Crypto mutex %d init failed"), i));
+                CEL_SETERR((CEL_ERR_LIB,  _T("Crypto mutex %d init failed"), i));
                 return -1;
             }
         }

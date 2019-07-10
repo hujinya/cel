@@ -197,7 +197,7 @@ int cel_sqlcon_execute_onequery_results(CelSqlCon *con,
 
 int cel_sqlcon_execute_query_results(CelSqlCon *con,
                                      CelSqlRowEachFunc each_func, 
-                                     void *user_data,
+									 void *user_data,
                                      const char *fmt, ...)
 {
     int ret, cols;

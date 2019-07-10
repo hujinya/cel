@@ -180,7 +180,7 @@ struct _CelHttpResponse
     CelVStringA x_powered_by;
     CelRbTree ext_hdrs;
 
-    CelStream hdr_cache;
+    //CelStream hdr_cache;
     CelHttpChunked chunked;
     CelHttpBodySaveType body_save_in;
     CelHttpBodyCache body_cache;

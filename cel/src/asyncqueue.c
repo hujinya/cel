@@ -70,7 +70,7 @@ int cel_asyncqueue_init_full(CelAsyncQueue *async_queue,
         async_queue->kclass = &async_minheap_kclass;
         break;
     default:
-        CEL_ERR((_T("Asyncqueue type %d undefined."), type));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Asyncqueue type %d undefined."), type));
         return -1;
     }
     cel_mutex_init(&(async_queue->mutex), NULL);

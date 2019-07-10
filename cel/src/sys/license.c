@@ -192,6 +192,6 @@
 //        cel_fsync(KEY_INSTAAL_PATH_, KEY_INSTAAL_PATH);
 //        return 0;
 //    }
-//    //CEL_WARNING((_T("Licenes expired.")));
+//    //CEL_SETERR((CEL_ERR_LIB,  _T("Licenes expired.")));
 //    return -1;
 //}

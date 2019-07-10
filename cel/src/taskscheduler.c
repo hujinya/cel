@@ -150,7 +150,7 @@ int cel_task_start(CelTask *task, CelDateTime *dt, struct tm *now)
             && (task->trigger.mdays & (1 << now->tm_mday)) != 0)
             return task->task_func(task, dt, task->user_data);
     default:
-        CEL_ERR((_T("Task trigger type %d undefined."), task->trigger.type));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Task trigger type %d undefined."), task->trigger.type));
         return -1;
     }
 

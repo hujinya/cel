@@ -19,7 +19,6 @@
 #include "cel/convert.h"
 #include "cel/file.h"
 
-
 CelKeywordA g_httpversion[] =
 {
     { sizeof("HTTP/0.9") - 1, "HTTP/0.9"},
@@ -265,7 +264,7 @@ CelKeywordA g_case_httphdr[] =
     { sizeof("via") - 1,
     "via", "Via", &g_httpvstring_handler },                            /* rfc2616.14.45 */
     { sizeof("warning") - 1, 
-    "warning", "CEL_WARNING", &g_httpvstring_handler },                /* rfc2616.14.46 */
+    "warning", "Warning", &g_httpvstring_handler },                /* rfc2616.14.46 */
 
     { sizeof("www-authenticate") - 1, 
     "www-authenticate", "WWW-Authenticate", &g_httpvstring_handler },  /* rfc2616.14.47 */
@@ -802,7 +801,7 @@ long cel_httpchunked_reading(CelStream *s)
     chunk_size = strtol((char *)cel_stream_get_pointer(s), &ptr, 16);
     if ((BYTE *)ptr - s->buffer > (int)s->length)
     {
-        CEL_ERR((_T("Http chunk decode error.")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Http chunk decode error.")));
         return -2;
     }
     //printf("chunk %ld %ld\r\n", (int)s->length, (BYTE *)ptr - s->buffer);
@@ -847,7 +846,7 @@ long cel_httpchunked_reading(CelStream *s)
     }
     else
     {
-        CEL_ERR((_T("Http chunk decode error.")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Http chunk decode error.")));
         return -2;
     }
 }
@@ -946,11 +945,11 @@ int cel_httpbodycache_reading(CelHttpBodyCache *cache,
             if ((cache->fp = fopen(
                 cel_vstring_str_a(&(cache->file_path)), "wb+")) == NULL
                 && (cel_mkdirs_a(cel_filedir_a(
-                cel_vstring_str_a(&(cache->file_path))), S_IRUSR|S_IWUSR) == -1 
+                cel_vstring_str_a(&(cache->file_path))), CEL_UMASK) == -1
                 || (cache->fp = fopen(
                 cel_vstring_str_a(&(cache->file_path)), "wb+")) == NULL))
             {
-                CEL_ERR((_T("Open body cache file failed.")));
+                CEL_SETERR((CEL_ERR_LIB,  _T("Open body cache file failed.")));
                 return -1;
             }
             cache->clear_file = TRUE;
@@ -1034,17 +1033,17 @@ long long cel_httpbodycache_save_file(CelHttpBodyCache *cache,
     if (first >= cache->size 
         || last >= cache->size)
     {
-        CEL_ERR((_T("first %lld or last %lld offset %lld.\r\n"), 
+        CEL_SETERR((CEL_ERR_LIB,  _T("first %lld or last %lld offset %lld.\r\n"), 
             first, last, cache->size));
         return -1;
     }
 	/*printf("cel_httpbodycache_save_file cache_size %d, first = %d, last = %d\r\n", 
 		cache->size, first, last);*/
     if ((fp = fopen(file_path, "wb+")) == NULL 
-        && (cel_mkdirs_a(cel_filedir_a(file_path), S_IRUSR|S_IWUSR) == -1
+        && (cel_mkdirs_a(cel_filedir_a(file_path), CEL_UMASK) == -1
         || (fp = fopen(file_path, "wb+")) == NULL))
     {
-        CEL_ERR((_T("cel_httprequest_save_body_data failed")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_httprequest_save_body_data failed")));
         return -1;
     }
     if (cache->fp != NULL)
@@ -1092,7 +1091,7 @@ int cel_httpbodycache_move_file(CelHttpBodyCache *cache, const char *file_path)
             cache->size = 0;
             return 0;
         }
-        CEL_ERR((cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
 }

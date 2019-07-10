@@ -245,36 +245,6 @@ static __inline int cel_lib_debug(const TCHAR *fmt, ...)
 #define CEL_DEBUG(args)    ((void) 0)
 #endif /* _CEL_DEBUG */
 
-#ifdef _CEL_WARNING
-static __inline int cel_lib_warning(const TCHAR *fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-    cel_logger_vprintf(&g_logger, 
-        CEL_LOGFACILITY_LOCAL0, CEL_LOGLEVEL_WARNING, fmt, args);
-    va_end(args);
-    return 0;
-}
-#define CEL_WARNING(args) cel_lib_warning args
-#else
-#define CEL_WARNING(args)   ((void) 0)
-#endif /* _CEL_WARNING */
-
-#ifdef _CEL_ERR
-static __inline int cel_lib_err(const TCHAR *fmt, ...)
-{
-    va_list args;
-    va_start(args, fmt);
-    cel_logger_vprintf(&g_logger, 
-        CEL_LOGFACILITY_LOCAL0, CEL_LOGLEVEL_ERR, fmt, args);
-    va_end(args);
-    return 0;
-}
-#define CEL_ERR(args) cel_lib_err args
-#else
-#define CEL_ERR(args)  ((void) 0)
-#endif /* _CEL_ERR */
-
 #ifdef __cplusplus
 }
 #endif

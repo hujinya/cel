@@ -54,10 +54,11 @@ typedef enum _CelHttpMethod
     CEL_HTTPM_GET = 2,
     CEL_HTTPM_HEAD = 3,
     CEL_HTTPM_OPTIONS = 4,
-    CEL_HTTPM_POST = 5,
-    CEL_HTTPM_PUT = 6,
-    CEL_HTTPM_TRACE = 7,
-    CEL_HTTPM_CONUT = 8
+	CEL_HTTPM_PATCH = 5,
+    CEL_HTTPM_POST = 6,
+    CEL_HTTPM_PUT = 7,
+    CEL_HTTPM_TRACE = 8,
+    CEL_HTTPM_CONUT = 9
 }CelHttpMethod;
 
 typedef enum _CelHttpScheme
@@ -80,9 +81,9 @@ typedef struct _CelHttpUrl
 
 typedef struct _CelHttpRequest CelHttpRequest;
 typedef int (* CelHttpRequestBodyReadCallBack)(
-    CelHttpRequest *req, CelStream *s, size_t len, void *user_data);
+	CelHttpRequest *req, CelStream *s, size_t len, void *user_data);
 typedef int (* CelHttpRequestBodyWriteCallBack)(
-    CelHttpRequest *req, CelStream *s, void *user_data);
+	CelHttpRequest *req, CelStream *s, void *user_data);
 
 /*
  * Request = Request-Line ; RFC2616.5.1
@@ -174,7 +175,7 @@ struct _CelHttpRequest
     CelHttpChunked chunked;
     CelHttpBodySaveType body_save_in;
     CelHttpBodyCache body_cache;
-    CelHttpMultipart multipart; 
+    CelHttpMultipart multipart;
 };
 
 #ifdef __cplusplus

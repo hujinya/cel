@@ -17,25 +17,25 @@
 #include "cel/log.h"
 int os_mb2unicode(const CHAR *mbcs, int mbcs_count, WCHAR *wcs, int wcs_count)
 {
-    CEL_ERR((_T("convert.c - cel_mb2unicode is null*********************")));
+    CEL_SETERR((CEL_ERR_LIB,  _T("convert.c - cel_mb2unicode is null*********************")));
     return 0;
 }
 
 int os_unicode2mb(const WCHAR *wcs, int wcs_count, CHAR *mbcs, int mbcs_count)
 {
-    CEL_ERR((_T("convert.c - cel_unicode2mb is null*********************")));
+    CEL_SETERR((CEL_ERR_LIB,  _T("convert.c - cel_unicode2mb is null*********************")));
     return 0;
 }
 
 int os_utf82unicode(const CHAR *utf8, int utf8_count, WCHAR *wcs, int wcs_count)
 {
-    CEL_ERR((_T("convert.c - cel_utf82unicode is null*********************")));
+    CEL_SETERR((CEL_ERR_LIB,  _T("convert.c - cel_utf82unicode is null*********************")));
     return 0;
 }
 
 int snwprintf(WCHAR *str, size_t size, const WCHAR *format, ...)
 {
-    CEL_ERR((_T("convert.c - snwprintf is null*********************")));
+    CEL_SETERR((CEL_ERR_LIB,  _T("convert.c - snwprintf is null*********************")));
     return 0;
 }
 

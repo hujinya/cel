@@ -139,7 +139,7 @@ next_argument:
             }
             else if (*end != _T(' '))
             {
-                CEL_ERR((_T("Command line '%s' arguments init failed, token 0x%x."), 
+                CEL_SETERR((CEL_ERR_LIB,  _T("Command line '%s' arguments init failed, token 0x%x."), 
                     cmd_line, args->token32));
                 cel_command_args_destroy(args);
                 return -1;
@@ -365,7 +365,7 @@ next_argument:
                 }
                 else if (*cmd_str != _T(' '))
                 {
-                    CEL_ERR((_T("Command line '%s' arguments init failed, token 0x%x."), 
+                    CEL_SETERR((CEL_ERR_LIB,  _T("Command line '%s' arguments init failed, token 0x%x."), 
                         cmd_str, token_cnt.uint32));
                     return NULL;
                 }
@@ -387,7 +387,7 @@ int cel_command_install_element(CelCommand *cmd, CelCommandElement *element)
     if ((node = cel_command_install(&(cmd->child_list), element->str)) == NULL
         || node->element != NULL)
     {
-         CEL_ERR((_T("Element '%s' already exists."), element->str));
+         CEL_SETERR((CEL_ERR_LIB,  _T("Element '%s' already exists."), element->str));
         return -1;
     }
     node->element = element;
@@ -489,14 +489,14 @@ int cel_clisession_execute(CelCommandSession *cli_si, const TCHAR *cmd_str)
         if ((cur_node = cel_command_lookup(
             node_list, args.argv[depth])) == NULL)
         {
-            CEL_ERR((_T("Command %s invalid."), cmd_str));
+            CEL_SETERR((CEL_ERR_LIB,  _T("Command %s invalid."), cmd_str));
             return -1;
         }
         node_list = &(cur_node->child_list); 
     }  
     if (cur_node->element == NULL)
     {
-        CEL_ERR((_T("Element '%s' not exists."), cmd_str));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Element '%s' not exists."), cmd_str));
         return -1;
     }
     ret = cur_node->element->exec_func(cli_si, args.argc, args.argv);

@@ -67,7 +67,7 @@ int cel_tcplistener_init_str(CelTcpListener *listener,
     if (cel_sockaddr_str_split(addrs, &hints.ai_family, &node, &service) != 0
         || (ret = GetAddrInfo(node, service, &hints, &addr_info)) != 0)
     {
-        CEL_ERR((_T("GetAddrInfo():%s."), gai_strerror(ret)));
+        CEL_SETERR((CEL_ERR_LIB,  _T("GetAddrInfo():%s."), gai_strerror(ret)));
         return -1;
     }
     result = addr_info;

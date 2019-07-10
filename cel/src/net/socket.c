@@ -121,7 +121,7 @@ int cel_socket_bind_host(CelSocket *sock,
     hints.ai_protocol = sock->protocol;
     if (GetAddrInfo(host, _itot(port, ports, 10), &hints, &addr_info) != 0)
     {
-        CEL_ERR((_T("GetAddrInfo():%s."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB,  _T("GetAddrInfo():%s."), cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
     result = addr_info;
@@ -149,7 +149,7 @@ int cel_socket_listen_host(CelSocket *sock,
     hints.ai_protocol = sock->protocol;
     if (GetAddrInfo(host, _itot(port, ports, 10), &hints, &addr_info) != 0)
     {
-        CEL_ERR((_T("GetAddrInfo():%s."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB,  _T("GetAddrInfo():%s."), cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
     result = addr_info;
@@ -184,7 +184,7 @@ int cel_socket_listen_str(CelSocket *sock, const TCHAR *str, int backlog)
     if (cel_sockaddr_str_split(addrs, &hints.ai_family, &node, &service) != 0
         || (ret = GetAddrInfo(node, service, &hints, &addr_info)) != 0)
     {
-        CEL_ERR((_T("GetAddrInfo():%s."), gai_strerror(ret)));
+        CEL_SETERR((CEL_ERR_LIB,  _T("GetAddrInfo():%s."), gai_strerror(ret)));
         return -1;
     }
     result = addr_info;
@@ -269,7 +269,7 @@ int cel_socket_async_accept(CelSocket *sock,
     if ((ret = cel_poll_post(
         sock->channel.poll, sock->channel.handle, (CelOverLapped *)args)) == -1)
     {
-        CEL_ERR((_T("cel_socket_async_accept poll post failed")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_socket_async_accept poll post failed")));
         return -1;
     }
     if (co != NULL)
@@ -305,7 +305,7 @@ int cel_socket_connect_host(CelSocket *sock,
     hints.ai_protocol = sock->protocol;
     if (GetAddrInfo(host, _itot(port, ports, 10), &hints, &addr_info) != 0)
     {
-        CEL_ERR((_T("GetAddrInfo():%s."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB,  _T("GetAddrInfo():%s."), cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
     result = addr_info;
@@ -347,7 +347,7 @@ int cel_socket_async_connect(CelSocket *sock, CelSockAddr *addr,
         && (sock->out = (CelSocketAsyncArgs *)
         cel_calloc(1, sizeof(CelSocketAsyncArgs))) == NULL)
     {
-        CEL_ERR((_T("cel_socket_async_connect calloc failed")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_socket_async_connect calloc failed")));
         return -1;
     }
     args = sock->out;
@@ -363,7 +363,7 @@ int cel_socket_async_connect(CelSocket *sock, CelSockAddr *addr,
     if ((ret = cel_poll_post(
         sock->channel.poll, sock->channel.handle, (CelOverLapped *)args)) == -1)
     {
-        CEL_ERR((_T("cel_socket_async_connect poll post failed")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_socket_async_connect poll post failed")));
         return -1;
     }
     if (co != NULL)
@@ -405,7 +405,7 @@ int cel_socket_async_connect_host(CelSocket *sock,
     hints.ai_protocol = sock->protocol;
     if (GetAddrInfo(host, _itot(port, ports, 10), &hints, &res) != 0)
     {
-        CEL_ERR((_T("Get address information \"%s:%d\" failed.(%s)"), 
+        CEL_SETERR((CEL_ERR_LIB,  _T("Get address information \"%s:%d\" failed.(%s)"), 
             host, port));
         return -1;
     }
@@ -458,7 +458,7 @@ int cel_socket_async_send(CelSocket *sock,
         && (sock->out = (CelSocketAsyncArgs *)
         cel_calloc(1, sizeof(CelSocketAsyncArgs))) == NULL)
     {
-        CEL_ERR((_T("cel_socket_async_send calloc failed")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_socket_async_send calloc failed")));
         return -1;
     }
     args = sock->out;
@@ -476,7 +476,7 @@ int cel_socket_async_send(CelSocket *sock,
     if ((ret = cel_poll_post(
         sock->channel.poll, sock->channel.handle, (CelOverLapped *)args)) == -1)
     {
-        CEL_ERR((_T("cel_socket_async_send poll post failed")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_socket_async_send poll post failed")));
         return -1;
     }
     if (co != NULL)
@@ -514,7 +514,7 @@ int cel_socket_async_recv(CelSocket *sock,
         && (sock->in = (CelSocketAsyncArgs *)
         cel_calloc(1, sizeof(CelSocketAsyncArgs))) == NULL)
     {
-        CEL_ERR((_T("cel_socket_async_recv calloc failed")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_socket_async_recv calloc failed")));
         return -1;
     }
     args = sock->in;
@@ -532,7 +532,7 @@ int cel_socket_async_recv(CelSocket *sock,
     if ((ret = cel_poll_post(
         sock->channel.poll, sock->channel.handle, (CelOverLapped *)args)) == -1)
     {
-        CEL_ERR((_T("cel_socket_async_recv poll post failed")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_socket_async_recv poll post failed")));
         return -1;
     }
     if (co != NULL)
@@ -575,7 +575,7 @@ int cel_socket_async_sendto(CelSocket *sock,
         && (sock->out = (CelSocketAsyncArgs *)
         cel_calloc(1, sizeof(CelSocketAsyncArgs))) == NULL)
     {
-        CEL_ERR((_T("cel_socket_async_sendto calloc failed")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_socket_async_sendto calloc failed")));
         return -1;
     }
     args = sock->out;
@@ -593,7 +593,7 @@ int cel_socket_async_sendto(CelSocket *sock,
     if ((ret = cel_poll_post(
         sock->channel.poll, sock->channel.handle, (CelOverLapped *)args)) == -1)
     {
-        CEL_ERR((_T("cel_socket_async_sendto poll post failed")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_socket_async_sendto poll post failed")));
         return -1;
     }
     if (co != NULL)
@@ -636,7 +636,7 @@ int cel_socket_async_recvfrom(CelSocket *sock,
         && (sock->in = (CelSocketAsyncArgs *)
         cel_calloc(1, sizeof(CelSocketAsyncArgs))) == NULL)
     {
-        CEL_ERR((_T("cel_socket_async_recvfrom calloc failed")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_socket_async_recvfrom calloc failed")));
         return -1;
     }
     args = sock->in;
@@ -654,7 +654,7 @@ int cel_socket_async_recvfrom(CelSocket *sock,
     if ((ret = cel_poll_post(
         sock->channel.poll, sock->channel.handle, (CelOverLapped *)args)) == -1)
     {
-        CEL_ERR((_T("cel_socket_async_recvfrom poll post failed")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_socket_async_recvfrom poll post failed")));
         return -1;
     }
     if (co != NULL)
@@ -687,7 +687,7 @@ int cel_socket_async_sendfile(CelSocket *sock,
         && (sock->out = (CelSocketAsyncArgs *)
         cel_calloc(1, sizeof(CelSocketAsyncArgs))) == NULL)
     {
-        CEL_ERR((_T("cel_socket_async_sendfile calloc failed")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_socket_async_sendfile calloc failed")));
         return -1;
     }
     args = sock->out;
@@ -705,7 +705,7 @@ int cel_socket_async_sendfile(CelSocket *sock,
     if ((ret = cel_poll_post(
         sock->channel.poll, sock->channel.handle, (CelOverLapped *)args)) == -1)
     {
-        CEL_ERR((_T("cel_socket_async_sendfile poll post failed")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("cel_socket_async_sendfile poll post failed")));
         return -1;
     }
     if (co != NULL)

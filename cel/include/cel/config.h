@@ -24,7 +24,7 @@
 #endif
 
 //#define _CEL_ASSERT  /* log.h */
-#define _CEL_ERR     /* log.h */
+//#define _CEL_DEBUG     /* log.h */
 
 #define GCC_VERSION \
     (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)

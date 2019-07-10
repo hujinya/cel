@@ -353,12 +353,12 @@ BOOL cel_ber_read_integer(CelStream *s, U32* value)
     }
     else if (length == 8)
     {
-        CEL_ERR((_T("Should implement reading an 8 bytes integer")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Should implement reading an 8 bytes integer")));
         return FALSE;
     }
     else
     {
-        CEL_ERR((_T("Should implement reading an integer with length=%d"), length));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Should implement reading an integer with length=%d"), length));
         return FALSE;
     }
 

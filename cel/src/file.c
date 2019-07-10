@@ -348,7 +348,7 @@ WCHAR *cel_fullpath_r_w(const WCHAR *rel_path, WCHAR *full_path, size_t size)
 BOOL cel_fexists_w(const WCHAR *file_name)
 {
 #ifdef _CEL_UNIX
-    CEL_ERR((_T("cel_fexists_w is null############")));
+    CEL_SETERR((CEL_ERR_LIB,  _T("cel_fexists_w is null############")));
     return FALSE;
 #endif
 #ifdef _CEL_WIN
@@ -363,7 +363,7 @@ FILE *cel_fopen(const TCHAR *file_name, const TCHAR *mode)
 
     if ((fp = _tfopen(file_name, mode)) == NULL)
     {
-        CEL_ERR((_T("Open file '%s' failed(%s)."), 
+        CEL_SETERR((CEL_ERR_LIB,  _T("Open file '%s' failed(%s)."), 
             file_name, cel_geterrstr(cel_sys_geterrno())));
         return NULL;
     }
@@ -373,7 +373,8 @@ FILE *cel_fopen(const TCHAR *file_name, const TCHAR *mode)
 
 int cel_fsync(const TCHAR *dest_file,const TCHAR *src_file)
 {
-    int c;
+    char buf[CEL_LINELEN];
+	int len;
     FILE *fp, *fp_;
 
     if ((fp = cel_fopen(src_file, _T("r"))) == NULL 
@@ -383,18 +384,17 @@ int cel_fsync(const TCHAR *dest_file,const TCHAR *src_file)
             cel_fclose(fp);
         return -1;
     }
-    while (!feof(fp))
-    {
-        if ((c = _fgettc(fp)) != EOF)
-        {
-            if (_fputtc(c, fp_) == EOF)
-            {
-                CEL_ERR((_T("_fputtc():%s."), 
-                    cel_geterrstr(cel_sys_geterrno())));
-                break;
-            }
-        }
-    }
+	while (!feof(fp))
+	{
+		if ((len = fread(buf, 1, sizeof(buf), fp)) <= 0)
+			break;
+		if (fwrite(buf, 1, sizeof(buf), fp_) != len)
+		{
+			CEL_SETERR((CEL_ERR_LIB,  _T("fwrite():%s."), 
+				cel_geterrstr(cel_sys_geterrno())));
+			break;
+		}
+	}
     fclose(fp_);
     fclose(fp);
 
@@ -403,18 +403,17 @@ int cel_fsync(const TCHAR *dest_file,const TCHAR *src_file)
 
 int cel_fmove(const TCHAR *old_file, const TCHAR *new_file)
 {
-    if (rename(old_file, new_file) == 0)
-        return 0;
-    if ((cel_fsync(new_file, old_file) == -1
-		&& cel_mkdirs_a(cel_filedir_a(new_file), S_IRUSR|S_IWUSR) == -1)
-		|| cel_fsync(new_file, old_file) == -1)
-    {
-        CEL_ERR((_T("file move %s"), cel_geterrstr(cel_sys_geterrno())));
-        return -1;
-    }
-    cel_fremove(old_file);
-
-    return 0;
+	if (rename(old_file, new_file) == 0)
+		return 0;
+	if (cel_fsync(new_file, old_file) == 0
+		|| (cel_mkdirs_a(cel_filedir_a(new_file), CEL_UMASK) != -1
+		&& cel_fsync(new_file, old_file) == 0))
+	{
+		cel_fremove(old_file);
+		return 0;
+	}
+	CEL_SETERR((CEL_ERR_LIB,  _T("file move %s"), cel_geterrstr(cel_sys_geterrno())));
+	return -1;
 }
 
 int cel_fforeach(const TCHAR *file_name, 
@@ -457,7 +456,7 @@ int cel_mkdirs_intern_a(CHAR *dir, int dir_idx, int mode)
             {
                 if (cel_sys_geterrno() != CEL_ERROR_EXIST)
                 {
-                    CEL_ERR((_T("mkdir %s error"), dir));
+                    CEL_SETERR((CEL_ERR_LIB,  _T("mkdir %s error"), dir));
                     return -1;
                 }
             }

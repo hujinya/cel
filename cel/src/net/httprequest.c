@@ -20,7 +20,6 @@
 #include "cel/file.h"
 #include <stdarg.h>
 
-
 static CelKeywordA s_reqmethod[] = 
 {
     { sizeof("CONNECT") - 1, "CONNECT" },
@@ -28,6 +27,7 @@ static CelKeywordA s_reqmethod[] =
     { sizeof("GET") - 1, "GET" }, 
     { sizeof("HEAD") - 1, "HEAD" },
     { sizeof("OPTIONS") - 1, "OPTIONS" },
+	{ sizeof("PATCH") - 1, "PATCH" },
     { sizeof("POST") - 1, "POST" },
     { sizeof("PUT") - 1, "PUT" },
     { sizeof("TRACE") - 1, "TRACE" }
@@ -190,7 +190,7 @@ int cel_httprequest_init(CelHttpRequest *req)
     CelHttpHeaderHandler *handler;
 
     req->ver = CEL_HTTPVER_11;
-    req->method =CEL_HTTPM_GET;
+    req->method = CEL_HTTPM_GET;
     cel_httpurl_init(&(req->url));
     req->hdr_flags = 0;
     while (i < CEL_HTTPHDR_COUNT)
@@ -404,7 +404,7 @@ static int cel_httprequest_reading_header(CelHttpRequest *req, CelStream *s)
                 if ((key_len = key_end - key_start) <= 0
                     || (value_len = value_end - value_start) <= 0)
                 {
-                    CEL_WARNING(("Http request header reding error"));
+                    CEL_DEBUG(("Http request header reding error"));
                 }
                 else if ((hdr_index = cel_keyword_case_search_a(
                     g_case_httphdr, CEL_HTTPHDR_COUNT, 
@@ -422,7 +422,7 @@ static int cel_httprequest_reading_header(CelHttpRequest *req, CelStream *s)
                 }
                 else if (s_httpreqhdr_offset[hdr_index] == 0)
                 {
-                    CEL_WARNING(("Http request header '%.*s' call back is null",
+                    CEL_DEBUG(("Http request header '%.*s' call back is null",
                         (int)value_end - key_start, 
                         (char *)(cel_stream_get_buffer(s) + key_start)));
                 }
@@ -437,7 +437,7 @@ static int cel_httprequest_reading_header(CelHttpRequest *req, CelStream *s)
                         (char *)req + s_httpreqhdr_offset[hdr_index], 
                         (char *)(cel_stream_get_buffer(s) + value_start), 
                         value_len) == -1)
-                        CEL_WARNING(("Http request header '%.*s' "
+                        CEL_DEBUG(("Http request header '%.*s' "
                         "reading return -1(%s)",
                         (int)value_end - key_start,
                         (char *)(cel_stream_get_buffer(s) + key_start),
@@ -469,7 +469,7 @@ static long cel_httprequest_reading_body_content(CelHttpRequest *req,
     if (req->content_length > CEL_HTTPBODY_CACHE_LEN_MAX
         || len > CEL_HTTPBODY_CACHE_LEN_MAX - req->reading_body_offset)
     {
-        CEL_ERR((_T("Httprequest body too large")));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Httprequest body too large")));
         return -1;
     }
     if (req->body_reading_callback != NULL)
@@ -515,7 +515,7 @@ start:
             {
                 if (chunk_size == -2)
                 {
-                    CEL_ERR((_T("cel_httprequest_reading_body(chunk size error)")));
+                    CEL_SETERR((CEL_ERR_LIB,  _T("cel_httprequest_reading_body(chunk size error)")));
                     req->reading_state = CEL_HTTP_ERROR;
                     return -1;
                 }
@@ -534,7 +534,7 @@ start:
     {
         if (cel_httprequest_reading_body_content(req, s, len1) != len1)
         {
-            CEL_ERR((_T("cel_httprequest_reading_body_content error")));
+            CEL_SETERR((CEL_ERR_LIB,  _T("cel_httprequest_reading_body_content error")));
             req->reading_state = CEL_HTTP_ERROR;
             return -1;
         }
@@ -548,7 +548,7 @@ start:
         {
             if (cel_httprequest_reading_body_content(req, s, len2) != len2)
             {
-                CEL_ERR((_T("cel_httprequest_reading_body_content error")));
+                CEL_SETERR((CEL_ERR_LIB,  _T("cel_httprequest_reading_body_content error")));
                 req->reading_state = CEL_HTTP_ERROR;
                 return -1;
             }
@@ -588,7 +588,7 @@ int cel_httprequest_reading(CelHttpRequest *req, CelStream *s)
             (char *)(cel_stream_get_buffer(s) + start), 
             end - start - 1)) == -1)
         {
-            CEL_ERR((_T("Invalid http request method.")));
+            CEL_SETERR((CEL_ERR_LIB,  _T("Invalid http request method.")));
             req->reading_state = CEL_HTTP_ERROR;
             return -1;
         }
@@ -622,7 +622,7 @@ int cel_httprequest_reading(CelHttpRequest *req, CelStream *s)
             (char *)(cel_stream_get_buffer(s) + start), 
             end - start - 2)) == -1)
         {
-            CEL_ERR((_T("Invalid http version.")));
+            CEL_SETERR((CEL_ERR_LIB,  _T("Invalid http version.")));
             req->reading_state = CEL_HTTP_ERROR;
             return -1;
         }
@@ -688,7 +688,7 @@ int cel_httprequest_reading(CelHttpRequest *req, CelStream *s)
         //puts("CEL_HTTPREQUEST_READING_OK");
         break;
     default:
-        CEL_ERR((_T("Invalid http request state %d."), req->reading_state));
+        CEL_SETERR((CEL_ERR_LIB,  _T("Invalid http request state %d."), req->reading_state));
         req->reading_state = CEL_HTTP_ERROR;
         return -1;
     }
@@ -859,7 +859,7 @@ int cel_httprequest_writing(CelHttpRequest *req, CelStream *s)
     case CEL_HTTPREQUEST_WRITING_OK:
         break;
     default :
-        CEL_ERR((_T("Invalid http request writing state %d."), 
+        CEL_SETERR((CEL_ERR_LIB,  _T("Invalid http request writing state %d."), 
             req->writing_state));
         req->writing_state = CEL_HTTP_ERROR;
         return -1;
@@ -969,7 +969,7 @@ void *cel_httprequest_get_header(CelHttpRequest *req, CelHttpHeader hdr_index)
 
     if (s_httpreqhdr_offset[hdr_index] == 0)
     {
-        CEL_ERR((_T("Http request header(%s) unsupported."), 
+        CEL_SETERR((CEL_ERR_LIB,  _T("Http request header(%s) unsupported."), 
             g_case_httphdr[hdr_index].key_word));
         return NULL;
     }
@@ -989,7 +989,7 @@ int cel_httprequest_set_header(CelHttpRequest *req,
 
     if (s_httpreqhdr_offset[hdr_index] == 0)
     {
-         CEL_ERR((_T("Http request header(%s) unsupported."), 
+         CEL_SETERR((CEL_ERR_LIB,  _T("Http request header(%s) unsupported."), 
             g_case_httphdr[hdr_index].key_word));
         return -1;
     }
