@@ -74,7 +74,7 @@ LSTATUS PdhOpen(CelPdh *pdh, LPTSTR lpMachineName, LPTSTR lpPDBName)
     if ((lStatus = RegConnectRegistry(
         lpMachineName, HKEY_PERFORMANCE_DATA, &(pdh->hKey))) != ERROR_SUCCESS)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("RegConnectRegistry failed")));
+        CEL_SETERR((CEL_ERR_LIB, _T("RegConnectRegistry failed")));
         return -1;
     }
     pdh->dwTotal = 4096;
@@ -88,7 +88,7 @@ LSTATUS PdhOpen(CelPdh *pdh, LPTSTR lpMachineName, LPTSTR lpPDBName)
     {
         if (lStatus != ERROR_MORE_DATA)
         {
-             CEL_SETERR((CEL_ERR_LIB,  _T("RegQueryValueEx failed")));
+             CEL_SETERR((CEL_ERR_LIB, _T("RegQueryValueEx failed")));
             PdhClose(pdh);
             return -1;
         }
@@ -222,14 +222,14 @@ CelCpuPerf *cel_getcpuperf(void)
         && (PNtQuerySystemInformation = (PROCNTQSI) GetProcAddress(
         GetModuleHandle(_T("ntdll")), "NtQuerySystemInformation")) == NULL)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Load NtQuerySystemInformation failed.(GetProcAddress():%s)"), 
+        CEL_SETERR((CEL_ERR_LIB, _T("Load NtQuerySystemInformation failed.(GetProcAddress():%s)"), 
             cel_geterrstr(cel_sys_geterrno())));
         return NULL;
     }
     if ((lStatus = PNtQuerySystemInformation(
         SystemBasicInformation, &sbi, sizeof(sbi), &ulLen)) != NO_ERROR)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("SystemBasicInformation():%s."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("SystemBasicInformation():%s."), cel_geterrstr(cel_sys_geterrno())));
         return NULL;
     }
     // sizeof(SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION) = 44(32bit)/48(32bit)
@@ -237,13 +237,13 @@ CelCpuPerf *cel_getcpuperf(void)
     if ((sppi = 
         (SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION *)cel_malloc(ulLen)) == NULL)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("%s"), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("%s"), cel_geterrstr(cel_sys_geterrno())));
         return NULL;
     }
     if ((lStatus = PNtQuerySystemInformation(SystemProcessorPerformanceInformation,
         sppi, ulLen, &ulLen)) != NO_ERROR)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("SystemProcessorPerformanceInformation():%s."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("SystemProcessorPerformanceInformation():%s."), cel_geterrstr(cel_sys_geterrno())));
         cel_free(sppi);
         return NULL;
     }
@@ -382,7 +382,7 @@ CelNetPerf *cel_getnetperf(void)
     {
         if (dwResult != ERROR_INSUFFICIENT_BUFFER)
         {
-            CEL_SETERR((CEL_ERR_LIB,  _T("GetIfTable():%s."), cel_geterrstr(cel_sys_geterrno())));
+            CEL_SETERR((CEL_ERR_LIB, _T("GetIfTable():%s."), cel_geterrstr(cel_sys_geterrno())));
             cel_free(iftb);
             return NULL;
         }
@@ -393,7 +393,7 @@ CelNetPerf *cel_getnetperf(void)
     if ((dwResult = GetIfTable(iftb, &ulLen, FALSE)) != NO_ERROR)
     {
         cel_free(iftb);
-        CEL_SETERR((CEL_ERR_LIB,  _T("GetIfTable():%s."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("GetIfTable():%s."), cel_geterrstr(cel_sys_geterrno())));
         return NULL;
     }
     t_received = t_sent = 0;

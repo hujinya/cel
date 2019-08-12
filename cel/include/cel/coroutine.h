@@ -66,12 +66,14 @@ void cel_coroutinescheduler_readies_push(CelCoroutineScheduler *schd,
     cel_asyncqueue_push(&(schd->coe_readies), co_entity);
 }
 static __inline 
-CelCoroutineEntity *cel_coroutinescheduler_readies_try_pop(OsCoroutineScheduler *schd)
+CelCoroutineEntity *cel_coroutinescheduler_readies_try_pop(
+	OsCoroutineScheduler *schd)
 {
     return (OsCoroutineEntity *)cel_asyncqueue_try_pop(&(schd->coe_readies));
 }
 static __inline 
-CelCoroutineEntity *cel_coroutinescheduler_readies_pop(OsCoroutineScheduler *schd)
+CelCoroutineEntity *cel_coroutinescheduler_readies_pop(
+	OsCoroutineScheduler *schd)
 {
     return (OsCoroutineEntity *)cel_asyncqueue_pop(&(schd->coe_readies));
 }

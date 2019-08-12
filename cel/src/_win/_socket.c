@@ -69,7 +69,7 @@ int os_socket_do_async_accept(CelSocketAsyncAcceptArgs *args)
         &(args->_ol.result.ret), &(args->_ol._ol))) 
         && WSAGetLastError() != WSA_IO_PENDING)
     {
-        //CEL_SETERR((CEL_ERR_LIB,  _T("AcceptEx error")));
+        //CEL_SETERR((CEL_ERR_LIB, _T("AcceptEx error")));
         return -1;
     }
     args->new_socket->state = CEL_SOCKET_CONNECTED;

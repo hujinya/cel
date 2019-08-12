@@ -35,6 +35,7 @@ struct _CelHttpWebListener
 {
     CelHttpListener http_listener;
     CelHttpWebContext *web_ctx;
+	//CelHttpControler *http_ctl;
     BOOL is_run_group;
     union {
         CelEventLoop *evt_loop;

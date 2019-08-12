@@ -137,7 +137,7 @@ int cel_poll_add(CelPoll *poll, CelChannel *channel, void *key)
         && (poll->epoll_datas[fileds] = 
         cel_calloc(1, sizeof(CelPollData))) == NULL))
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Poll add %d failed."), fileds));
+        CEL_SETERR((CEL_ERR_LIB, _T("Poll add %d failed."), fileds));
         return -1;
     }
     poll_data = poll->epoll_datas[fileds];
@@ -148,7 +148,7 @@ int cel_poll_add(CelPoll *poll, CelChannel *channel, void *key)
     ctl_event.data.fd = fileds;
     if (epoll_ctl(poll->epoll_fd, EPOLL_CTL_ADD, fileds, &ctl_event) != 0)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("epoll_ctl %d failed(%s)"), 
+        CEL_SETERR((CEL_ERR_LIB, _T("epoll_ctl %d failed(%s)"), 
             fileds, cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
@@ -171,7 +171,7 @@ static int cel_poll_handle(CelPoll *poll,
         POLLOUT_CLR(poll_data->events);
         break;
     default:
-        CEL_SETERR((CEL_ERR_LIB,  _T("Undefined event type \"%d\"."), ol->evt_type));
+        CEL_SETERR((CEL_ERR_LIB, _T("Undefined event type \"%d\"."), ol->evt_type));
         CEL_ASSERT(TRUE);
         return -1;
     }
@@ -229,7 +229,7 @@ int cel_poll_post(CelPoll *poll, int fileds, CelOverLapped *ol)
         || fileds >= poll->max_fileds
         || (poll_data = poll->epoll_datas[fileds]) == NULL)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Poll post %d failed."), fileds));
+        CEL_SETERR((CEL_ERR_LIB, _T("Poll post %d failed."), fileds));
         return -1;
     }
     ol->_ol.fileds = fileds;
@@ -258,7 +258,7 @@ static int cel_poll_do(CelPoll *poll, int milliseconds)
         poll->epoll_fd, poll->events, EVENTS_MAX, milliseconds)) < 0 
         && errno != EINTR)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("epoll_wait():%s"), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("epoll_wait():%s"), cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
     /*CEL_DEBUG((_T("epoll wait %d, n_events %d, pid %d"), 

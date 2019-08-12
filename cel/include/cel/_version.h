@@ -9,5 +9,5 @@
 #define PLATFORM "Linux 3.10.0-327.el7.x86_64"
 #define COMPILE_BY "root"
 #define COMPILE_HOST "localhost.localdomain"
-#define COMPILER "gcc version 4.8.5 20150623 (Red Hat 4.8.5-28) (GCC) "
+#define COMPILER "gcc version 4.9.4 (GCC) "
 #endif

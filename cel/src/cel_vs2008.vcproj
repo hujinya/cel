@@ -517,6 +517,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\net\httpcontext.c"
+					>
+				</File>
+				<File
 					RelativePath=".\net\httpcontroler.c"
 					>
 				</File>
@@ -1426,6 +1430,10 @@
 				</File>
 				<File
 					RelativePath="..\include\cel\net\httpclient.h"
+					>
+				</File>
+				<File
+					RelativePath="..\include\cel\net\httpcontext.h"
 					>
 				</File>
 				<File

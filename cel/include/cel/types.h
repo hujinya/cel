@@ -144,6 +144,12 @@ typedef int               BOOL;
     ((n < min) ? n = min : ((n > max) ? n = max : 0))
 #define CEL_SETMAX(n, max) ((n) < (max) ? (n) = (max) : 0)
 
+/* Function return defines */
+#define CEL_RET_AGAIN     -2   /* Again, wait async... */
+#define CEL_RET_ERROR     -1   /* Error */
+#define CEL_RET_OK         0   /* Crruent ok, continue next */
+#define CEL_RET_DONE       1   /* Finished */
+
 /* Function type defines */
 typedef int   (* CelMainFunc) (int argc, TCHAR **argv);
 typedef int   (* CelConstructFunc) (void *);
@@ -153,10 +159,10 @@ typedef void *(* CelReallocFunc) (void *mem_address, size_t new_size);
 typedef void  (* CelFreeFunc) (void *mem_address);
 typedef void  (* CelVoidFunc) (void);
 typedef void  (* CelFunc) (void *data, void *user_data);
-/* return 0 = continue;-1 = error;1 = break */
 typedef int   (* CelEachFunc) (void *value, void *user_data); 
 typedef int   (* CelKeyValuePairEachFunc) (
     void *key, void *value, void *user_data);
+
 typedef BOOL  (* CelEqualFunc) (const void *src, const void *dest);
 typedef  int  (* CelCompareFunc) (const void *src, const void *dest);
 

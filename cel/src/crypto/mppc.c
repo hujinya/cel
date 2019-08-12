@@ -150,7 +150,7 @@ int mppc_decompress(CelMppcContext *mppc, BYTE *src, U32 src_size,
 
         if (history_ptr > HistoryBufferEnd)
         {
-            CEL_SETERR((CEL_ERR_LIB,  _T("history buffer index out of range")));
+            CEL_SETERR((CEL_ERR_LIB, _T("history buffer index out of range")));
             return -1004;
         }
 
@@ -446,7 +446,7 @@ int mppc_decompress(CelMppcContext *mppc, BYTE *src, U32 src_size,
 
         if ((history_ptr + LengthOfMatch - 1) > HistoryBufferEnd)
         {
-            CEL_SETERR((CEL_ERR_LIB,  _T("history buffer overflow")));
+            CEL_SETERR((CEL_ERR_LIB, _T("history buffer overflow")));
             return -1005;
         }
 

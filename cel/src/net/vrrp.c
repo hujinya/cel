@@ -37,7 +37,7 @@ static int cel_vrrprouter_open_receive_socket(CelVrrpRouter *router)
     /* Open the socket */
     if ((router->recv_fd = socket(AF_INET, SOCK_RAW, CEL_VRRP_IPPROTO)) <= 0)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Open receive socket failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("Open receive socket failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
     /* Join the multicast group */
@@ -47,7 +47,7 @@ static int cel_vrrprouter_open_receive_socket(CelVrrpRouter *router)
     if (setsockopt(router->recv_fd, 
         IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&req, sizeof (struct ip_mreq)) == -1)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Join the multicast group %s failed(%s)."), 
+        CEL_SETERR((CEL_ERR_LIB, _T("Join the multicast group %s failed(%s)."), 
             cel_ipaddr_ntop(&(router->if_ip)), cel_geterrstr(cel_sys_geterrno())));
         closesocket(router->recv_fd);
         router->recv_fd = -1;
@@ -61,7 +61,7 @@ static int cel_vrrprouter_open_send_socket(CelVrrpRouter *router)
     /* 0x300 is magic */
     if ((router->send_fd = socket(PF_PACKET, SOCK_PACKET, 0x300)) <= 0) 
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Open send socket failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("Open send socket failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
     router->send_addr.sa_family = 0;
@@ -224,7 +224,7 @@ static int cel_vrrp_recieve_advertisement(CelVrrpRouter *router,
     /* MUST verify that the ip ttl is 255 */
     if (ip_hdr->ttl != CEL_VRRP_IP_TTL)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Invalid ttl %d, excepted %d, from %s."), 
+        CEL_SETERR((CEL_ERR_LIB, _T("Invalid ttl %d, excepted %d, from %s."), 
             ip_hdr->ttl, CEL_VRRP_IP_TTL, cel_ipaddr_ntop(&ip)));
         return -1;
     }
@@ -235,7 +235,7 @@ static int cel_vrrp_recieve_advertisement(CelVrrpRouter *router,
     /* MUST verify the vrrp version */
     if (vrrp_hdr->version != CEL_VRRP_VERSION)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Invalid version %d, excepted %d, from %s."), 
+        CEL_SETERR((CEL_ERR_LIB, _T("Invalid version %d, excepted %d, from %s."), 
             vrrp_hdr->version, CEL_VRRP_VERSION, cel_ipaddr_ntop(&ip)));
         return -1;
     }
@@ -245,7 +245,7 @@ static int cel_vrrp_recieve_advertisement(CelVrrpRouter *router,
      */
     if ((vrrp_len = (ntohs(ip_hdr->tot_len) - iphdr_len)) <= (int)sizeof(CelVrrpHdr))
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Received ip payload length %d too short,")
+        CEL_SETERR((CEL_ERR_LIB, _T("Received ip payload length %d too short,")
             _T(" excepted at least %d, from %s."),
             vrrp_len, cel_ipaddr_ntop(&ip)));
         return -1;
@@ -259,14 +259,14 @@ static int cel_vrrp_recieve_advertisement(CelVrrpRouter *router,
     /* MUST verify the vrrp checksum */
     if (cel_checksum((U16 *)vrrp_hdr, vrrp_len))
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Invalid vrrp checksum, from %s."), 
+        CEL_SETERR((CEL_ERR_LIB, _T("Invalid vrrp checksum, from %s."), 
             cel_ipaddr_ntop(&ip)));
         return -1;
     }
     /* MUST verify that the vrid is valid on the receiving interface */
     if (router->vrid != vrrp_hdr->vrid) 
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Received vrid mismatch, received %d, expected %d, from %s."),
+        CEL_SETERR((CEL_ERR_LIB, _T("Received vrid mismatch, received %d, expected %d, from %s."),
             vrrp_hdr->vrid, router->vrid, cel_ipaddr_ntop(&ip)));
         return 0;
     }
@@ -278,7 +278,7 @@ static int cel_vrrp_recieve_advertisement(CelVrrpRouter *router,
      */
     if (router->adver_int != vrrp_hdr->adver_int)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Received advertissement interval mismatch,")
+        CEL_SETERR((CEL_ERR_LIB, _T("Received advertissement interval mismatch,")
             _T(" received:%d, expected:%d, from %s."),
             vrrp_hdr->adver_int, router->adver_int, cel_ipaddr_ntop(&ip)));
         return -1;
@@ -294,7 +294,7 @@ static int cel_vrrp_add_vaddr(CelVrrpRouter *router)
     if (router->vhrd_on
         && cel_if_sethrdaddr(router->if_name, &(router->vhrd)) == -1)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Set hrdaddr %s to %s failed(%s)."), 
+        CEL_SETERR((CEL_ERR_LIB, _T("Set hrdaddr %s to %s failed(%s)."), 
             cel_hrdaddr_notp(&(router->vhrd)), router->if_name, cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
@@ -305,7 +305,7 @@ static int cel_vrrp_add_vaddr(CelVrrpRouter *router)
         if (cel_if_newipaddr(router->if_index, &(router->vaddr[i].ip), NULL) == -1
             && errno != 17)
         {
-            CEL_SETERR((CEL_ERR_LIB,  _T("Set ipaddr %s to %s failed,%s."), 
+            CEL_SETERR((CEL_ERR_LIB, _T("Set ipaddr %s to %s failed,%s."), 
                 cel_ipaddr_ntop(&(router->vaddr[i].ip)), router->if_name, 
                 cel_geterrstr(cel_sys_geterrno())));
             return -1;
@@ -319,7 +319,7 @@ static int cel_vrrp_add_vaddr(CelVrrpRouter *router)
         if (cel_vrrp_send_gratuitous_arp(router, &(router->vaddr[i].ip), 
             (router->vhrd_on ? &(router->vhrd) : &(router->if_hrd))) == -1)
         {
-            CEL_SETERR((CEL_ERR_LIB,  _T("Send add ipaddr %s arp messager failed(%s)."), 
+            CEL_SETERR((CEL_ERR_LIB, _T("Send add ipaddr %s arp messager failed(%s)."), 
                 cel_ipaddr_ntop(&(router->vaddr[i].ip)), cel_geterrstr(cel_sys_geterrno())));
             return -1;
         }
@@ -336,7 +336,7 @@ static int cel_vrrp_remove_vaddr(CelVrrpRouter *router)
     if (router->vhrd_on
         && cel_if_sethrdaddr(router->if_name, &(router->if_hrd)) == -1)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Set hrdaddr %s to %s failed(%s)."), 
+        CEL_SETERR((CEL_ERR_LIB, _T("Set hrdaddr %s to %s failed(%s)."), 
             cel_hrdaddr_notp(&(router->if_hrd)), router->if_name, 
             cel_geterrstr(cel_sys_geterrno())));
         return -1;
@@ -366,7 +366,7 @@ static int cel_vrrp_remove_vaddr(CelVrrpRouter *router)
         if (cel_vrrp_send_gratuitous_arp(
             router, &(router->if_ip), &(router->if_hrd)) == -1)
         {
-            CEL_SETERR((CEL_ERR_LIB,  _T("Send remove ipaddr %s arp messager failed(%s)."), 
+            CEL_SETERR((CEL_ERR_LIB, _T("Send remove ipaddr %s arp messager failed(%s)."), 
                 cel_ipaddr_ntop(&(router->if_ip)), cel_geterrstr(cel_sys_geterrno())));
             return -1;
         }
@@ -410,7 +410,7 @@ static int cel_vrrprouter_transition_state(CelVrrpRouter *router, struct timeval
         router->state = CEL_VRRP_STATE_INIT;
         break;
     default:
-        CEL_SETERR((CEL_ERR_LIB,  _T("Vrrp router want state %d undefined."), router->want_state));
+        CEL_SETERR((CEL_ERR_LIB, _T("Vrrp router want state %d undefined."), router->want_state));
         return -1;
     }
     return 0;
@@ -605,7 +605,7 @@ int cel_vrrprouter_init(CelVrrpRouter *router, const TCHAR *if_name,
         || cel_if_gethrdaddr(if_name, &(router->if_hrd)) == -1
         || cel_if_getipaddr(if_name, &(router->if_ip)) == -1)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Bad interface %s(%s)."), if_name, cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("Bad interface %s(%s)."), if_name, cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
     CEL_DEBUG((_T("Get ifname %s address, hrd_addr:%s, ip_addr %s."), if_name,
@@ -613,19 +613,19 @@ int cel_vrrprouter_init(CelVrrpRouter *router, const TCHAR *if_name,
     _tcsncpy(router->if_name, if_name, CEL_IFNLEN);
     if (!CEL_ISVALID(vrid, 1, 255))
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Bad virtual router id %d."), vrid));
+        CEL_SETERR((CEL_ERR_LIB, _T("Bad virtual router id %d."), vrid));
         return -1;
     }
     router->vrid = (BYTE)vrid;
     if (!CEL_ISVALID(priority, 1, 254))
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Bad priority %d."), priority));
+        CEL_SETERR((CEL_ERR_LIB, _T("Bad priority %d."), priority));
         return -1;
     }
     router->priority = (BYTE)priority;
     if (adver_int <= 0)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Bad advertisement interval %d."), adver_int));
+        CEL_SETERR((CEL_ERR_LIB, _T("Bad advertisement interval %d."), adver_int));
         return -1;
     }
     router->adver_int = adver_int;
@@ -651,12 +651,12 @@ int cel_vrrprouter_init(CelVrrpRouter *router, const TCHAR *if_name,
             router->n_vaddr++;
             continue;
         }
-        CEL_SETERR((CEL_ERR_LIB,  _T("Bad virtual address %s."), vaddr[i]));
+        CEL_SETERR((CEL_ERR_LIB, _T("Bad virtual address %s."), vaddr[i]));
         return -1;
     }
     if (router->n_vaddr == 0)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("No virtual address.")));
+        CEL_SETERR((CEL_ERR_LIB, _T("No virtual address.")));
         return -1;
     }
     /* Virtual Router MAC Address RFC 3768.7.3 */
@@ -682,7 +682,7 @@ int cel_vrrprouter_init(CelVrrpRouter *router, const TCHAR *if_name,
     router->buf_size =  ETHER_HDR_LEN + IP_HDR_LEN + router->vrrp_len;
     if ((router->buf = cel_malloc(router->buf_size)) == NULL)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Malloc buffer size %d failed(%s)."), 
+        CEL_SETERR((CEL_ERR_LIB, _T("Malloc buffer size %d failed(%s)."), 
             router->buf_size, cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
@@ -746,7 +746,7 @@ int cel_vrrprouter_check_state(CelVrrpRouter *router,
         ret = cel_vrrprouter_state_init(router, now);
         break;
     default:
-        CEL_SETERR((CEL_ERR_LIB,  _T("Vrrp router state %d undefined."), router->state));
+        CEL_SETERR((CEL_ERR_LIB, _T("Vrrp router state %d undefined."), router->state));
         ret = -1;
     }
     if (state != NULL)

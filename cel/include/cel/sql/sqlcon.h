@@ -24,6 +24,7 @@ typedef enum _CelSqlConType
 {
     CEL_SQLCON_UNDEFINED,
     CEL_SQLCON_MYSQL,
+	CEL_SQLCON_SQLLITE,
     CEL_SQLCON_MSSQL
 }CelSqlConType;
 
@@ -50,7 +51,7 @@ typedef long (* CelSqlResRowsFunc)(void *res);
 typedef int (* CelSqlResColsFunc)(void *res);
 typedef unsigned long* (* CelSqlResFetchLengthsFunc)(void *res);
 typedef char** (* CelSqlResFetchRowFunc)(void *res);
-typedef void* (*CelSqllResFetchFieldFunc)(void *res);
+typedef void* (*CelSqlResFetchFieldFunc)(void *res);
 typedef void (* CelSqlResFreeFunc)(void *res);
 
 typedef struct _CelSqlConClass
@@ -64,7 +65,7 @@ typedef struct _CelSqlConClass
     CelSqlResColsFunc res_cols;
     CelSqlResFetchLengthsFunc res_fetch_lengths;
     CelSqlResFetchRowFunc res_fetch_row;
-    CelSqllResFetchFieldFunc res_fetch_field;
+    CelSqlResFetchFieldFunc res_fetch_field;
     CelSqlResFreeFunc res_free;
 }CelSqlConClass;
 
@@ -129,7 +130,8 @@ CelSqlRes *cel_sqlcon_execute_onequery(CelSqlCon *con, const char *fmt, ...)
     va_list args;
 
     va_start(args, fmt);
-	con->sqlstr.size = _vsntprintf(con->sqlstr.str, con->sqlstr.capacity, fmt, args);
+	con->sqlstr.size = 
+		_vsntprintf(con->sqlstr.str, con->sqlstr.capacity, fmt, args);
     va_end(args);
     return _cel_sqlcon_execute_onequery(con);
 }
@@ -139,7 +141,8 @@ CelSqlRes *cel_sqlcon_execute_query(CelSqlCon *con, const char *fmt, ...)
     va_list args;
 
     va_start(args, fmt);
-    con->sqlstr.size = _vsntprintf(con->sqlstr.str, con->sqlstr.capacity, fmt, args);
+    con->sqlstr.size = 
+		_vsntprintf(con->sqlstr.str, con->sqlstr.capacity, fmt, args);
     va_end(args);
     return _cel_sqlcon_execute_query(con);
 }

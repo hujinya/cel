@@ -16,28 +16,25 @@
 #define __CEL_NET_HTTPFILTER_H__
 
 #include "cel/list.h"
-#include "cel/net/httprequest.h"
-#include "cel/net/httpresponse.h"
-#include "cel/net/httpclient.h"
+#include "cel/net/httpcontext.h"
 
 typedef struct _CelHttpFilter CelHttpFilter;
 
-/* return 0 = continue;-1 = error;1 = break */
-typedef int (* CelHttpFilterHanlderFunc)(
-    CelHttpFilter *filter, CelHttpClient *client, 
-    CelHttpRequest *req, CelHttpResponse *rsp);
+/* return 0 = continue;-1 = error;1 = break; */
+typedef int (* CelHttpFilterHandlerFunc)(CelHttpContext *http_ctx);
 
 struct _CelHttpFilter
 {
     CelListItem _item;
-    CelHttpFilterHanlderFunc handler;
+    CelHttpFilterHandlerFunc handler;
 };
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int cel_httpfilter_init(CelHttpFilter *filter);
+int cel_httpfilter_init(CelHttpFilter *filter,
+						CelHttpFilterHandlerFunc handler);
 void cel_httpfilter_destroy(CelHttpFilter *filter);
 
 /** 
@@ -47,11 +44,11 @@ void cel_httpfilter_destroy(CelHttpFilter *filter);
 typedef struct _CelHttpFilterAllowCors
 {
     CelHttpFilter _filter;
-    char *allow_origins;
+    CelVStringA allow_origins;
     BOOL is_allow_credentials;
-    char allow_methods;
-    char allow_headers[CEL_HTTPHDR_COUNT/8 + 1];
-    char expose_headers[CEL_HTTPHDR_COUNT/8 + 1];
+    CelVStringA allow_methods;
+	CelVStringA allow_headers;
+	CelVStringA expose_headers;
     long max_age;
 }CelHttpFilterAllowCors;
 
@@ -63,14 +60,33 @@ typedef struct _CelHttpFilterAllowCors
  * is_allow_credentials : False
  * max_age : None
  */
-int cel_httpfilter_allowcors_init(CelHttpFilterAllowCors *cors,
+int cel_httpfilter_allowcors_init(CelHttpFilterAllowCors *cors_filter,
                                   const char *allow_origins, 
                                   BOOL is_allow_credentials,
                                   const char *allow_methods, 
                                   const char *allow_headers, 
                                   const char *expose_headers,
                                   long max_age);
-void cel_httpfilter_allowcors_destroy(CelHttpFilterAllowCors *cors);
+void cel_httpfilter_allowcors_destroy(CelHttpFilterAllowCors *cors_filter);
+
+typedef struct _CelHttpFilterStatic
+{
+	CelHttpFilter _filter;
+	char path[CEL_PATHLEN];
+}CelHttpFilterStatic;
+
+int cel_httpfilter_static_init(CelHttpFilterStatic *static_filter, 
+							   const char *path);
+void cel_httpfilter_static_destroy(CelHttpFilterStatic *static_filter);
+
+typedef struct _CelHttpFilterLog
+{
+	CelHttpFilter _filter;
+}CelHttpFilterLog;
+
+int cel_httpfilter_log_init(CelHttpFilterLog *log_filter, 
+							   const char *path);
+void cel_httpfilter_log_destroy(CelHttpFilterLog *log_filter);
 
 #ifdef __cplusplus
 }

@@ -48,7 +48,6 @@ typedef void (*CelHttpWebClientFreeFunc)(CelHttpWebClient *client);
 typedef struct _CelHttpWebContext
 {
     char server[CEL_SNLEN];
-    CelKeywordA prefix;
     CelHttpRoute route;
     CelHttpWebClientNewFunc new_func;
     CelHttpWebClientFreeFunc free_func;
@@ -60,8 +59,7 @@ struct _CelHttpWebClient
     CelHttpWebContext *web_ctx;
     CelHttpRequest req;
     CelHttpResponse rsp;
-    CelHttpRouteState rt_state;
-    CelHttpRouteData rt_data;
+    CelHttpContext http_ctx;
     size_t file_len;
     CelHttpWebCallbackFunc execute_callback;
     void *user_data;
@@ -90,25 +88,21 @@ void cel_httpwebclient_free(CelHttpWebClient *client);
     cel_sockaddr_ntop(cel_httpclient_get_remoteaddr(client))
 #define cel_httpwebclient_get_localaddr_str(client) \
     cel_sockaddr_ntop(cel_httpclient_get_localaddr(client))
+#define cel_httpwebclient_get_url_path(client) \
+	cel_httprequest_get_url_path(&(client->req))
 
 #define cel_httpwebclient_get_request(client)  &((client)->req)
 #define cel_httpwebclient_get_response(client) &((client)->rsp)
-#define cel_httpwebclient_get_routedata(client) &((client)->rt_data)
+#define cel_httpwebclient_get_routedata(client) &((client)->http_ctx)
 
 const char *cel_httpwebclient_get_request_file_path(CelHttpWebClient *client,
                                                     char *path, size_t *path_len);
-static __inline 
-const char *cel_httpwebclient_get_route_path(CelHttpWebClient *client)
-{
-    return (cel_httprequest_get_url_path(&(client->req))
-        + client->web_ctx->prefix.key_len);
-}
 void cel_httpwebclient_do_recv_request(CelHttpWebClient *client, 
                                        CelHttpRequest *req,
                                        CelAsyncResult *result);
 void _cel_httpwebclient_execute_callback(CelHttpWebClient *client,
                                          CelHttpRequest *req,
-                                         CelHttpResponse *rsp,
+										 CelHttpResponse *rsp,
                                          CelAsyncResult *result);
 static __inline 
 int cel_httpwebclient_async_execute_request(CelHttpWebClient *client,
@@ -120,31 +114,18 @@ int cel_httpwebclient_async_execute_request(CelHttpWebClient *client,
         (CelHttpExecuteCallbackFunc)_cel_httpwebclient_execute_callback);
 }
 
-void cel_httpwebclient_do_send_response(CelHttpWebClient *client,
-                                        CelHttpResponse *rsp, 
-                                        CelAsyncResult *result);
-static __inline 
-int cel_httpwebclient_async_send_response(CelHttpWebClient *client,
-                                          CelHttpWebCallbackFunc callback)
-{
-    client->execute_callback = callback;
-    return cel_httpclient_async_send_response(&(client->http_client), 
-        &(client->rsp), 
-        (CelHttpSendResponseCallbackFunc)
-        cel_httpwebclient_do_send_response);
-}
-int cel_httpwebclient_async_send_response_result(CelHttpWebClient *client,
-                                                 CelHttpStatusCode status,
-                                                 int code, const char *msg);
-int cel_httpwebclient_async_send_response_file(CelHttpWebClient *client, 
-                                               const char *file_path, 
-                                               long long first, long long last,
-                                               CelDateTime *if_modified_since,
-                                               char *if_none_match,
-                                               CelHttpWebCallbackFunc callback);
-int cel_httpwebclient_async_send_response_redirect(CelHttpWebClient *client, 
-                                                   const char *url,
-                                                   CelHttpWebCallbackFunc callback);
+int cel_httpwebclient_routing(CelHttpWebClient *client);
+
+int cel_httpwebclient_response_write(CelHttpWebClient *client,
+									 CelHttpStatusCode status,
+									 int err_no, const char *msg);
+int cel_httpwebclient_response_sendfile(CelHttpWebClient *client, 
+										const char *file_path, 
+										long long first, long long last,
+										CelDateTime *if_modified_since,
+									char *if_none_match);
+int cel_httpwebclient_response_redirect(CelHttpWebClient *client, 
+										const char *url);
 
 #ifdef __cplusplus
 }

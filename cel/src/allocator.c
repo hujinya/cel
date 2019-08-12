@@ -588,7 +588,7 @@ int cel_pageheap_grow(CelPageHeap *page_heap, size_t n_pages)
     if ((ptr = (char *)cel_system_alloc(
         ask << PAGE_SHIFT, &actual_size, PAGE_SIZE)) == NULL)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("New span memory failed(%s)."),
+        CEL_SETERR((CEL_ERR_LIB, _T("New span memory failed(%s)."),
             cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
@@ -597,7 +597,7 @@ int cel_pageheap_grow(CelPageHeap *page_heap, size_t n_pages)
     page_heap->system_bytes += (ask << PAGE_SHIFT);
     if ((span = (CelSpan *)_cel_sys_malloc(sizeof(CelSpan))) == NULL)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("New span failed(%s)."), 
+        CEL_SETERR((CEL_ERR_LIB, _T("New span failed(%s)."), 
             cel_geterrstr(cel_sys_geterrno())));
         munmap(ptr, n_pages << PAGE_SHIFT);
         return -1;
@@ -695,7 +695,7 @@ CelSpan *cel_pageheap_allocate(CelPageHeap *page_heap, int n_pages)
             page_heap, n_pages)) == NULL)
         {
             cel_spinlock_unlock(&(page_heap->lock));
-            CEL_SETERR((CEL_ERR_LIB,  _T("Page heap search free[%d] and large list return null."),
+            CEL_SETERR((CEL_ERR_LIB, _T("Page heap search free[%d] and large list return null."),
                 n_pages));
             return NULL;
         }
@@ -826,7 +826,7 @@ void cel_centralcache_release_to_spans(CelCentralCache *central_cache,
     if ((span = (CelSpan *)cel_radixtree_get(
         &(s_pageheap.page_map), (uintptr_t)block >> PAGE_SHIFT)) == NULL)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Error cel_centralcache_release_to_spans")));
+        CEL_SETERR((CEL_ERR_LIB, _T("Error cel_centralcache_release_to_spans")));
         return;
     }
     if (span->blocks == NULL)

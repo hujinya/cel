@@ -111,7 +111,9 @@ CelSqlCon *cel_sqlconpool_get(CelSqlConPool *pool)
             return con;
         }
     }
-    CEL_SETERR((CEL_ERR_LIB,  _T("cel_sqlconpool_get return NULL")));
+    CEL_SETERR((CEL_ERR_LIB, 
+		_T("cel_sqlconpool_get return NULL, cons %d, max %d"), 
+		pool->n_conns, pool->max));
     return NULL;
 }
 

@@ -105,7 +105,7 @@ void cel_bitstream_free(CelBitStream* bs);
         } \
    }\
    else { \
-       CEL_SETERR((CEL_ERR_LIB,  _T("warning: cel_bitstream_shift(%d)"), _nbits)); \
+       CEL_SETERR((CEL_ERR_LIB, _T("warning: cel_bitstream_shift(%d)"), _nbits)); \
    } \
 } while(0)
 

@@ -17,8 +17,8 @@
 
 CHAR *os_strerror_a(int err_no)
 {
-    CelErrBuffer *ptr = _cel_err_buffer();
-    CHAR *lpMsgBuf = ptr->a_buffer[ptr->i];
+    CelErr *ptr = _cel_err();
+    CHAR *lpMsgBuf = ptr->stic.a_buffer;
     size_t len;
 
     FormatMessageA(/* FORMAT_MESSAGE_ALLOCATE_BUFFER
@@ -37,8 +37,8 @@ CHAR *os_strerror_a(int err_no)
 
 WCHAR *os_strerror_w(int err_no)
 {
-    CelErrBuffer *ptr = _cel_err_buffer();
-    WCHAR *lpMsgBuf = ptr->w_buffer[ptr->i];
+    CelErr *ptr = _cel_err();
+    WCHAR *lpMsgBuf = ptr->stic.w_buffer;
     size_t len;
 
     FormatMessageW(/* FORMAT_MESSAGE_ALLOCATE_BUFFER

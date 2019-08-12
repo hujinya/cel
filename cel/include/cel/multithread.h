@@ -58,15 +58,15 @@ void cel_multithread_mutex_callback_unregister(void);
 
 /* void cel_multithread_mutex_lock(CelMultithreadMutexType type)*/
 #define cel_multithread_mutex_lock(type) if (mutex_callback_func != NULL) \
-        mutex_callback_func(type, CEL_MT_MUTEX_LOCK, mutex_callback_userdata)
+	mutex_callback_func(type, CEL_MT_MUTEX_LOCK, mutex_callback_userdata)
 /* void cel_multithread_mutex_trylock(CelMultithreadMutexType type)*/
 #define cel_multithread_mutex_trylock(type) \
-    ((mutex_callback_func != NULL) \
-    ? mutex_callback_func(type, CEL_MT_MUTEX_TRYLOCK, mutex_callback_userdata)\
-    : FALSE)
+	((mutex_callback_func != NULL) \
+	? mutex_callback_func(type, CEL_MT_MUTEX_TRYLOCK, mutex_callback_userdata)\
+	: FALSE)
 /* void cel_multithread_mutex_unlock(CelMultithreadMutexType type)*/
 #define cel_multithread_mutex_unlock(type) if (mutex_callback_func != NULL) \
-        mutex_callback_func(type, CEL_MT_MUTEX_UNLOCK, mutex_callback_userdata)
+	mutex_callback_func(type, CEL_MT_MUTEX_UNLOCK, mutex_callback_userdata)
 
 
 /* Multithread local storage */

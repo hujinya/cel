@@ -18,6 +18,9 @@
 #include "cel/types.h"
 #include "cel/byteorder.h"
 
+#define CEL_STREAM_READING    0x01
+#define CEL_STREAM_WRITING    0x02
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -25,6 +28,7 @@ extern "C" {
 typedef struct _CelStream
 {
     BYTE *buffer, *pointer;
+	int mode;
     size_t length, capacity;
 }CelStream;
 
@@ -70,6 +74,45 @@ static __inline int cel_stream_safe_seek(CelStream *_s, size_t _size)
         return FALSE;
     cel_stream_seek(_s, _size);
     return TRUE;
+}
+
+static __inline int cel_stream_begin_read(CelStream *s)
+{
+	if (CEL_CHECKFLAG(s->mode, CEL_STREAM_READING)
+		|| CEL_CHECKFLAG(s->mode, CEL_STREAM_WRITING))
+		return -1;
+	CEL_SETFLAG(s->mode, CEL_STREAM_READING);
+	cel_stream_seal_length(s);
+	cel_stream_set_position(s, 0);
+	return cel_stream_get_length(s);
+	return -1;
+}
+static __inline void cel_stream_end_read(CelStream *s)
+{
+	CEL_CLRFLAG(s->mode, CEL_STREAM_READING);
+}
+static __inline int cel_stream_begin_write(CelStream *s)
+{
+	if (CEL_CHECKFLAG(s->mode, CEL_STREAM_READING)
+		|| CEL_CHECKFLAG(s->mode, CEL_STREAM_WRITING))
+		return -1;
+	CEL_SETFLAG(s->mode, CEL_STREAM_WRITING);
+	if (cel_stream_get_remaining_length(s) > 0)
+	{
+		memmove(cel_stream_get_buffer(s), cel_stream_get_pointer(s),
+			cel_stream_get_remaining_length(s));
+		cel_stream_set_position(s, 
+			cel_stream_get_remaining_length(s));
+	}
+	else
+	{
+		cel_stream_set_position(s, 0);
+	}
+	return cel_stream_get_remaining_length(s);
+}
+static __inline void cel_stream_end_write(CelStream *s)
+{
+	CEL_CLRFLAG(s->mode, CEL_STREAM_WRITING);
 }
 
 #define cel_stream_read_u8(_s, _v) \
@@ -135,6 +178,7 @@ static __inline void cel_stream_copy(CelStream *_src, CelStream *_dst, size_t _n
 
 static __inline void cel_stream_clear(CelStream *_s)
 {
+	CEL_ZEROFLAG(_s->mode);
     _s->length = 0;
     _s->pointer = _s->buffer;
     if (_s->buffer != NULL)

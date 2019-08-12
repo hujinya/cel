@@ -96,7 +96,7 @@ int cel_monitorcontext_init(CelMonitorContext *mntr_ctx,
 
     if (type == CEL_MONITOR_UNDEFINED)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Monitor type undefined.")));
+        CEL_SETERR((CEL_ERR_LIB, _T("Monitor type undefined.")));
         return -1;
     }
     len = _tcslen(name);
@@ -205,7 +205,7 @@ int cel_monitor_tcp_init(CelMonitor *mntr)
     //                mntr->checker = mntr_tcp;
     //                return 0;
     //            }
-    //            CEL_SETERR((CEL_ERR_LIB,  _T("Load balancer %s post connect failed(%s)."), 
+    //            CEL_SETERR((CEL_ERR_LIB, _T("Load balancer %s post connect failed(%s)."), 
     //                cel_sockaddr_ntop(&(mntr_tcp->addr)), cel_geterrstr(cel_sys_geterrno())));
     //        }
     //        cel_socket_destroy(&mntr_tcp->sock);

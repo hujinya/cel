@@ -183,7 +183,7 @@ int cel_ipaddr_op(int if_index, CelIpAddr *addr, const TCHAR *label, int type)
             nl_msgerr = (struct nlmsgerr *)NLMSG_DATA(nl_msg);
             if (nl_msgerr->error != 0)
             {
-                cel_seterrno(-nl_msgerr->error);
+				cel_seterr(-nl_msgerr->error, NULL);
                 cel_netlink_free(nl);
                 return -1;
             }

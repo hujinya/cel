@@ -74,7 +74,7 @@ static int cel_datetime_mstr2i_a(const CHAR *month)
     case 'S':
         return (8);
     default:
-        CEL_SETERR((CEL_ERR_LIB,  _T("Month \"%s\" format invalid."), month));
+        CEL_SETERR((CEL_ERR_LIB, _T("Month \"%s\" format invalid."), month));
         return (-1);
     }
 }
@@ -102,7 +102,7 @@ static int cel_datetime_mstr2i_w(const WCHAR *month)
     case L'S':
         return (8);
     default:
-        CEL_SETERR((CEL_ERR_LIB,  _T("Month \"%s\" format invalid."), month));
+        CEL_SETERR((CEL_ERR_LIB, _T("Month \"%s\" format invalid."), month));
         return (-1);
     }
 }
@@ -127,7 +127,7 @@ int cel_datetime_init_strtime_a(CelDateTime *dt, const CHAR *strtime)
         &(_tm.tm_hour), &(_tm.tm_min), &(_tm.tm_sec), &(_tm.tm_year)) == 6);
     else
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Unable to resolve the time format \"%s\"."), strtime));
+        CEL_SETERR((CEL_ERR_LIB, _T("Unable to resolve the time format \"%s\"."), strtime));
         return -1;
     }
     if ((_tm.tm_mon = cel_datetime_mstr2i_a(month)) == -1)
@@ -145,7 +145,7 @@ int cel_datetime_init_strtime_a(CelDateTime *dt, const CHAR *strtime)
         *dt = mkgmtime(&_tm); 
     else
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Invalid time zone format \"%s\""), timezone));
+        CEL_SETERR((CEL_ERR_LIB, _T("Invalid time zone format \"%s\""), timezone));
         return -1;
     }
     //perror("xxx");
@@ -172,7 +172,7 @@ int cel_datetime_init_strtime_w(CelDateTime *dt, const WCHAR *strtime)
         &(_tm.tm_hour), &(_tm.tm_min), &(_tm.tm_sec), &(_tm.tm_year)) == 6);
     else
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Unable to resolve the time format \"%s\"."), strtime));
+        CEL_SETERR((CEL_ERR_LIB, _T("Unable to resolve the time format \"%s\"."), strtime));
         return -1;
     }
     if ((_tm.tm_mon = cel_datetime_mstr2i_w(month)) == -1)
@@ -185,7 +185,7 @@ int cel_datetime_init_strtime_w(CelDateTime *dt, const WCHAR *strtime)
         *dt = mkgmtime(&_tm);
     else
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Invalid time zone format \"%s\""), timezone));
+        CEL_SETERR((CEL_ERR_LIB, _T("Invalid time zone format \"%s\""), timezone));
         return -1;
     }
 

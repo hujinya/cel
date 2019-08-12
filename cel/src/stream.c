@@ -20,6 +20,7 @@ int cel_stream_init(CelStream *s)
 {
     s->buffer = NULL;
     s->pointer = NULL;
+	CEL_ZEROFLAG(s->mode);
     s->capacity = 0;
     s->length = 0;
     return 0;
@@ -33,6 +34,7 @@ void cel_stream_destroy(CelStream *s)
         s->buffer = NULL;
     }
     s->pointer = NULL;
+	CEL_ZEROFLAG(s->mode);
     s->capacity = 0;
     s->length = 0;
 }

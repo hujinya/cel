@@ -73,7 +73,7 @@ int cel_base64_encode(BYTE *dst, size_t *dlen,
     if (*dlen < n + 1)
     {
         *dlen = n + 1;
-        cel_seterrstr(_T("Destination buffer too small."));
+        cel_seterr(CEL_ERR_LIB, _T("Destination buffer too small."));
         return -1;
     }
 
@@ -130,19 +130,19 @@ int cel_base64_decode(BYTE *dst, size_t *dlen,
 
         if (src[i] == '=' && ++j > 2)
         {
-            cel_seterrstr(_T("Invalid character."));
+            cel_seterr(CEL_ERR_LIB, _T("Invalid character."));
             return  -1;
         }
 
         if (src[i] > 127 || base64_dec_map[src[i]] == 127)
         {
-            cel_seterrstr(_T("Invalid character."));
+            cel_seterr(CEL_ERR_LIB, _T("Invalid character."));
             return -1;
         }
 
         if (base64_dec_map[src[i]] < 64 && j != 0)
         {
-            cel_seterrstr(_T("Invalid character."));
+            cel_seterr(CEL_ERR_LIB, _T("Invalid character."));
             return -1;
         }
 
@@ -154,7 +154,7 @@ int cel_base64_decode(BYTE *dst, size_t *dlen,
     if (*dlen < n)
     {
         *dlen = n;
-        cel_seterrstr(_T("Destination buffer too small."));
+        cel_seterr(CEL_ERR_LIB, _T("Destination buffer too small."));
         return -1;
     }
    for (j = 3, n = x = 0, p = dst; i > 0; i--, src++)

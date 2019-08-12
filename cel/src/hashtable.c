@@ -229,7 +229,7 @@ void cel_hashtable_remove(CelHashTable *hash_table, const void *key)
             cel_hashtable_resize(hash_table, new_capacity);
         return;
     }
-    CEL_SETERR((CEL_ERR_LIB,  _T("Hashkey %p not found in hashtable %p."), key, hash_table));
+    CEL_SETERR((CEL_ERR_LIB, _T("Hashkey %p not found in hashtable %p."), key, hash_table));
 }
 
 void *cel_hashtable_lookup(CelHashTable *hash_table, const void *key)

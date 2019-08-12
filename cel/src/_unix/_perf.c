@@ -160,7 +160,7 @@ CelMemPerf *cel_getmemperf(void)
         }
     }
     cel_fclose(fp);
-    CEL_ERR(("Read file \"%s\" error.", MEM_PROCFILE));
+    CEL_SETERR((CEL_ERR_LIB,  "Read file \"%s\" error.", MEM_PROCFILE));
 
     return NULL;
 }
@@ -258,7 +258,7 @@ CelNetPerf *cel_getnetperf(void)
             || (p = cel_skiptoken(p)) == NULL      /* compressed */
             || (p = cel_skiptoken(p)) == NULL)     /* multicast */
         { 
-            CEL_ERR(("Skip token return null."));
+            CEL_SETERR((CEL_ERR_LIB,  "Skip token return null."));
             return NULL;
         }
         sent = strtoul(p, &p, 10);

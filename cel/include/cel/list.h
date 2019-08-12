@@ -65,8 +65,14 @@ static __inline BOOL cel_list_is_empty(CelList *list)
     return (list->size == 0 ? TRUE : FALSE);
 }
 
-#define cel_list_get_head(list) &((list)->head)
-#define cel_list_get_tail(list) &((list)->tail)
+static __inline CelListItem *cel_list_get_head(CelList *list) 
+{
+	return &((list)->head);
+}
+static __inline CelListItem *cel_list_get_tail(CelList *list)
+{
+	return &((list)->tail);
+}
 
 static __inline CelListItem *cel_list_get_front(CelList *list) 
 { 

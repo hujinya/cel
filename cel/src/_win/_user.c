@@ -226,7 +226,7 @@ int os_userpswd(TCHAR *username, TCHAR *oldpassword, TCHAR *newpassword)
             cel_gethostname_w(), lpszUserName, lpszOldPassword, lpszNewPassword);
     }
     if (dwRet != NERR_Success)
-        CEL_SETERR((CEL_ERR_LIB,  _T("Failed call to change user password, return %lu"), dwRet));
+        CEL_SETERR((CEL_ERR_LIB, _T("Failed call to change user password, return %lu"), dwRet));
     return (dwRet == NERR_Success ? 0 : -1);
 }
 

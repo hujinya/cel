@@ -77,7 +77,7 @@ int cel_sockaddr_init_host(CelSockAddr *addr, const TCHAR *node, const TCHAR *se
     hints.ai_protocol = 0;
     if ((ret = GetAddrInfo(node, service, &hints, &addr_info)) != 0)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("GetAddrInfo():%s."), gai_strerror(ret)));
+        CEL_SETERR((CEL_ERR_LIB, _T("GetAddrInfo():%s."), gai_strerror(ret)));
         return -1;
     }
     if (addr_info != NULL)
@@ -117,7 +117,7 @@ int cel_sockaddr_str_split(TCHAR *str, int *family, TCHAR **paddr, TCHAR **pport
             else
             {
                 *p = _T('\0');
-                CEL_SETERR((CEL_ERR_LIB,  _T("Socket address family %s invalid."), paddr));
+                CEL_SETERR((CEL_ERR_LIB, _T("Socket address family %s invalid."), paddr));
                 return -1;
             }
             p++;
@@ -305,7 +305,7 @@ const TCHAR *cel_sockaddr_get_ipstr_r(CelSockAddr *addr,
         return strncpy(buf, addr->addr_un.sun_path, size);
 #endif
     default:
-        CEL_SETERR((CEL_ERR_LIB,  _T("Socket address family \"%d\" undefined"), 
+        CEL_SETERR((CEL_ERR_LIB, _T("Socket address family \"%d\" undefined"), 
             addr->sa_family));
         return NULL;
     }
@@ -345,7 +345,7 @@ TCHAR *cel_sockaddr_get_str_r(CelSockAddr *addr, TCHAR *buf, size_t size)
         break;
 #endif
     default:
-        CEL_SETERR((CEL_ERR_LIB,  _T("Socket address family \"%d\" undefined"), 
+        CEL_SETERR((CEL_ERR_LIB, _T("Socket address family \"%d\" undefined"), 
             addr->sa_family));
         return NULL;
     }
@@ -396,9 +396,10 @@ const CHAR *cel_getipstr_full(const CHAR *hostname, CHAR *ipstr, int family)
     hints.ai_family = family;
     hints.ai_socktype = 0;
     hints.ai_protocol = 0;
+	//puts(hostname);
     if ((ret = GetAddrInfo(hostname, NULL, &hints, &addr_info)) != 0)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("GetAddrInfo():%s."), gai_strerror(ret)));
+        CEL_SETERR((CEL_ERR_LIB, _T("GetAddrInfo():%s."), gai_strerror(ret)));
         return NULL;
     }
     result = addr_info;
@@ -439,7 +440,7 @@ BOOL cel_isipstr_full(const CHAR *hostname, const CHAR *ipstr, int family)
     hints.ai_protocol = 0;
     if ((ret = GetAddrInfo(hostname, NULL, &hints, &addr_info)) != 0)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("GetAddrInfo():%s."), gai_strerror(ret)));
+        CEL_SETERR((CEL_ERR_LIB, _T("GetAddrInfo():%s."), gai_strerror(ret)));
         return FALSE;
     }
     result = addr_info;

@@ -1,3 +1,16 @@
+* Fri Jun 19 2019 Hu Jinya <hjy@gzsunrun.cn> 1.2.0.41
+- 新增：CelStream增加mode属性，标识当前处于读模式还是写模式。
+- 新增：CelHttpFilter增加cros、static过滤器。
+- 新增：CelHttpRoute支持按prefix分组。
+- 优化：CelHttpWebClient改为通过Filter来支持cros、static;
+  CelHttpWebContex去掉prefix，采用route group支持前缀。
+- 优化：CelHttpClient应用CelStream的模式读写数据，应用程序重复调用CelHttpClient
+  的相关函数造成内存地址覆盖时无法定位问题,改为若检测到重复调用CelStream时，直接
+  abort暴露异常?
+- 新增：CelSqlConPool支持常用的sql操作，应用直接调用CelSqlConPool的操作函数避免
+  连接使用完后忘记释放的问题?
+- 新增：CelErr支持错误堆栈。
+
 * Fri Apr 15 2019 Hu Jinya <hjy@gzsunrun.cn> 1.1.3.40
 - 优化：cel_fsysnc拷贝缓存大小设为CEL_LINELEN。
 - 新增：创建文件目录默认权限CEL_UMASK。

@@ -14,6 +14,7 @@
  */
 #include "cel/file.h"
 #ifdef _CEL_UNIX
+#include "cel/error.h"
 #include "cel/log.h"
 
 int _fseeki64(FILE *_File, S64 _Offset, int _Origin)
@@ -38,13 +39,13 @@ CelDir *cel_opendir(const TCHAR *dir_name, CelDirent *dirent)
 
 int cel_chmod_w(const WCHAR *path, int mode) 
 {
-    CEL_SETERR((CEL_ERR_LIB,  _T("cel_chmod_w is null ############")));
+    CEL_SETERR((CEL_ERR_LIB, _T("cel_chmod_w is null ############")));
     return -1;
 }
 
 int cel_mkdir_w(const WCHAR *dir_name, int mode)
 {
-    CEL_SETERR((CEL_ERR_LIB,  _T("cel_mkdir_w is null ############")));
+    CEL_SETERR((CEL_ERR_LIB, _T("cel_mkdir_w is null ############")));
     return -1;
 }
 #endif

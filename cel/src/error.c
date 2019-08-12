@@ -19,197 +19,190 @@
 #include "cel/net/ssl.h"
 #include <stdarg.h>
 
-CelErrBuffer *_cel_err_buffer()
+void _cel_err_free(CelErr *err)
 {
-    CelErrBuffer *ptr;
+	cel_list_destroy(&(err->stack));
+	_cel_sys_free(err);
+}
+
+CelErr *_cel_err()
+{
+    CelErr *err;
     
-    if ((ptr = (CelErrBuffer *)
+    if ((err = (CelErr *)
         cel_multithread_get_keyvalue(CEL_MT_KEY_ERROR)) == NULL)
     {
-        if ((ptr = (CelErrBuffer *)
-            _cel_sys_malloc(sizeof(CelErrBuffer))) != NULL)
+        if ((err = (CelErr *)_cel_sys_malloc(sizeof(CelErr))) != NULL)
         {
-            //_tprintf(_T("new %p\r\n"), ptr);
-            ptr->i = 0;
-            ptr->a_buffer[0][0] = '\0';
-            ptr->a_buffer[1][0] = '\0';
-            ptr->w_buffer[0][0] = L'\0';
-            ptr->w_buffer[1][0] = L'\0';
-            if (cel_multithread_set_keyvalue(CEL_MT_KEY_ERROR, ptr) != -1
+            //_tprintf(_T("new %p\r\n"), err);
+			err->stack_on = TRUE;
+			err->stack_max_size = 32;
+			cel_list_init(&(err->stack), cel_free);
+
+			err->stic.a_buffer[0] = '\0';
+			err->stic.w_buffer[0] = L'\0';
+			err->current = NULL;
+            if (cel_multithread_set_keyvalue(CEL_MT_KEY_ERROR, err) != -1
                 && cel_multithread_set_keydestructor(
-                CEL_MT_KEY_ERROR, _cel_sys_free) != -1)
-                return ptr;
-            _cel_sys_free(ptr);
+                CEL_MT_KEY_ERROR, (CelDestroyFunc)_cel_err_free) != -1)
+                return err;
+            _cel_sys_free(err);
         }
         return NULL;
     }
-    return ptr;
+    return err;
+}
+
+CelErrItem *_cel_err_item_current(CelErr *err)
+{
+	if (err->stack_on)
+	{
+		if (err->current != NULL)
+		{
+			cel_list_push_back(&(err->stack), (CelListItem *)(err->current));
+			err->current = NULL;
+		}
+	}
+	if (err->current == NULL)
+	{
+		if (cel_list_get_size(&(err->stack)) < err->stack_max_size)
+			err->current = (CelErrItem *)cel_malloc(sizeof(CelErrItem));
+		else
+			err->current = (CelErrItem *)cel_list_pop_front(&(err->stack));
+		err->current->buf.a_buffer[0] = '\0';
+		err->current->buf.w_buffer[0] = L'\0';
+	}
+	return _cel_err()->current;
+}
+
+void cel_clearerr()
+{
+	CelErr *err = _cel_err(); 
+
+	if (err->current != NULL)
+	{
+		cel_free(err->current);
+		err->current = NULL;
+	}
+	if (cel_list_get_size(&(err->stack)) > 0)
+		cel_list_clear(&(err->stack));
 }
 
 CHAR *cel_geterrstr_a(int err_no)
 {
-    CelErrBuffer *ptr;
-    
-    if ((err_no & CEL_ERR_FLAG) == CEL_ERR_FLAG)
-    {
-        ptr = _cel_err_buffer(); 
+	CelErr *err;
+
+	if ((err_no & CEL_ERR_FLAG) == CEL_ERR_FLAG)
+	{
+		err = _cel_err(); 
+		if (err->current == NULL)
+			return NULL;
 #ifdef _UNICODE
-        cel_unicode2mb(ptr->w_buffer[ptr->i], -1, 
-            ptr->a_buffer[ptr->i], CEL_ERRSLEN);
+		cel_unicode2mb(err->current->buf.w_buffer, -1, 
+			err->stic.a_buffer, CEL_ERRSLEN);
+		return err->stic.a_buffer;
+#else
+		return err->current->buf.a_buffer;
 #endif
-        return ptr->a_buffer[ptr->i];
-    }
-    else
-        return cel_sys_strerror_a(err_no);
+	}
+	else
+	{
+		return cel_sys_strerror_a(err_no);
+	}
 }
 
 WCHAR *cel_geterrstr_w(int err_no)
 {
-    CelErrBuffer *ptr;
+	CelErr *err;
 
-    if ((err_no & CEL_ERR_FLAG) == CEL_ERR_FLAG)
-    {
-        ptr = _cel_err_buffer(); 
-#ifndef _UNICODE
-        cel_mb2unicode(ptr->a_buffer[ptr->i], -1,
-            ptr->w_buffer[ptr->i], CEL_ERRSLEN);
+	if ((err_no & CEL_ERR_FLAG) == CEL_ERR_FLAG)
+	{
+		err = _cel_err(); 
+		if (err->current == NULL)
+			return NULL;
+#ifdef _UNICODE
+		return err->current->buf.w_buffer;
+#else
+		cel_mb2unicode(err->current->buf.a_buffer, -1, 
+			err->stic.w_buffer, CEL_ERRSLEN);
+		return err->stic.w_buffer;
 #endif
-        return ptr->w_buffer[ptr->i];
-    }
-    else
-        return cel_sys_strerror_w(err_no);
+	}
+	else
+	{
+		return cel_sys_strerror_w(err_no);
+	}
 }
 
-CHAR *cel_seterrstr_a(const CHAR *fmt, ...)
+void cel_seterr_a(int err_no, const CHAR *fmt, ...)
 {
-    CelErrBuffer *ptr = _cel_err_buffer();
-    CHAR *err_ptr = ptr->a_buffer[(++(ptr->i))];
+    CelErr *err = _cel_err();
+	CelErrItem *err_item = _cel_err_item_current(err);
     va_list ap;
 
     //_tprintf(_T("%d %p\r\n"), ptr->i, ptr);
-    va_start(ap, fmt);
-    vsnprintf(err_ptr, CEL_ERRSLEN, fmt, ap);
-    va_end(ap);
 #ifdef _UNICODE
-    cel_mb2unicode(err_ptr, -1, ptr->w_buffer[ptr->i], CEL_ERRSLEN);
+	va_start(ap, fmt);
+	vsnprintf(err->stic.a_buffer, CEL_ERRSLEN, fmt, ap);
+	va_end(ap);
+	cel_mb2unicode(err->stic.a_buffer, -1, err_item->buf.w_buffer, CEL_ERRSLEN);
+#else
+	va_start(ap, fmt);
+	vsnprintf(err_item->buf.a_buffer, CEL_ERRSLEN, fmt, ap);
+	va_end(ap);
 #endif
-    cel_seterrno(CEL_ERR_FLAG);
-
-    return err_ptr;
+	err_item->err_no = err_no;
 }
 
-WCHAR *cel_seterrstr_w(const WCHAR *fmt, ...)
+void cel_seterr_w(int err_no, const WCHAR *fmt, ...)
 {
-    CelErrBuffer *ptr = _cel_err_buffer();
-    WCHAR *err_ptr = ptr->w_buffer[(++(ptr->i))];
+    CelErr *err = _cel_err();
+	CelErrItem *err_item = _cel_err_item_current(err);
     va_list ap;
 
     //_tprintf(_T("%d %p\r\n"), ptr->i, ptr);
-    va_start(ap, fmt);
-    vswprintf(err_ptr, CEL_ERRSLEN, fmt, ap);
-    va_end(ap);
-#ifndef _UNICODE
-    cel_unicode2mb(err_ptr, -1, ptr->a_buffer[ptr->i], CEL_ERRSLEN);
-#endif
-    cel_seterrno(CEL_ERR_FLAG);
-
-    return err_ptr;
-}
-
-CHAR *cel_seterrstr_ex_a(const CHAR *file, int line, 
-                         const CHAR *func, CHAR *err_str)
-{
-    CelErrBuffer *ptr = _cel_err_buffer();
-    CHAR *err_ptr = ptr->a_buffer[(++(ptr->i))];
-
-    snprintf(err_ptr, CEL_ERRSLEN , "%s(%d)-%s():(%s)", 
-        file, line, func, err_str);
 #ifdef _UNICODE
-    cel_mb2unicode(err_ptr, -1, ptr->w_buffer[ptr->i], CEL_ERRSLEN);
+	va_start(ap, fmt);
+	vswprintf(err_item->buf.w_buffer, CEL_ERRSLEN, fmt, ap);
+	va_end(ap);
+#else
+	va_start(ap, fmt);
+	vswprintf(err->stic.w_buffer, CEL_ERRSLEN, fmt, ap);
+	va_end(ap);
+	cel_unicode2mb(err->stic.w_buffer, -1, err_item->buf.a_buffer, CEL_ERRSLEN);
 #endif
-
-    return err_ptr;
+	err_item->err_no = err_no;
 }
 
-WCHAR *cel_seterrstr_ex_w(const WCHAR *file, int line, 
-                          const WCHAR *func, WCHAR *err_str)
+void cel_seterr_ex_a(int err_no, const CHAR *file, int line, 
+					 const CHAR *func, CHAR *err_str)
 {
-    CelErrBuffer *ptr = _cel_err_buffer();
-    WCHAR *err_ptr = ptr->w_buffer[(++(ptr->i))];
-
-    snwprintf(err_ptr, CEL_ERRSLEN , L"%s(%d)-%s():(%s)", 
-        file, line, func, err_str);
-#ifndef _UNICODE
-    cel_unicode2mb(err_ptr, -1, ptr->a_buffer[ptr->i], CEL_ERRSLEN);
-#endif
-
-    return err_ptr;
-}
-
-CHAR *cel_seterr_a(int err_no, const CHAR *fmt, ...)
-{
-    CelErrBuffer *ptr = _cel_err_buffer();
-    CHAR *err_ptr = ptr->a_buffer[(++(ptr->i))];
-    va_list ap;
-
-    //_tprintf(_T("%d %p\r\n"), ptr->i, ptr);
-    va_start(ap, fmt);
-    vsnprintf(err_ptr, CEL_ERRSLEN, fmt, ap);
-    va_end(ap);
+    CelErr *err = _cel_err();
+	CelErrItem *err_item = _cel_err_item_current(err);
 #ifdef _UNICODE
-    cel_mb2unicode(err_ptr, -1, ptr->w_buffer[ptr->i], CEL_ERRSLEN);
-#endif
-    cel_seterrno(err_no);
-
-    return err_ptr;
-}
-
-WCHAR *cel_seterr_w(int err_no, const WCHAR *fmt, ...)
-{
-    CelErrBuffer *ptr = _cel_err_buffer();
-    WCHAR *err_ptr = ptr->w_buffer[(++(ptr->i))];
-    va_list ap;
-
-    //_tprintf(_T("%d %p\r\n"), ptr->i, ptr);
-    va_start(ap, fmt);
-    vswprintf(err_ptr, CEL_ERRSLEN, fmt, ap);
-    va_end(ap);
-#ifndef _UNICODE
-    cel_unicode2mb(err_ptr, -1, ptr->a_buffer[ptr->i], CEL_ERRSLEN);
-#endif
-    cel_seterrno(err_no);
-
-    return err_ptr;
-}
-
-CHAR *cel_seterr_ex_a(int err_no, const CHAR *file, int line, 
-                       const CHAR *func, CHAR *err_str)
-{
-    CelErrBuffer *ptr = _cel_err_buffer();
-    CHAR *err_ptr = ptr->a_buffer[(++(ptr->i))];
-
-    snprintf(err_ptr, CEL_ERRSLEN , "%s(%d)-%s()-%s", 
+    snprintf(err->stic.a_buffer, CEL_ERRSLEN , "%s(%d)-%s()-%s", 
         file, line, func, err_str);
-#ifdef _UNICODE
-    cel_mb2unicode(err_ptr, -1, ptr->w_buffer[ptr->i], CEL_ERRSLEN);
+    cel_mb2unicode(err->stic.a_buffer, -1, err_item->buf.w_buffer, CEL_ERRSLEN);
+#else
+	snprintf(err_item->buf.a_buffer, CEL_ERRSLEN , "%s(%d)-%s()-%s", 
+        file, line, func, err_str);
 #endif
-    cel_seterrno(err_no);
-
-    return err_ptr;
+    err_item->err_no = err_no;
 }
 
-WCHAR *cel_seterr_ex_w(int err_no, const WCHAR *file, int line, 
-                       const WCHAR *func, WCHAR *err_str)
+void cel_seterr_ex_w(int err_no, const WCHAR *file, int line, 
+					 const WCHAR *func, WCHAR *err_str)
 {
-    CelErrBuffer *ptr = _cel_err_buffer();
-    WCHAR *err_ptr = ptr->w_buffer[(++(ptr->i))];
+	CelErr *err = _cel_err();
+	CelErrItem *err_item = _cel_err_item_current(err);
 
-    snwprintf(err_ptr, CEL_ERRSLEN , L"%s(%d)-%s()-%s", 
-        file, line, func, err_str);
 #ifndef _UNICODE
-    cel_unicode2mb(err_ptr, -1, ptr->a_buffer[ptr->i], CEL_ERRSLEN);
+	snwprintf(err_item->buf.w_buffer, CEL_ERRSLEN , L"%s(%d)-%s()-%s", 
+		file, line, func, err_str);
+#else
+	snwprintf(err->stic.w_buffer, CEL_ERRSLEN , L"%s(%d)-%s()-%s", 
+		file, line, func, err_str);
+	cel_unicode2mb(err->stic.w_buffer, -1, err_item->buf.a_buffer, CEL_ERRSLEN);
 #endif
-    cel_seterrno(err_no);
-
-    return err_ptr;
+	err_item->err_no = err_no;
 }

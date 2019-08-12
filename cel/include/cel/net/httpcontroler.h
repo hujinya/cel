@@ -15,11 +15,13 @@
 #ifndef __CEL_NET_HTTPCONTROLER_H__
 #define __CEL_NET_HTTPCONTROLER_H__
 
+#include "cel/net/httproute.h"
 #include "cel/net/httpsession.h"
 
 typedef struct _CelHttpControler
 {
     int x;
+	CelHttpRoute rt;
 }CelHttpControler;
 
 #ifdef __cplusplus
@@ -31,8 +33,6 @@ void cel_httpcontroler_destroy(CelHttpControler *controler);
 
 CelHttpControler *cel_httpcontroler_new();
 void cel_httpcontroler_free(CelHttpControler *controler);
-
-
 
 #ifdef __cplusplus
 }

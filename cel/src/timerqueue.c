@@ -66,7 +66,7 @@ int cel_timerqueue_init_full(CelTimerQueue *timer_queue,
             break;
         default:
             ret = -1;
-            CEL_SETERR((CEL_ERR_LIB,  _T("Timerqueue type %d undefined."), type));
+            CEL_SETERR((CEL_ERR_LIB, _T("Timerqueue type %d undefined."), type));
             break;
         }
         if (ret != -1)

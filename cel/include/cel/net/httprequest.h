@@ -204,6 +204,7 @@ int cel_httprequest_writing(CelHttpRequest *req, CelStream *s);
 
 /* CelHttpMethod cel_httprequest_get_method(CelHttpRequest *req); */
 #define cel_httprequest_get_method(req) (req)->method
+const char *cel_httprequest_get_method_str(CelHttpRequest *req);
 #define cel_httprequest_set_method(req, _method) (req)->method = _method
 
 #define cel_httprequest_set_url_scheme(req, _scheme) (req)->url.scheme = scheme

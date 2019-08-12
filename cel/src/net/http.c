@@ -801,7 +801,7 @@ long cel_httpchunked_reading(CelStream *s)
     chunk_size = strtol((char *)cel_stream_get_pointer(s), &ptr, 16);
     if ((BYTE *)ptr - s->buffer > (int)s->length)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Http chunk decode error.")));
+        CEL_SETERR((CEL_ERR_LIB, _T("Http chunk decode error.")));
         return -2;
     }
     //printf("chunk %ld %ld\r\n", (int)s->length, (BYTE *)ptr - s->buffer);
@@ -846,7 +846,7 @@ long cel_httpchunked_reading(CelStream *s)
     }
     else
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Http chunk decode error.")));
+        CEL_SETERR((CEL_ERR_LIB, _T("Http chunk decode error.")));
         return -2;
     }
 }
@@ -949,7 +949,7 @@ int cel_httpbodycache_reading(CelHttpBodyCache *cache,
                 || (cache->fp = fopen(
                 cel_vstring_str_a(&(cache->file_path)), "wb+")) == NULL))
             {
-                CEL_SETERR((CEL_ERR_LIB,  _T("Open body cache file failed.")));
+                CEL_SETERR((CEL_ERR_LIB, _T("Open body cache file failed.")));
                 return -1;
             }
             cache->clear_file = TRUE;
@@ -1033,7 +1033,7 @@ long long cel_httpbodycache_save_file(CelHttpBodyCache *cache,
     if (first >= cache->size 
         || last >= cache->size)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("first %lld or last %lld offset %lld.\r\n"), 
+        CEL_SETERR((CEL_ERR_LIB, _T("first %lld or last %lld offset %lld.\r\n"), 
             first, last, cache->size));
         return -1;
     }
@@ -1043,7 +1043,7 @@ long long cel_httpbodycache_save_file(CelHttpBodyCache *cache,
         && (cel_mkdirs_a(cel_filedir_a(file_path), CEL_UMASK) == -1
         || (fp = fopen(file_path, "wb+")) == NULL))
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("cel_httprequest_save_body_data failed")));
+        CEL_SETERR((CEL_ERR_LIB, _T("cel_httprequest_save_body_data failed")));
         return -1;
     }
     if (cache->fp != NULL)

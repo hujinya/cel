@@ -320,7 +320,7 @@ int cel_balancer_init(CelBalancer *balancer,
         balancer->schedule_hash = cel_balancer_hash_schedule;
         break;
     default:
-        CEL_SETERR((CEL_ERR_LIB,  _T("Balancer type undefined.")));
+        CEL_SETERR((CEL_ERR_LIB, _T("Balancer type undefined.")));
         return -1;
     }
     balancer->cur_index = 0;

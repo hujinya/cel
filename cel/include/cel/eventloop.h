@@ -16,6 +16,7 @@
 #define __CEL_EVENTLOOP_H__
 
 #include "cel/types.h"
+#include "cel/error.h"
 #include "cel/atomic.h"
 #include "cel/timerqueue.h"
 #include "cel/asyncqueue.h"
@@ -72,9 +73,13 @@ void cel_eventloop_free(CelEventLoop *evt_loop);
 int cel_eventloop_do_work(CelEventLoop *evt_loop);
 static __inline void cel_eventloop_run(CelEventLoop *evt_loop)
 {
-    while (cel_eventloop_is_running(evt_loop) 
-        && cel_eventloop_do_work(evt_loop) != -1);
-    //_tprintf(_T("Thread %d exit.%s\r\n"), (int)cel_thread_getid());
+	while (cel_eventloop_is_running(evt_loop))
+	{
+		if (cel_eventloop_do_work(evt_loop) == -1)
+			break;
+		cel_clearerr();
+		//_tprintf(_T("Thread %d exit.%s\r\n"), (int)cel_thread_getid());
+	}
 }
 void cel_eventloop_wakeup(CelEventLoop *evt_loop);
 void cel_eventloop_exit(CelEventLoop *evt_loop);

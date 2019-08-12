@@ -21,10 +21,7 @@
 #elif defined(_CEL_WIN)
 #include "cel/_win/_error.h"
 #endif
-
-#ifdef __cplusplus
-extern "C" {
-#endif
+#include "cel/list.h"
 
 /*
  * Bit 29 is reserved for application-defined error codes;
@@ -35,20 +32,33 @@ extern "C" {
 #define CEL_ERR_LIB                ((0x1 << 24) | CEL_ERR_FLAG)
 #define CEL_ERR_OPENSSL            ((0x2 << 24) | CEL_ERR_FLAG)
 #define CEL_ERR_MYSQL              ((0x3 << 24) | CEL_ERR_FLAG)
+
 #define CEL_ERR_USER               ((0xF << 24) | CEL_ERR_FLAG)
 
 #ifndef CEL_ERRSLEN
 #define CEL_ERRSLEN                512
 #endif
 
-/* Double error string buffer */
-typedef struct _CelErrBuffer
+typedef union _CelErrBuffer
 {
-    unsigned int i:1;
-    int err_no;
-    CHAR a_buffer[2][CEL_ERRSLEN];
-    WCHAR w_buffer[2][CEL_ERRSLEN];
+	CHAR a_buffer[CEL_ERRSLEN];
+	WCHAR w_buffer[CEL_ERRSLEN];
 }CelErrBuffer;
+
+typedef struct _CelErrItem
+{
+	int err_no;
+	CelErrBuffer buf;
+}CelErrItem;
+
+typedef struct _CelErr
+{
+	BOOL stack_on;
+	size_t stack_max_size;
+	CelList stack;
+	CelErrItem *current;
+	CelErrBuffer stic;
+}CelErr;
 
 #define cel_sys_seterrno os_seterrno
 #define cel_sys_geterrno os_geterrno
@@ -57,37 +67,30 @@ typedef struct _CelErrBuffer
 #define cel_sys_strerror_a os_strerror_a
 #define cel_sys_strerror_w os_strerror_w
 
-CelErrBuffer *_cel_err_buffer();
-static __inline void cel_seterrno(int err_no)
-{
-    _cel_err_buffer()->err_no = err_no;
-}
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+CelErr *_cel_err();
+CelErrItem *_cel_err_buffer_current(BOOL is_set);
+void cel_clearerr();
+
 static __inline int cel_geterrno(void)
 {
-    return _cel_err_buffer()->err_no;
+    CelErr *err = _cel_err();
+	return (err->current == NULL ? 0 : err->current->err_no);
 }
 CHAR *cel_geterrstr_a(int err_no);
 WCHAR *cel_geterrstr_w(int err_no);
 
-CHAR *cel_seterrstr_a(const CHAR *fmt, ...);
-WCHAR *cel_seterrstr_w(const WCHAR *fmt, ...);
-CHAR *cel_seterrstr_ex_a(const CHAR *file, int line, 
-                         const CHAR *func, CHAR *err_str);
-WCHAR *cel_seterrstr_ex_w(const WCHAR *file, int line, 
-                          const WCHAR *func, WCHAR *err_str);
 
-CHAR *cel_seterr_a(int err_no, const CHAR *fmt, ...);
-WCHAR *cel_seterr_w(int err_no, const WCHAR *fmt, ...);
-CHAR *cel_seterr_ex_a(int err_no, const CHAR *file, int line, 
-                      const CHAR *func, CHAR *err_str);
-WCHAR *cel_seterr_ex_w(int err_no, const WCHAR *file, int line, 
-                       const WCHAR *func, WCHAR *err_str);
+void cel_seterr_a(int err_no, const CHAR *fmt, ...);
+void cel_seterr_w(int err_no, const WCHAR *fmt, ...);
+void cel_seterr_ex_a(int err_no, const CHAR *file, int line, 
+					 const CHAR *func, CHAR *err_str);
+void cel_seterr_ex_w(int err_no, const WCHAR *file, int line, 
+					 const WCHAR *func, WCHAR *err_str);
 
-#define CEL_SETERRNO(errno) cel_seterrno(errno)
-#define CEL_SETERRSTR(args) cel_seterrstr args
-/* 
-cel_seterrstr_ex(_T(__FILE__), __LINE__, _T(__FUNCTION__), cel_seterrstr args)
-*/
 #define CEL_SETERR(args) cel_seterr args
 /* 
 cel_seterrstr_ex(_T(__FILE__), __LINE__, _T(__FUNCTION__), cel_seterr args) 
@@ -95,14 +98,10 @@ cel_seterrstr_ex(_T(__FILE__), __LINE__, _T(__FUNCTION__), cel_seterr args)
 
 #ifdef _UNICODE
 #define cel_geterrstr cel_geterrstr_w
-#define cel_seterrstr cel_seterrstr_w
-#define cel_seterrstr_ex cel_seterrstr_ex_w
 #define cel_seterr cel_seterr_w
 #define cel_seterr_ex cel_seterr_ex_w
 #else
 #define cel_geterrstr cel_geterrstr_a
-#define cel_seterrstr cel_seterrstr_a
-#define cel_seterrstr_ex cel_seterrstr_ex_a
 #define cel_seterr cel_seterr_a
 #define cel_seterr_ex cel_seterr_ex_a
 #endif

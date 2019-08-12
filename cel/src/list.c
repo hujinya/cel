@@ -137,19 +137,23 @@ int cel_list_foreach(CelList *list, CelEachFunc each_func, void *user_data)
 
 void cel_list_clear(CelList *list)
 {
-    CelListItem *next_item, *cur_item = list->head.next;
-
-    while (cur_item != &(list->tail))
-    {
-        next_item = cur_item->next;
-        /* Free item's value */
-        if (list->free_func != NULL)
-            list->free_func(cur_item);
-        cur_item = next_item;
-    }
-    list->size = 0;
-    list->head.next = &(list->tail);
-    list->head.prev = NULL;
-    list->tail.prev = &(list->head);
-    list->tail.next = NULL;
+    CelListItem *next_item, *cur_item;
+	
+	if (list->size > 0)
+	{
+		cur_item = list->head.next;
+		while (cur_item != &(list->tail))
+		{
+			next_item = cur_item->next;
+			/* Free item's value */
+			if (list->free_func != NULL)
+				list->free_func(cur_item);
+			cur_item = next_item;
+		}
+		list->size = 0;
+		list->head.next = &(list->tail);
+		list->head.prev = NULL;
+		list->tail.prev = &(list->head);
+		list->tail.next = NULL;
+	}
 }

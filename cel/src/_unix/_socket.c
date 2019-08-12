@@ -77,7 +77,7 @@ int os_socket_do_async_connect(CelSocketAsyncConnectArgs *args)
         {
             if (POLLERROR_CHK(args->_ol._ol.events)
                 && (errno == EALREADY || errno == EINVAL))
-                cel_seterrno(ETIMEDOUT);
+                cel_seterr(ETIMEDOUT, NULL);
             args->_ol.result.error = errno;
             CEL_CHANNEL_SET(args->_ol._ol.state, CEL_CHANNEL_ERROR);
         }

@@ -196,7 +196,7 @@ static int cel_logger_cache_file_write(CelLogger *logger)
         || (fp = fopen(file_path, "wb+")) == NULL))
     {
         cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
-        CEL_SETERR((CEL_ERR_LIB,  _T("cel_httprequest_save_body_data failed")));
+        CEL_SETERR((CEL_ERR_LIB, _T("cel_httprequest_save_body_data failed")));
         return -1;
     }
     n = cel_ringlist_pop_do_sp(

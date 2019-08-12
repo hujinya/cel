@@ -306,7 +306,7 @@ int cel_timerwheel_cancel(CelTimerWheel *timer_wheel, CelTimerId timer_id)
 
     if (timer->timer_id != timer_id) 
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Timer(%p) id %p invaild."), timer, timer->timer_id));
+        CEL_SETERR((CEL_ERR_LIB, _T("Timer(%p) id %p invaild."), timer, timer->timer_id));
         return -1;
     }
     cel_timer_stop(timer, NULL);

@@ -166,7 +166,7 @@ void cel_hacluster_unicast_port_set(unsigned short port)
 //
 //    if ((fd = socket(AF_INET, SOCK_RAW, CEL_HA_IPPROTO)) <= 0)
 //    {
-//        CEL_SETERR((CEL_ERR_LIB,  _T("Create multicast socket failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
+//        CEL_SETERR((CEL_ERR_LIB, _T("Create multicast socket failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
 //        return -1;
 //    }
 //    /* Set multicast ip options */
@@ -177,7 +177,7 @@ void cel_hacluster_unicast_port_set(unsigned short port)
 //        || setsockopt(fd, IPPROTO_IP, IP_MULTICAST_IF,
 //        (char *)&ifaddr, sizeof(ifaddr)) == -1)
 //    {
-//        CEL_SETERR((CEL_ERR_LIB,  _T("Set muliticast ip options failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
+//        CEL_SETERR((CEL_ERR_LIB, _T("Set muliticast ip options failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
 //        closesocket(fd);
 //        return -1;
 //    }
@@ -188,7 +188,7 @@ void cel_hacluster_unicast_port_set(unsigned short port)
 //    if (setsockopt(fd, IPPROTO_IP, IP_ADD_MEMBERSHIP,
 //        (char *)&mreq, sizeof (mreq)) == -1)
 //    {
-//        CEL_SETERR((CEL_ERR_LIB,  _T("Add membership failed, multiaddr %s, interface %s(%s)."), 
+//        CEL_SETERR((CEL_ERR_LIB, _T("Add membership failed, multiaddr %s, interface %s(%s)."), 
 //            cel_ipaddr_ntop(multiaddr), cel_ipaddr_ntop(&ifaddr), cel_geterrstr(cel_sys_geterrno())));
 //        closesocket(fd);
 //        return -1;
@@ -208,7 +208,7 @@ void cel_hacluster_unicast_port_set(unsigned short port)
 //
 //    if ((fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) <= 0)
 //    {
-//        CEL_SETERR((CEL_ERR_LIB,  _T("Create unicast socket failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
+//        CEL_SETERR((CEL_ERR_LIB, _T("Create unicast socket failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
 //        return -1;
 //    }
 //    addr.sin_family = AF_INET;
@@ -218,7 +218,7 @@ void cel_hacluster_unicast_port_set(unsigned short port)
 //        (char *)&reuseaddr, sizeof(reuseaddr)) == -1
 //        || bind(fd, (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1)
 //    {
-//        CEL_SETERR((CEL_ERR_LIB,  _T("Bind address %s failed(%s)."), 
+//        CEL_SETERR((CEL_ERR_LIB, _T("Bind address %s failed(%s)."), 
 //            cel_sockaddr_ntop((CelSockAddr *)&addr), cel_geterrstr(cel_sys_geterrno())));
 //        closesocket(fd);
 //        return -1;
@@ -238,7 +238,7 @@ static int cel_hacluster_multicast_open(void)
 
     if ((s_hac->multicast_fd = socket(AF_INET, SOCK_RAW, CEL_HA_IPPROTO)) <= 0)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Ha cluster multicast socket failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("Ha cluster multicast socket failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
     /* Set multicast send options */
@@ -250,7 +250,7 @@ static int cel_hacluster_multicast_open(void)
         || setsockopt(s_hac->multicast_fd, 
         IPPROTO_IP, IP_MULTICAST_IF, (char *)&multi_if, sizeof(multi_if)) == -1)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Ha cluster set muliticast options failed(%s)."),
+        CEL_SETERR((CEL_ERR_LIB, _T("Ha cluster set muliticast options failed(%s)."),
             cel_geterrstr(cel_sys_geterrno())));
         closesocket(s_hac->multicast_fd);
         s_hac->multicast_fd = -1;
@@ -263,7 +263,7 @@ static int cel_hacluster_multicast_open(void)
     if (setsockopt(s_hac->multicast_fd, 
         IPPROTO_IP, IP_ADD_MEMBERSHIP, (char *)&req, sizeof (struct ip_mreq)) == -1)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Ha cluster join muliticast group %s failed(%s)."), 
+        CEL_SETERR((CEL_ERR_LIB, _T("Ha cluster join muliticast group %s failed(%s)."), 
             cel_ipaddr_ntop(&(s_hac->multicast_src)), cel_geterrstr(cel_sys_geterrno())));
         closesocket(s_hac->multicast_fd);
         s_hac->multicast_fd = -1;
@@ -287,7 +287,7 @@ static int cel_hacluster_multicast_send(void *buf, size_t size)
     if (sendto(s_hac->multicast_fd,
         buf, (int)size, 0, (struct sockaddr *)&to, sizeof(struct sockaddr_in)) != (int)size)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Multicast send failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("Multicast send failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
         closesocket(s_hac->multicast_fd);
         s_hac->multicast_fd = -1;
         return -1;
@@ -312,7 +312,7 @@ static int cel_hacluster_multicast_recv(void *buf, size_t size)
     {
         if ((r_size = recv(s_hac->multicast_fd, buf, (int)size, 0)) <= 0)
         {
-            CEL_SETERR((CEL_ERR_LIB,  _T("Multicast receive failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
+            CEL_SETERR((CEL_ERR_LIB, _T("Multicast receive failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
             closesocket(s_hac->multicast_fd);
             s_hac->multicast_fd = -1;
             return -1;
@@ -329,7 +329,7 @@ static int cel_hacluster_unicast_open(void)
 
     if ((s_hac->unicast_fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) <= 0)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Create unicast socket failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("Create unicast socket failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
     addr.sin_family = AF_INET;
@@ -340,7 +340,7 @@ static int cel_hacluster_unicast_open(void)
         || bind(s_hac->unicast_fd, 
         (struct sockaddr *)&addr, sizeof(struct sockaddr_in)) == -1)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Unicast set option failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("Unicast set option failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
     //_putts("ok");
@@ -361,7 +361,7 @@ static int cel_hacluster_unicast_sendto(void *buf, size_t size, CelIpAddr *ip_ad
     if ((w_size = sendto(s_hac->unicast_fd, 
         buf, (int)size, 0, (struct sockaddr *)&to, sizeof(struct sockaddr_in))) != (int)size)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Unicast send to %s failed(%s)."), 
+        CEL_SETERR((CEL_ERR_LIB, _T("Unicast send to %s failed(%s)."), 
             cel_sockaddr_ntop((CelSockAddr *)&to), cel_geterrstr(cel_sys_geterrno())));
         closesocket(s_hac->unicast_fd);
         s_hac->unicast_fd = -1;
@@ -391,7 +391,7 @@ static int cel_hacluster_unicast_recvfrom(void *buf, size_t size, CelIpAddr *ip_
         if ((r_size = recvfrom(s_hac->unicast_fd, 
             buf, (int)size, 0, (struct sockaddr *)&from, &from_len)) <= 0)
         {
-            CEL_SETERR((CEL_ERR_LIB,  _T("Unicast receive failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
+            CEL_SETERR((CEL_ERR_LIB, _T("Unicast receive failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
             closesocket(s_hac->unicast_fd);
             s_hac->unicast_fd = -1;
             return -1;
@@ -413,7 +413,7 @@ static int cel_hacluster_send_gratuitous_arp(const TCHAR *if_name,
     /* 0x300 is magic */
     if ((fd = socket(PF_PACKET, SOCK_PACKET, 0x300)) <= 0)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Create gratuitous arp socket failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("Create gratuitous arp socket failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
     msg_len = cel_ethernet_build_arp_request((struct ether_header *)buf, 
@@ -426,7 +426,7 @@ static int cel_hacluster_send_gratuitous_arp(const TCHAR *if_name,
 #endif
     if (sendto(fd, buf, msg_len, 0, &dest, sizeof(dest)) != msg_len)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Send gratuitous arp failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("Send gratuitous arp failed(%s)."), cel_geterrstr(cel_sys_geterrno())));
         closesocket(fd);
         return -1;
     }
@@ -500,7 +500,7 @@ static int cel_hacluster_recv_advertisment(void *buf, size_t len,
     if (len < sizeof(CelHaDeviceMsg)
         || cel_checksum((u_short *)dev_msg, len) != 0x0000)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Invalid checksum, len %d, from %s."), 
+        CEL_SETERR((CEL_ERR_LIB, _T("Invalid checksum, len %d, from %s."), 
             len, cel_ipaddr_ntop(from)));
         return -1;
     }
@@ -518,7 +518,7 @@ static int cel_hacluster_recv_advertisment(void *buf, size_t len,
             /*|| memcmp(meb->dev_name, device_name, dev_msg->device_nl) != 0*/
             || (self = ha_grp->self) == meb)
         {
-            CEL_SETERR((CEL_ERR_LIB,  _T("Invalid group message, dev %s, grp %p[id %d], meb %p[priority %d], from %s."), 
+            CEL_SETERR((CEL_ERR_LIB, _T("Invalid group message, dev %s, grp %p[id %d], meb %p[priority %d], from %s."), 
                 device_name, ha_grp, grp_msg->group_id, meb, grp_msg->priority, cel_ipaddr_ntop(from)));
             continue;
         }
@@ -680,7 +680,7 @@ static int cel_hagroup_recv_advertisment(CelHaGroup *ha_grp, struct timeval *now
         /* MUST verify that the ip ttl is 255 */
         if (ip_hdr->ttl != CEL_HA_MULTICAST_TTL)
         {
-            CEL_SETERR((CEL_ERR_LIB,  _T("Invalid ttl %d, excepted %d, from %s."), 
+            CEL_SETERR((CEL_ERR_LIB, _T("Invalid ttl %d, excepted %d, from %s."), 
                 ip_hdr->ttl, CEL_HA_MULTICAST_TTL, cel_ipaddr_ntop(&from)));
             continue;
         }
@@ -720,7 +720,7 @@ static int cel_hagroup_add_vaddr(CelHaGroup *ha_grp, CelVirtualAddress *vaddr)
     if (ha_grp->vhrd_on
         && cel_if_sethrdaddr(vaddr->if_name, &(ha_grp->vhrd)) == -1)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Set hrdaddr %s to %s failed(%s)."), 
+        CEL_SETERR((CEL_ERR_LIB, _T("Set hrdaddr %s to %s failed(%s)."), 
             cel_hrdaddr_notp(&(ha_grp->vhrd)), vaddr->if_name, 
             cel_geterrstr(cel_sys_geterrno())));
         return -1;
@@ -729,7 +729,7 @@ static int cel_hagroup_add_vaddr(CelHaGroup *ha_grp, CelVirtualAddress *vaddr)
     if (cel_if_newipaddr(vaddr->if_index, &(vaddr->ip), vaddr->label) == -1
         && errno != 17)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Set ipaddr %s to %s failed,%s."), 
+        CEL_SETERR((CEL_ERR_LIB, _T("Set ipaddr %s to %s failed,%s."), 
             cel_ipaddr_ntop(&(vaddr->ip)), vaddr->label, 
             cel_geterrstr(cel_sys_geterrno())));
         return -1;
@@ -760,7 +760,7 @@ static int cel_hagroup_del_vaddr(CelHaGroup *ha_grp, CelVirtualAddress *vaddr)
     {
         if (cel_if_sethrdaddr(vaddr->if_name, &(vaddr->if_hrd)) == -1)
         {
-            CEL_SETERR((CEL_ERR_LIB,  _T("Set hrdaddr %s to %s failed(%s)."), 
+            CEL_SETERR((CEL_ERR_LIB, _T("Set hrdaddr %s to %s failed(%s)."), 
                 cel_hrdaddr_notp(&(vaddr->if_hrd)), vaddr->if_name, 
                 cel_geterrstr(cel_sys_geterrno())));
             return -1;
@@ -929,7 +929,7 @@ static int cel_hagroup_transition_state(CelHaGroup *ha_grp, struct timeval *now)
         break;
     default:
         ha_grp->self->want_state = ha_grp->self->state;
-        CEL_SETERR((CEL_ERR_LIB,  _T("Want state %d undefined."), ha_grp->self->want_state));
+        CEL_SETERR((CEL_ERR_LIB, _T("Want state %d undefined."), ha_grp->self->want_state));
         return -1;
     }
 
@@ -1063,7 +1063,7 @@ int cel_hagroup_check_state(CelHaGroup *ha_grp, CelHaState *state, struct timeva
         ret = cel_hagroup_state_standyby(ha_grp, now);
         break;
     default:
-        CEL_SETERR((CEL_ERR_LIB,  _T("Ha group %d want state %d undefined."), 
+        CEL_SETERR((CEL_ERR_LIB, _T("Ha group %d want state %d undefined."), 
             ha_grp->id, ha_grp->self->state));
         ret = -1;
     }
@@ -1112,7 +1112,7 @@ static int cel_hagroup_resolve_vaddr(const TCHAR *vaddr, CelVirtualAddress *_vad
         || cel_if_gethrdaddr(_vaddr->if_name, &_vaddr->if_hrd) == -1
         || cel_if_getipaddr(_vaddr->if_name, &_vaddr->if_ip) == -1)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Bad interface %s(%s)."), 
+        CEL_SETERR((CEL_ERR_LIB, _T("Bad interface %s(%s)."), 
             _vaddr->if_name, cel_geterrstr(cel_sys_geterrno())));
         return -1;
     }
@@ -1147,7 +1147,7 @@ int cel_hagroup_init(CelHaGroup *ha_grp, int id, int preempt, TCHAR *if_name,
         cel_hacluster_init();
     if (!CEL_ISVALID(id, 1, 255))
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("Bad virtual ha_grp id %d."), id));
+        CEL_SETERR((CEL_ERR_LIB, _T("Bad virtual ha_grp id %d."), id));
         return -1;
     }
     ha_grp->if_name[0] = _T('\0');
@@ -1165,7 +1165,7 @@ int cel_hagroup_init(CelHaGroup *ha_grp, int id, int preempt, TCHAR *if_name,
             || (ha_grp->vaddrs[i] = (CelVirtualAddress *)
             cel_malloc(sizeof(CelVirtualAddress))) == NULL)
         {
-            CEL_SETERR((CEL_ERR_LIB,  _T("Bad virtual address %s."), vaddr[i]));
+            CEL_SETERR((CEL_ERR_LIB, _T("Bad virtual address %s."), vaddr[i]));
             return -1;
         }
         memcpy(ha_grp->vaddrs[i], &_vaddr, sizeof(CelVirtualAddress));
@@ -1201,7 +1201,7 @@ int cel_hagroup_init(CelHaGroup *ha_grp, int id, int preempt, TCHAR *if_name,
             && cel_ipaddr_pton(members[i], &ip_addr) == -1)
             || (ha_grp->members[i] = (CelHaMember *)cel_malloc(sizeof(CelHaMember))) == NULL)
         {
-            CEL_SETERR((CEL_ERR_LIB,  _T("Bad member %s."), members[i]));
+            CEL_SETERR((CEL_ERR_LIB, _T("Bad member %s."), members[i]));
             return -1;
         }
         ha_grp->members[i]->state = CEL_HA_STATE_INIT;
@@ -1229,7 +1229,7 @@ int cel_hagroup_init(CelHaGroup *ha_grp, int id, int preempt, TCHAR *if_name,
     }
     if (ha_grp->self == NULL)
     {
-        CEL_SETERR((CEL_ERR_LIB,  _T("No self members.")));
+        CEL_SETERR((CEL_ERR_LIB, _T("No self members.")));
         return -1;
     }
     ha_grp->active = NULL;
@@ -1272,7 +1272,7 @@ int cel_hagroup_reload(CelHaGroup *ha_grp, int preempt, TCHAR *if_name,
         if (cel_hagroup_resolve_vaddr(vaddr[i], &_vaddr) != 0
             || (vaddrs[n_vaddrs] = (CelVirtualAddress *)cel_malloc(sizeof(CelVirtualAddress))) == NULL)
         {
-            CEL_SETERR((CEL_ERR_LIB,  _T("Bad virtual address %s."), vaddr[i]));
+            CEL_SETERR((CEL_ERR_LIB, _T("Bad virtual address %s."), vaddr[i]));
             return -1;
         }
         memcpy(vaddrs[i], &_vaddr, sizeof(CelVirtualAddress));
@@ -1345,7 +1345,7 @@ members_reload:
             || (ha_grp->members[i] = 
             (CelHaMember *)cel_malloc(sizeof(CelHaMember))) == NULL)
         {
-            CEL_SETERR((CEL_ERR_LIB,  _T("Bad member %s."), members[i]));
+            CEL_SETERR((CEL_ERR_LIB, _T("Bad member %s."), members[i]));
             return -1;
         }
         ha_grp->members[i]->state = CEL_HA_STATE_INIT;

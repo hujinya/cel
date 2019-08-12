@@ -16,76 +16,41 @@
 #define __CEL_NET_HTTPROUTE_H__
 
 #include "cel/convert.h"
-#include "cel/pattrie.h"
+#include "cel/net/httpcontext.h"
 #include "cel/net/httpfilter.h"
 
-typedef enum _CelHttpRouteState
-{
-    CEL_HTTPROUTEST_BEFORE_START,
-    CEL_HTTPROUTEST_BEFORE_EXEC,
-    CEL_HTTPROUTEST_AFTER_EXEC,
-    CEL_HTTPROUTEST_AFTER_FINISH,
-    CEL_HTTPROUTEST_COUNT
-}CelHttpRouteState;
-
-typedef CelPatTrieParams CelHttpRouteData;
-
-typedef int (* CelHttpHandleFunc)(CelHttpClient *client,
-                                  CelHttpRequest *req, CelHttpResponse *rsp,
-                                  CelHttpRouteData *rt_dt);
+typedef int (* CelHttpRouteHandleFunc)(CelHttpContext *http_ctx);
 
 typedef struct _CelHttpRoute
 {
+	CelVStringA prefix;
     CelPatTrie root_tries[CEL_HTTPM_CONUT];
     //BOOL policy_on;
     //CelList policies;
     BOOL filter_on;
-    CelList filters[CEL_HTTPROUTEST_COUNT];
+    CelList filters[CEL_HTTPROUTEST_END];
+	BOOL logger_on;
+	CelHttpFilterHandlerFunc logger_filter;
 }CelHttpRoute;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define cel_httproutedata_init(rt_data) \
-    cel_rbtree_init(rt_data, (CelCompareFunc)strcmp, NULL, cel_free)
-#define cel_httproutedata_destroy(rt_data) cel_rbtree_destroy(rt_data)
-
-#define cel_httproutedata_clear(rt_data) cel_rbtree_clear(rt_data)
-
-static __inline 
-char *cel_httproutedata_get(CelHttpRouteData *rt_data,
-                            const char *key, char *value, size_t *size)
-{
-    char *_value;
-    if ((_value = (char*)cel_rbtree_lookup(rt_data, key)) != NULL)
-        return cel_strncpy(value, size, _value, strlen(_value));
-    return NULL;
-}
-#define cel_httproutedata_get_string(rt_data, key, str, size) \
-    cel_keystr((CelKeyGetFunc)cel_httproutedata_get, rt_data, key, str, size)
-#define cel_httproutedata_get_bool(rt_data, key, b)\
-    cel_keybool((CelKeyGetFunc)cel_httproutedata_get, rt_data, key, b)
-#define cel_httproutedata_get_int(rt_data, key, i)\
-    cel_keyint((CelKeyGetFunc)cel_httproutedata_get, rt_data, key, i)
-#define cel_httproutedata_get_long(rt_data, key, l)\
-    cel_keylong((CelKeyGetFunc)cel_httproutedata_get, rt_data, key, l)
-#define cel_httproutedata_get_double(rt_data, key, d)\
-    cel_keydouble((CelKeyGetFunc)cel_httproutedata_get, rt_data, key, d)
-
-int cel_httproute_init(CelHttpRoute *route);
+int cel_httproute_init(CelHttpRoute *route, const char *prefix);
 void cel_httproute_destroy(CelHttpRoute *route);
 
-CelHttpRoute *cel_httproute_new(void);
+CelHttpRoute *cel_httproute_new(const char *prefix);
 void cel_httproute_free(CelHttpRoute *route);
 
+int cel_httproute_logger_filter_set(CelHttpRoute *route,
+									CelHttpFilterHandlerFunc handle);
 int cel_httproute_filter_insert(CelHttpRoute *route, 
-                                CelHttpRouteState state_position, 
-                                CelHttpFilter *filter);
+                                CelHttpRouteState state, CelHttpFilter *filter);
 
 int cel_httproute_add(CelHttpRoute *route, 
                       CelHttpMethod method, const char *path, 
-                      CelHttpHandleFunc handle_func);
+                      CelHttpRouteHandleFunc handle_func);
 #define cel_httproute_get_add(route, path, handle_func) \
     cel_httproute_add(route, CEL_HTTPM_GET, path, handle_func)
 #define cel_httproute_post_add(route, path, handle_func) \
@@ -96,6 +61,8 @@ int cel_httproute_add(CelHttpRoute *route,
     cel_httproute_add(route, CEL_HTTPM_PUT, path, handle_func)
 #define cel_httproute_patch_add(route, path, handle_func) \
     cel_httproute_add(route, CEL_HTTPM_PATCH, path, handle_func)
+
+//#define cel_httproute_static_add(route, path);
 
 int cel_httproute_remove(CelHttpRoute *route, 
                          CelHttpMethod method, const char *path);
@@ -110,10 +77,9 @@ int cel_httproute_remove(CelHttpRoute *route,
 #define cel_httproute_patch_remove(route, path) \
     cel_httproute_remove(route, CEL_HTTPM_PATCH, path)
 
-CelHttpHandleFunc cel_httproute_routing(CelHttpRoute *route, 
-                                        CelHttpRouteState *state,
-                                        CelHttpMethod method, const char *path,
-                                        CelHttpRouteData *rt_data);
+//#define cel_httproute_static_remove(route, path);
+
+int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx);
 
 #ifdef __cplusplus
 }

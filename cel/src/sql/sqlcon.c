@@ -30,7 +30,7 @@ static CelSqlConClass mysql_kclass =
     (CelSqlResColsFunc)cel_mysqlres_cols,
     (CelSqlResFetchLengthsFunc)cel_mysqlres_fetch_lengths,
     (CelSqlResFetchRowFunc)cel_mysqlres_fetch_row,
-    (CelSqllResFetchFieldFunc)cel_mysqlres_fetch_field,
+    (CelSqlResFetchFieldFunc)cel_mysqlres_fetch_field,
     (CelSqlResFreeFunc)cel_mysqlres_free
 };
 
@@ -177,7 +177,7 @@ int cel_sqlcon_execute_onequery_results(CelSqlCon *con,
     if ((res = _cel_sqlcon_execute_onequery(con)) == NULL)
         return -1;
     cols = cel_sqlres_cols(res);
-    if ((row = cel_sqlres_fetch_row(res)) == NULL)
+    if ((row = cel_sqlres_fetch_row(res)) != NULL)
     {
         if ((ret = each_func((void **)row, cols, user_data)) == 1)
         {
@@ -211,7 +211,7 @@ int cel_sqlcon_execute_query_results(CelSqlCon *con,
     if ((res = _cel_sqlcon_execute_query(con)) == NULL)
         return -1;
     cols = cel_sqlres_cols(res);
-    while ((row = cel_sqlres_fetch_row(res)) == NULL)
+    while ((row = cel_sqlres_fetch_row(res)) != NULL)
     {
         if ((ret = each_func((void **)row, cols, user_data)) == 1)
         {
