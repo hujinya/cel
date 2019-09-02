@@ -69,7 +69,7 @@
 //            cel_socket_destroy(&monitor->clt_sock);
 //        }
 //        monitor->state = MONITOR_DISCONNECTED;
-//        _putts(cel_geterrstr(cel_geterrno()));
+//        _putts(cel_geterrstr());
 //        break;
 //    case MONITOR_CONNECTING:
 //        monitor->state = MONITOR_CONNECTED;
@@ -108,7 +108,7 @@
 //        if (cel_socket_async_send(&(args->send_args)) == -1)
 //        {
 //            _tprintf(_T("monitor %s post send failed(%s).\r\n"), 
-//                cel_sockaddr_ntop(&(monitor->addr)), cel_geterrstr(cel_geterrno()));
+//                cel_sockaddr_ntop(&(monitor->addr)), cel_geterrstr());
 //            cel_socket_destroy(&monitor->clt_sock);
 //            monitor->state = MONITOR_DISCONNECTED;
 //            return;
@@ -139,7 +139,7 @@
 //            if (cel_socket_async_send(&(args->send_args)) == -1)
 //            {
 //                _tprintf(_T("monitor %s post send failed(%s).\r\n"), 
-//                    cel_sockaddr_ntop(&(monitor->addr)), cel_geterrstr(cel_geterrno()));
+//                    cel_sockaddr_ntop(&(monitor->addr)), cel_geterrstr());
 //                cel_socket_destroy(&monitor->clt_sock);
 //                monitor->state = MONITOR_DISCONNECTED;
 //                return;
@@ -158,7 +158,7 @@
 //            if (cel_socket_async_recv(&(args->recv_args)) == -1)
 //            {
 //                _tprintf(_T("monitor %s post receive failed(%s).\r\n"), 
-//                    cel_sockaddr_ntop(&(monitor->addr)), cel_geterrstr(cel_geterrno()));
+//                    cel_sockaddr_ntop(&(monitor->addr)), cel_geterrstr());
 //                cel_socket_destroy(&monitor->clt_sock);
 //                monitor->state = MONITOR_DISCONNECTED;
 //                return;

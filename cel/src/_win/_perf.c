@@ -223,13 +223,13 @@ CelCpuPerf *cel_getcpuperf(void)
         GetModuleHandle(_T("ntdll")), "NtQuerySystemInformation")) == NULL)
     {
         CEL_SETERR((CEL_ERR_LIB, _T("Load NtQuerySystemInformation failed.(GetProcAddress():%s)"), 
-            cel_geterrstr(cel_sys_geterrno())));
+            cel_geterrstr()));
         return NULL;
     }
     if ((lStatus = PNtQuerySystemInformation(
         SystemBasicInformation, &sbi, sizeof(sbi), &ulLen)) != NO_ERROR)
     {
-        CEL_SETERR((CEL_ERR_LIB, _T("SystemBasicInformation():%s."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("SystemBasicInformation():%s."), cel_geterrstr()));
         return NULL;
     }
     // sizeof(SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION) = 44(32bit)/48(32bit)
@@ -237,13 +237,13 @@ CelCpuPerf *cel_getcpuperf(void)
     if ((sppi = 
         (SYSTEM_PROCESSOR_PERFORMANCE_INFORMATION *)cel_malloc(ulLen)) == NULL)
     {
-        CEL_SETERR((CEL_ERR_LIB, _T("%s"), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("%s"), cel_geterrstr()));
         return NULL;
     }
     if ((lStatus = PNtQuerySystemInformation(SystemProcessorPerformanceInformation,
         sppi, ulLen, &ulLen)) != NO_ERROR)
     {
-        CEL_SETERR((CEL_ERR_LIB, _T("SystemProcessorPerformanceInformation():%s."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("SystemProcessorPerformanceInformation():%s."), cel_geterrstr()));
         cel_free(sppi);
         return NULL;
     }
@@ -298,7 +298,7 @@ CelMemPerf *cel_getmemperf(void)
 
     if (!GetPerformanceInfo(&pi, sizeof(pi)))
     {
-        //_putts(cel_geterrstr(cel_sys_geterrno()));
+        //_putts(cel_geterrstr());
         return NULL;
     }
     if ((s_mi->total = (U64)pi.PhysicalTotal * pi.PageSize) != 0)
@@ -382,7 +382,7 @@ CelNetPerf *cel_getnetperf(void)
     {
         if (dwResult != ERROR_INSUFFICIENT_BUFFER)
         {
-            CEL_SETERR((CEL_ERR_LIB, _T("GetIfTable():%s."), cel_geterrstr(cel_sys_geterrno())));
+            CEL_SETERR((CEL_ERR_LIB, _T("GetIfTable():%s."), cel_geterrstr()));
             cel_free(iftb);
             return NULL;
         }
@@ -393,7 +393,7 @@ CelNetPerf *cel_getnetperf(void)
     if ((dwResult = GetIfTable(iftb, &ulLen, FALSE)) != NO_ERROR)
     {
         cel_free(iftb);
-        CEL_SETERR((CEL_ERR_LIB, _T("GetIfTable():%s."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("GetIfTable():%s."), cel_geterrstr()));
         return NULL;
     }
     t_received = t_sent = 0;

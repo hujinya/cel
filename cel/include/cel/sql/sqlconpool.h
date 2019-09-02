@@ -49,7 +49,17 @@ void cel_sqlconpool_free(CelSqlConPool *pool);
 CelSqlCon *cel_sqlconpool_get(CelSqlConPool *pool);
 void cel_sqlconpool_return(CelSqlConPool *pool, CelSqlCon *con);
 
-
+long cel_sqlconpool_execute_nonequery(CelSqlConPool *pool, const char *fmt, ...);
+CelSqlRes *cel_sqlconpool_execute_onequery(CelSqlConPool *pool, const char *fmt, ...);
+CelSqlRes *cel_sqlconpool_execute_query(CelSqlConPool *pool, const char *fmt, ...);
+int cel_sqlconpool_execute_onequery_results(CelSqlConPool *pool,
+											CelSqlRowEachFunc each_func, 
+											void *user_data, 
+											const char *fmt, ...);
+int cel_sqlconpool_execute_query_results(CelSqlConPool *pool,
+										 CelSqlRowEachFunc each_func, 
+										 void *user_data,
+										 const char *fmt, ...);
 #ifdef __cplusplus
 }
 #endif

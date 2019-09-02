@@ -20,7 +20,7 @@ int readline_test(int argc, TCHAR *argv[])
         || cel_tcplistener_set_reuseaddr(&listener, 1) != 0
         || cel_tcplistener_set_nonblock(&listener, 1) != 0)
     {
-        _tprintf(_T("%s\r\n"), cel_geterrstr(cel_geterrno()));
+        _tprintf(_T("%s\r\n"), cel_geterrstr());
         return -1;
     }
     _tprintf(_T("Server %s listenning.\r\n"), 
@@ -48,7 +48,7 @@ int readline_test(int argc, TCHAR *argv[])
                 {
                     _tprintf(_T("Client %s disconnect,read(%s).\r\n"), 
                         cel_tcpclient_get_remoteaddr_str(&client), 
-                        cel_geterrstr(cel_geterrno()));
+                        cel_geterrstr());
                     cel_tcpclient_destroy(&client);
                     client_active = FALSE;
                 }
@@ -69,7 +69,7 @@ int readline_test(int argc, TCHAR *argv[])
                     {
                         _tprintf(_T("Client %s disconnect,write(%s).\r\n"), 
                             cel_tcpclient_get_remoteaddr_str(&client),
-                            cel_geterrstr(cel_geterrno()));
+                            cel_geterrstr());
                         cel_tcpclient_destroy(&client);
                         client_active = FALSE;
                     }

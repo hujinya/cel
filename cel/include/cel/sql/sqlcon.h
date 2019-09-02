@@ -121,30 +121,31 @@ static __inline int cel_sqlcon_sqlstr_resize(CelSqlCon *con, size_t size)
 	return cel_vstring_resize_a(&(con->sqlstr), size);
 }
 
-long cel_sqlcon_execute_nonequery(CelSqlCon *con, const char *fmt, ...);
+long _cel_sqlcon_execute_nonequery(CelSqlCon *con);
 CelSqlRes *_cel_sqlcon_execute_onequery(CelSqlCon *con);
 CelSqlRes *_cel_sqlcon_execute_query(CelSqlCon *con);
+#define CEL_SQLCON_SQLSTR_FMT() {\
+	va_list args;\
+	va_start(args, fmt);\
+	cel_vstring_vprintf_a(&(con->sqlstr), fmt, args); \
+	va_end(args); }
+static __inline
+long cel_sqlcon_execute_nonequery(CelSqlCon *con, const char *fmt, ...)
+{
+	CEL_SQLCON_SQLSTR_FMT();
+	return _cel_sqlcon_execute_nonequery(con);
+}
 static __inline 
 CelSqlRes *cel_sqlcon_execute_onequery(CelSqlCon *con, const char *fmt, ...)
 {
-    va_list args;
-
-    va_start(args, fmt);
-	con->sqlstr.size = 
-		_vsntprintf(con->sqlstr.str, con->sqlstr.capacity, fmt, args);
-    va_end(args);
-    return _cel_sqlcon_execute_onequery(con);
+	CEL_SQLCON_SQLSTR_FMT();
+	return _cel_sqlcon_execute_onequery(con);
 }
 static __inline 
 CelSqlRes *cel_sqlcon_execute_query(CelSqlCon *con, const char *fmt, ...)
 {
-    va_list args;
-
-    va_start(args, fmt);
-    con->sqlstr.size = 
-		_vsntprintf(con->sqlstr.str, con->sqlstr.capacity, fmt, args);
-    va_end(args);
-    return _cel_sqlcon_execute_query(con);
+	CEL_SQLCON_SQLSTR_FMT(); 
+	return _cel_sqlcon_execute_query(con);
 }
 
 static __inline long cel_sqlres_rows(CelSqlRes *res)
@@ -178,14 +179,28 @@ static __inline void cel_sqlres_free(CelSqlRes *res)
     }
 }
 
-int cel_sqlcon_execute_onequery_results(CelSqlCon *con,
-                                        CelSqlRowEachFunc each_func, 
-                                        void *user_data, 
-                                        const char *fmt, ...);
-int cel_sqlcon_execute_query_results(CelSqlCon *con,
-                                     CelSqlRowEachFunc each_func, 
-                                     void *user_data,
-                                     const char *fmt, ...);
+int _cel_sqlcon_execute_onequery_results(CelSqlCon *con,
+										 CelSqlRowEachFunc each_func, 
+										 void *user_data);
+int _cel_sqlcon_execute_query_results(CelSqlCon *con,
+									  CelSqlRowEachFunc each_func, 
+									  void *user_data);
+static __inline int cel_sqlcon_execute_onequery_results(CelSqlCon *con,
+														CelSqlRowEachFunc each_func, 
+														void *user_data, 
+														const char *fmt, ...)
+{
+	CEL_SQLCON_SQLSTR_FMT(); 
+	return _cel_sqlcon_execute_onequery_results(con, each_func, user_data);
+}
+static __inline int cel_sqlcon_execute_query_results(CelSqlCon *con,
+													 CelSqlRowEachFunc each_func, 
+													 void *user_data,
+													 const char *fmt, ...)
+{
+	CEL_SQLCON_SQLSTR_FMT(); 
+	return _cel_sqlcon_execute_query_results(con, each_func, user_data);
+}
 
 #ifdef __cplusplus
 }

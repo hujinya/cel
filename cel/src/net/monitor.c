@@ -206,7 +206,7 @@ int cel_monitor_tcp_init(CelMonitor *mntr)
     //                return 0;
     //            }
     //            CEL_SETERR((CEL_ERR_LIB, _T("Load balancer %s post connect failed(%s)."), 
-    //                cel_sockaddr_ntop(&(mntr_tcp->addr)), cel_geterrstr(cel_sys_geterrno())));
+    //                cel_sockaddr_ntop(&(mntr_tcp->addr)), cel_geterrstr()));
     //        }
     //        cel_socket_destroy(&mntr_tcp->sock);
     //    }

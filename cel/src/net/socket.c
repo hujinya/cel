@@ -121,7 +121,7 @@ int cel_socket_bind_host(CelSocket *sock,
     hints.ai_protocol = sock->protocol;
     if (GetAddrInfo(host, _itot(port, ports, 10), &hints, &addr_info) != 0)
     {
-        CEL_SETERR((CEL_ERR_LIB, _T("GetAddrInfo():%s."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("GetAddrInfo():%s."), cel_geterrstr()));
         return -1;
     }
     result = addr_info;
@@ -149,7 +149,7 @@ int cel_socket_listen_host(CelSocket *sock,
     hints.ai_protocol = sock->protocol;
     if (GetAddrInfo(host, _itot(port, ports, 10), &hints, &addr_info) != 0)
     {
-        CEL_SETERR((CEL_ERR_LIB, _T("GetAddrInfo():%s."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("GetAddrInfo():%s."), cel_geterrstr()));
         return -1;
     }
     result = addr_info;
@@ -305,7 +305,7 @@ int cel_socket_connect_host(CelSocket *sock,
     hints.ai_protocol = sock->protocol;
     if (GetAddrInfo(host, _itot(port, ports, 10), &hints, &addr_info) != 0)
     {
-        CEL_SETERR((CEL_ERR_LIB, _T("GetAddrInfo():%s."), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("GetAddrInfo():%s."), cel_geterrstr()));
         return -1;
     }
     result = addr_info;

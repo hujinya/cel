@@ -149,7 +149,7 @@ int cel_poll_add(CelPoll *poll, CelChannel *channel, void *key)
     if (epoll_ctl(poll->epoll_fd, EPOLL_CTL_ADD, fileds, &ctl_event) != 0)
     {
         CEL_SETERR((CEL_ERR_LIB, _T("epoll_ctl %d failed(%s)"), 
-            fileds, cel_geterrstr(cel_sys_geterrno())));
+            fileds, cel_geterrstr()));
         return -1;
     }
     //_tprintf(_T("ctl_event fd %d\r\n"), ctl_event.data.fd);
@@ -258,7 +258,7 @@ static int cel_poll_do(CelPoll *poll, int milliseconds)
         poll->epoll_fd, poll->events, EVENTS_MAX, milliseconds)) < 0 
         && errno != EINTR)
     {
-        CEL_SETERR((CEL_ERR_LIB, _T("epoll_wait():%s"), cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, _T("epoll_wait():%s"), cel_geterrstr()));
         return -1;
     }
     /*CEL_DEBUG((_T("epoll wait %d, n_events %d, pid %d"), 

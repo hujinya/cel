@@ -1091,7 +1091,7 @@ int cel_httpbodycache_move_file(CelHttpBodyCache *cache, const char *file_path)
             cache->size = 0;
             return 0;
         }
-        CEL_SETERR((CEL_ERR_LIB, cel_geterrstr(cel_sys_geterrno())));
+        CEL_SETERR((CEL_ERR_LIB, cel_geterrstr()));
         return -1;
     }
 }

@@ -71,7 +71,7 @@ static void cel_httpweblistener_do_accept(CelHttpWebListener *listener,
     {
         CEL_SETERR((CEL_ERR_LIB, _T("Http web request listener %s do accept %d.(%s)"), 
             cel_httpweblistener_get_localaddrs(listener), 
-            result->ret, cel_geterrstr(result->error)));
+            result->ret, cel_geterrstr()));
         cel_httpweblistener_post_accept(listener);
         return ;
     }
@@ -115,7 +115,7 @@ static void cel_httpweblistener_do_accept(CelHttpWebListener *listener,
     }
     CEL_SETERR((CEL_ERR_LIB, _T("Http web request client %s init failed(%s)."), 
         cel_httpwebclient_get_remoteaddr_str(new_client), 
-        cel_geterrstr(cel_sys_geterrno())));
+        cel_geterrstr()));
     cel_httpwebclient_free(new_client);
 }
 

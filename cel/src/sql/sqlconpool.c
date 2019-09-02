@@ -35,8 +35,7 @@ int cel_sqlconpool_init(CelSqlConPool *pool, CelSqlConType type,
     pool->port = port;
     pool->min = pool_min;
     pool->max = pool_max;
-    if (cel_ringlist_init(&(pool->frees), 
-        256, (CelFreeFunc)cel_sqlcon_free) == -1)
+    if (cel_ringlist_init(&(pool->frees), 256, (CelFreeFunc)cel_sqlcon_free) == -1)
         return -1;
     pool->n_conns = 0;
     do
@@ -111,8 +110,7 @@ CelSqlCon *cel_sqlconpool_get(CelSqlConPool *pool)
             return con;
         }
     }
-    CEL_SETERR((CEL_ERR_LIB, 
-		_T("cel_sqlconpool_get return NULL, cons %d, max %d"), 
+    CEL_SETERR((CEL_ERR_LIB, _T("cel_sqlconpool_get return NULL, cons %d, max %d"), 
 		pool->n_conns, pool->max));
     return NULL;
 }
@@ -131,4 +129,70 @@ void cel_sqlconpool_return(CelSqlConPool *pool, CelSqlCon *con)
         return ;
     }
     cel_ringlist_push_do_mp(&(pool->frees), con, 1);
+}
+ 
+long cel_sqlconpool_execute_nonequery(CelSqlConPool *pool, const char *fmt, ...)
+{
+	CelSqlCon *con;
+	long affected_rows;
+	if ((con = cel_sqlconpool_get(pool)) == NULL)
+		return -1;
+	CEL_SQLCON_SQLSTR_FMT();
+	affected_rows = _cel_sqlcon_execute_nonequery(con);
+	cel_sqlconpool_return(pool, con);
+	return affected_rows;
+}
+ 
+CelSqlRes *cel_sqlconpool_execute_onequery(CelSqlConPool *pool, const char *fmt, ...)
+{
+	CelSqlCon *con;
+	CelSqlRes *res;
+	if ((con = cel_sqlconpool_get(pool)) == NULL)
+		return NULL;
+	CEL_SQLCON_SQLSTR_FMT();
+	res = _cel_sqlcon_execute_onequery(con);
+	cel_sqlconpool_return(pool, con);
+	return res;
+}
+
+CelSqlRes *cel_sqlconpool_execute_query(CelSqlConPool *pool, const char *fmt, ...)
+{
+	CelSqlCon *con;
+	CelSqlRes *res;
+	if ((con = cel_sqlconpool_get(pool)) == NULL)
+		return NULL;
+	CEL_SQLCON_SQLSTR_FMT();
+	res = _cel_sqlcon_execute_query(con);
+	cel_sqlconpool_return(pool, con);
+	return res;
+}
+
+int cel_sqlconpool_execute_onequery_results(CelSqlConPool *pool,
+											CelSqlRowEachFunc each_func, void *user_data, 
+											const char *fmt, ...)
+{
+	CelSqlCon *con;
+	int ret;
+
+	if ((con = cel_sqlconpool_get(pool)) == NULL)
+		return -1;
+	CEL_SQLCON_SQLSTR_FMT();
+	ret = _cel_sqlcon_execute_onequery_results(con, each_func, user_data);
+	cel_sqlconpool_return(pool, con);
+	return ret;
+}
+
+int cel_sqlconpool_execute_query_results(CelSqlConPool *pool,
+										 CelSqlRowEachFunc each_func, void *user_data,
+										 const char *fmt, ...)
+{
+	CelSqlCon *con;
+	int ret;
+
+	if ((con = cel_sqlconpool_get(pool)) == NULL)
+		return -1;
+	CEL_SQLCON_SQLSTR_FMT();
+	ret = _cel_sqlcon_execute_query_results(con, each_func, user_data);
+	cel_sqlconpool_return(pool, con);
+	return ret;
 }

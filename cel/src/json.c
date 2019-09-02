@@ -48,7 +48,7 @@ int cel_json_init_buffer(CelJson *json, char *buf, size_t size)
         cel_json_destroy(json);
     }
     CEL_SETERR((CEL_ERR_LIB, _T("Json init by buffer error.(%s)"), 
-        cel_geterrstr(cel_sys_geterrno())));
+        cel_geterrstr()));
 
     return -1;
 }
@@ -62,7 +62,7 @@ int cel_json_init_file(CelJson *json, const char *file)
         cel_json_destroy(json);
     }
     CEL_SETERR((CEL_ERR_LIB, _T("Json init by file error.(%s)"),
-        cel_geterrstr(cel_sys_geterrno())));
+        cel_geterrstr()));
 
     return -1;
 }

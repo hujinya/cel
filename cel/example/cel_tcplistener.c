@@ -40,14 +40,14 @@ void tcpclient_send_completion(CelTcpClient *client,
         }
         /*_tprintf("Client %s %d closed.(%s)\r\n", 
             cel_sockaddr_ntop(&(client->remote_addr)), client->sock.fd, 
-            cel_geterrstr(async_result->error));*/
+            cel_geterrstr());*/
         cel_stream_destroy(s);
         cel_tcpclient_destroy(client);
         return ;
     }
     _tprintf("Client %s %d send failed.(%s)\r\n", 
         cel_sockaddr_ntop(&(client->remote_addr)), client->sock.fd, 
-        cel_geterrstr(async_result->error));
+        cel_geterrstr());
     cel_stream_destroy(s);
     cel_tcpclient_destroy(client);
 }
@@ -70,7 +70,7 @@ void tcpclient_recv_completion(CelTcpClient *client,
     }
     _tprintf("Client %s %d recv failed.(%s)\r\n", 
         cel_sockaddr_ntop(&(client->remote_addr)), client->sock.fd, 
-        cel_geterrstr(async_result->error));
+        cel_geterrstr());
     cel_stream_destroy(s);
     cel_tcpclient_destroy(client);
 }
@@ -94,7 +94,7 @@ void tcpclient_handshake_completion(CelTcpClient *client,
     {
         _tprintf("Client %s %d handshake failed.(%s)\r\n", 
             cel_sockaddr_ntop(&(client->remote_addr)), client->sock.fd, 
-            cel_geterrstr(async_result->error));
+            cel_geterrstr());
         cel_stream_destroy(s);
         cel_tcpclient_destroy(client);
     }
@@ -170,7 +170,7 @@ static int tcplistener_working(void *data)
     puts("tcplistener_working");
     cel_eventloop_run(&evt_loop);
     /*_tprintf(_T("Event loop thread %d exit.(%s)"), 
-       cel_thread_getid(), cel_geterrstr(cel_geterrno()));*/
+       cel_thread_getid(), cel_geterrstr());*/
     cel_thread_exit(0);
 
     return 0;
@@ -205,7 +205,7 @@ int tcplistener_test(int argc, TCHAR *argv[])
         if (cel_thread_create(&tds[i], NULL, &tcplistener_working, NULL) != 0
            || cel_thread_setaffinity(&tds[i], &mask) != 0)
         {
-            _tprintf(_T("Work thread create failed.(%s)\r\n"), cel_geterrstr(cel_geterrno()));
+            _tprintf(_T("Work thread create failed.(%s)\r\n"), cel_geterrstr());
             return 1;
         }
     }
@@ -217,13 +217,13 @@ int tcplistener_test(int argc, TCHAR *argv[])
         || cel_sslcontext_set_ciphersuites(
         sslctx, _T("AES:ALL:!aNULL:!eNULL:+RC4:@STRENGTH")) == -1))
     {
-        printf("Ssl context init failed.(%s)\r\n", cel_geterrstr(cel_sys_geterrno()));
+        printf("Ssl context init failed.(%s)\r\n", cel_sys_strerror(cel_sys_geterrno()));
         return -1;
     }
 
     if (cel_tcplistener_init_str(&s_listener, _T("0.0.0.0:9443"), sslctx) != 0)
     {
-        printf("cel_tcplistener_init_str failed.(%s)\r\n", cel_geterrstr(cel_sys_geterrno()));
+        printf("cel_tcplistener_init_str failed.(%s)\r\n", cel_sys_strerror(cel_sys_geterrno()));
         return -1;
     }
     cel_socket_set_nonblock(&(s_listener.sock), 1);

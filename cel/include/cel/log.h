@@ -139,7 +139,6 @@ int cel_logger_hexdump(CelLogger *logger,
                        const BYTE *p, size_t len);
 int cel_logger_flush(CelLogger *logger);
 
-
 /* Global log */
 extern CelLogger g_logger;
 
@@ -208,12 +207,12 @@ int cel_log_emerg(const TCHAR *fmt, ...);
     if (g_logger.level[g_logger.facility] >= CEL_LOGLEVEL_EMERG) \
        cel_log_emerg args
 
-/* Write log file */
+/* File sink function */
 int cel_logmsg_fwrite(CelLogMsg **msgs, size_t n, void *user_data);
 int cel_logmsg_fflush(void *user_data);
-/* Print screen */
+/* Consle sink function */
 int cel_logmsg_puts(CelLogMsg **msgs, size_t n, void *user_data);
-/* Insert db */
+/* Db sink function */
 int cel_logmsg_dbinsert(CelLogMsg **msgs, size_t n, void *user_data);
 
 // Like assert()

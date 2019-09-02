@@ -527,7 +527,7 @@ void cel_sslsocket_do_recv(CelSocket *sock,
                 args->result.error, 
                 (args->result.error != SSL_ERROR_SYSCALL 
                 ? cel_ssl_get_errstr(cel_ssl_get_errno())
-                : cel_geterrstr(cel_sys_geterrno()))));
+                : cel_geterrstr())));
         }
         //puts(buffers->buf);
     }
@@ -564,7 +564,7 @@ int cel_sslsocket_async_recv(CelSslSocket *ssl_sock,
             buffers->buf, buffers->len, (int)args->result.ret, 
             args->result.error, (args->result.error != SSL_ERROR_SYSCALL 
             ? cel_ssl_get_errstr(cel_ssl_get_errno())
-            : cel_geterrstr(cel_sys_geterrno()))));
+            : cel_geterrstr())));
         args->result.ret = -1;
     }
     args->recv_callback(ssl_sock, args->ssl_buf, 1, &(args->result));

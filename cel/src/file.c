@@ -364,7 +364,7 @@ FILE *cel_fopen(const TCHAR *file_name, const TCHAR *mode)
     if ((fp = _tfopen(file_name, mode)) == NULL)
     {
         CEL_SETERR((CEL_ERR_LIB, _T("Open file '%s' failed(%s)."), 
-            file_name, cel_geterrstr(cel_sys_geterrno())));
+            file_name, cel_geterrstr()));
         return NULL;
     }
 
@@ -391,7 +391,7 @@ int cel_fsync(const TCHAR *dest_file,const TCHAR *src_file)
 		if (fwrite(buf, 1, sizeof(buf), fp_) != len)
 		{
 			CEL_SETERR((CEL_ERR_LIB, _T("fwrite():%s."), 
-				cel_geterrstr(cel_sys_geterrno())));
+				cel_geterrstr()));
 			break;
 		}
 	}
@@ -412,7 +412,7 @@ int cel_fmove(const TCHAR *old_file, const TCHAR *new_file)
 		cel_fremove(old_file);
 		return 0;
 	}
-	CEL_SETERR((CEL_ERR_LIB, _T("file move %s"), cel_geterrstr(cel_sys_geterrno())));
+	CEL_SETERR((CEL_ERR_LIB, _T("file move %s"), cel_geterrstr()));
 	return -1;
 }
 

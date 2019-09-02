@@ -49,7 +49,7 @@ static int cel_eventloopgroup_start(CelEventLoopThread *evt_loop_thread)
     //printf("thread id %d\r\n", thread_id->i);
     cel_eventloop_run(evt_loop_thread->evt_loop);
     CEL_DEBUG((_T("Event loop thread %d exit.(%s)"), 
-       (int)cel_thread_getid(), cel_geterrstr(cel_geterrno())));
+       (int)cel_thread_getid(), cel_geterrstr()));
     cel_thread_exit(0);
 
     return 0;

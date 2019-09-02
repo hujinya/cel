@@ -32,7 +32,7 @@ int vrrp_test(int argc, TCHAR *argv[])
     //if ((vrrp_rt = 
     //    cel_vrrprouter_new("eth0", 145, 1, 0, CEL_VRRP_AUTH_NONE, NULL, vaddr,1, peers, 3)) == NULL)
     //{
-    //    _tprintf(_T("%s\r\n"), cel_geterrstr(cel_geterrno()));
+    //    _tprintf(_T("%s\r\n"), cel_geterrstr());
     //    return 1;
     //}
     //cel_vrrprouter_startup(vrrp_rt);

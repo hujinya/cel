@@ -7,7 +7,7 @@ int hacluster_test(int argc, TCHAR *argv[])
 
     if (cel_hacluster_init(&ha) != 0)
     {
-        _tprintf(_T("%s\r\n"), cel_geterrstr(cel_geterrno()));
+        _tprintf(_T("%s\r\n"), cel_geterrstr());
         return 1;
     }
     while (TRUE)

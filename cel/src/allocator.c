@@ -589,7 +589,7 @@ int cel_pageheap_grow(CelPageHeap *page_heap, size_t n_pages)
         ask << PAGE_SHIFT, &actual_size, PAGE_SIZE)) == NULL)
     {
         CEL_SETERR((CEL_ERR_LIB, _T("New span memory failed(%s)."),
-            cel_geterrstr(cel_sys_geterrno())));
+            cel_geterrstr()));
         return -1;
     }
     ask = actual_size >> PAGE_SHIFT;
@@ -598,7 +598,7 @@ int cel_pageheap_grow(CelPageHeap *page_heap, size_t n_pages)
     if ((span = (CelSpan *)_cel_sys_malloc(sizeof(CelSpan))) == NULL)
     {
         CEL_SETERR((CEL_ERR_LIB, _T("New span failed(%s)."), 
-            cel_geterrstr(cel_sys_geterrno())));
+            cel_geterrstr()));
         munmap(ptr, n_pages << PAGE_SHIFT);
         return -1;
     }

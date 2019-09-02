@@ -93,14 +93,10 @@ void cel_sqlcon_free(CelSqlCon *con)
     cel_free(con);
 }
 
-long cel_sqlcon_execute_nonequery(CelSqlCon *con, const char *fmt, ...)
+long _cel_sqlcon_execute_nonequery(CelSqlCon *con)
 {
     long affected_rows;
-    va_list args;
 
-    va_start(args, fmt);
-	con->sqlstr.size = _vsntprintf(con->sqlstr.str, con->sqlstr.capacity, fmt, args);
-    va_end(args);
     if ((affected_rows = con->kclass->con_execute_nonequery(
         con->st_con, con->sqlstr.str, con->sqlstr.size)) == -1)
     {
@@ -161,19 +157,14 @@ CelSqlRes *_cel_sqlcon_execute_query(CelSqlCon *con)
     return res;
 }
 
-int cel_sqlcon_execute_onequery_results(CelSqlCon *con, 
+int _cel_sqlcon_execute_onequery_results(CelSqlCon *con, 
                                         CelSqlRowEachFunc each_func,
-                                        void *user_data,
-                                        const char *fmt, ...)
+                                        void *user_data)
 {
     int ret, cols;
     CelSqlRes *res;
     CelSqlRow row;
-    va_list args;
 
-    va_start(args, fmt);
-    con->sqlstr.size = _vsntprintf(con->sqlstr.str, con->sqlstr.capacity, fmt, args);
-    va_end(args);
     if ((res = _cel_sqlcon_execute_onequery(con)) == NULL)
         return -1;
     cols = cel_sqlres_cols(res);
@@ -195,19 +186,14 @@ int cel_sqlcon_execute_onequery_results(CelSqlCon *con,
     return 0;
 }
 
-int cel_sqlcon_execute_query_results(CelSqlCon *con,
+int _cel_sqlcon_execute_query_results(CelSqlCon *con,
                                      CelSqlRowEachFunc each_func, 
-									 void *user_data,
-                                     const char *fmt, ...)
+									 void *user_data)
 {
     int ret, cols;
     CelSqlRes *res;
     CelSqlRow row;
-    va_list args;
 
-    va_start(args, fmt);
-    con->sqlstr.size = _vsntprintf(con->sqlstr.str, con->sqlstr.capacity, fmt, args);
-    va_end(args);
     if ((res = _cel_sqlcon_execute_query(con)) == NULL)
         return -1;
     cols = cel_sqlres_cols(res);

@@ -35,7 +35,7 @@ int eventloop_test(int argc, TCHAR *argv[])
     {
         if ((loop = cel_eventloop_new(10, 1024)) == NULL)
         {
-            _putts(cel_geterrstr(cel_geterrno()));
+            _putts(cel_geterrstr());
             return -1;
         }
         _tprintf(_T("New loop ok j = %d\r\n"), j);

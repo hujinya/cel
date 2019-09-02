@@ -41,22 +41,22 @@
 
 typedef union _CelErrBuffer
 {
+	int err_no;
 	CHAR a_buffer[CEL_ERRSLEN];
 	WCHAR w_buffer[CEL_ERRSLEN];
 }CelErrBuffer;
 
 typedef struct _CelErrItem
 {
-	int err_no;
+	CelListItem item;
 	CelErrBuffer buf;
 }CelErrItem;
 
 typedef struct _CelErr
 {
 	BOOL stack_on;
-	size_t stack_max_size;
+	size_t stack_used, stack_max;
 	CelList stack;
-	CelErrItem *current;
 	CelErrBuffer stic;
 }CelErr;
 
@@ -72,17 +72,11 @@ extern "C" {
 #endif
 
 CelErr *_cel_err();
-CelErrItem *_cel_err_buffer_current(BOOL is_set);
 void cel_clearerr();
 
-static __inline int cel_geterrno(void)
-{
-    CelErr *err = _cel_err();
-	return (err->current == NULL ? 0 : err->current->err_no);
-}
-CHAR *cel_geterrstr_a(int err_no);
-WCHAR *cel_geterrstr_w(int err_no);
-
+int cel_geterrno(void);
+CHAR *cel_geterrstr_a(void);
+WCHAR *cel_geterrstr_w(void);
 
 void cel_seterr_a(int err_no, const CHAR *fmt, ...);
 void cel_seterr_w(int err_no, const WCHAR *fmt, ...);
@@ -91,20 +85,26 @@ void cel_seterr_ex_a(int err_no, const CHAR *file, int line,
 void cel_seterr_ex_w(int err_no, const WCHAR *file, int line, 
 					 const WCHAR *func, WCHAR *err_str);
 
-#define CEL_SETERR(args) cel_seterr args
-/* 
-cel_seterrstr_ex(_T(__FILE__), __LINE__, _T(__FUNCTION__), cel_seterr args) 
-*/
-
 #ifdef _UNICODE
+#define cel_sys_strerror cel_sys_strerror_w
 #define cel_geterrstr cel_geterrstr_w
 #define cel_seterr cel_seterr_w
 #define cel_seterr_ex cel_seterr_ex_w
 #else
+#define cel_sys_strerror cel_sys_strerror_a
 #define cel_geterrstr cel_geterrstr_a
 #define cel_seterr cel_seterr_a
 #define cel_seterr_ex cel_seterr_ex_a
 #endif
+
+CelErrBuffer *cel_seterr_stic(int err_no, const TCHAR *fmt, ...);
+void cel_seterr_stic_ex(const TCHAR *file, int line, 
+						const TCHAR *func, CelErrBuffer *stic);
+
+#define CEL_SETERR(args) cel_seterr args
+/* 
+cel_seterr_stic_ex(_T(__FILE__), __LINE__, _T(__FUNCTION__), cel_seterr_stic args)
+*/
 
 #ifdef __cplusplus
 }

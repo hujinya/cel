@@ -31,7 +31,7 @@ static int httpwebclient_working(void *data)
 {
     cel_eventloop_run(&evt_loop);
     /*_tprintf(_T("Event loop thread %d exit.(%s)"), 
-       cel_thread_getid(), cel_geterrstr(cel_geterrno()));*/
+       cel_thread_getid(), cel_geterrstr());*/
     cel_thread_exit(0);
 
     return 0;
@@ -65,7 +65,7 @@ int httpwebclient_test(int argc, TCHAR *argv[])
         if (cel_thread_create(&tds[i], NULL, &httpwebclient_working, NULL) != 0
             || cel_thread_setaffinity(&tds[i], &mask) != 0)
         {
-            _tprintf(_T("Work thread create failed.(%s)\r\n"), cel_geterrstr(cel_geterrno()));
+            _tprintf(_T("Work thread create failed.(%s)\r\n"), cel_geterrstr());
             return 1;
         }
     }
@@ -77,7 +77,7 @@ int httpwebclient_test(int argc, TCHAR *argv[])
     //    || cel_sslcontext_set_ciphersuites(
     //    sslctx, _T("AES:ALL:!aNULL:!eNULL:+RC4:@STRENGTH")) == -1))
     //{
-    //    printf("Ssl context init failed.(%s)\r\n", cel_geterrstr(cel_geterrno()));
+    //    printf("Ssl context init failed.(%s)\r\n", cel_geterrstr());
     //    return -1;
     //}
     memset(&httpweb_ctx, 0 ,sizeof(CelHttpWebContext));

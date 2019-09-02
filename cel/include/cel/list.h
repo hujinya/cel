@@ -42,7 +42,7 @@ static __inline void cel_list_push_front(CelList *list, CelListItem *item)
 {
     item->next = list->head.next;
     item->prev = &(list->head);
-    list->head.next->prev = item;
+	list->head.next->prev = item;
     list->head.next = item;
     (list->size)++;
 }

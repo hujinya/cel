@@ -25,7 +25,7 @@ static int sslsocket_working(void *data)
 {
     cel_eventloop_run(&evt_loop);
     //_tprintf(_T("Event loop thread %d exit.(%s)"), 
-    //   cel_thread_getid(), cel_geterrstr(cel_geterrno()));
+    //   cel_thread_getid(), cel_geterrstr());
 
     cel_thread_exit(0);
 
@@ -110,7 +110,7 @@ int sslsocket_test(int argc, TCHAR *argv[])
         || cel_sslcontext_set_ciphersuites(ssl_ctx, 
         "ALL:!ADH:!EXPORT56:RC4+RSA:+HIGH:+MEDIUM:+LOW:+SSLv2:+EXP") == -1 )
     {
-        _tprintf(_T("ssl init failed. %s\r\n"), cel_geterrstr(cel_geterrno()));
+        _tprintf(_T("ssl init failed. %s\r\n"), cel_geterrstr());
         return -1;
     }
 
@@ -121,7 +121,7 @@ int sslsocket_test(int argc, TCHAR *argv[])
         || cel_socket_set_nonblock(&(ssl_listener), 1) != 0
         || cel_eventloop_add_channel(&evt_loop, &(ssl_listener.channel), NULL) != 0)
     {
-        _tprintf(_T("listen failed. %s\r\n"), cel_geterrstr(cel_geterrno()));
+        _tprintf(_T("listen failed. %s\r\n"), cel_geterrstr());
         return -1;
     }
     _tprintf(_T("%s listen.\r\n"), cel_sockaddr_ntop(&addr));

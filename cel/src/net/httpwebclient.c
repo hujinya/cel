@@ -242,9 +242,9 @@ int cel_httpwebclient_routing(CelHttpWebClient *client)
 			cel_httpresponse_set_statuscode(&(client->rsp), CEL_HTTPSC_ERROR);
 		cel_httpresponse_printf(&(client->rsp), 
 			"{\"error\":%d,\"message\":\"%s\"}", 
-			cel_geterrno(), cel_geterrstr(cel_geterrno()));
+			cel_geterrno(), cel_geterrstr());
 		cel_httpresponse_end(&(client->rsp));
-		//puts(cel_geterrstr(cel_geterrno()));
+		//puts(cel_geterrstr());
 	}
 	//printf("rsp %s\r\n", client->rsp.s.buffer);
 	if (cel_httpclient_async_send_response(&(client->http_client), 

@@ -441,7 +441,7 @@ static int cel_httprequest_reading_header(CelHttpRequest *req, CelStream *s)
                         "reading return -1(%s)",
                         (int)value_end - key_start,
                         (char *)(cel_stream_get_buffer(s) + key_start),
-                        cel_geterrstr(cel_sys_geterrno())));
+                        cel_geterrstr()));
                     else
                         CEL_SETFLAG(req->hdr_flags, (ULL(1) << hdr_index));
                     /*printf("Http request header '%.*s' reading end i= %d.\r\n",

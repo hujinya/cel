@@ -6,7 +6,7 @@ void thread_worker(void *data, void *user_data)
 {
    _tprintf(_T("Task %d is running by thread [%ld].\r\n"), 
        *((int*)data), cel_thread_getid());
-   //_putts(cel_geterrstr(cel_geterrno()));
+   //_putts(cel_geterrstr());
    sleep(1);
 }
 

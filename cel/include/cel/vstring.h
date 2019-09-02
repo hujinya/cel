@@ -51,7 +51,7 @@ void cel_vstring_free_a(CelVStringA *vstr);
 void cel_vstring_free_w(CelVStringW *vstr);
 
 int __cel_vstring_resize(CelVString *vstr, size_t size, size_t cw);
-#define _cel_vstring_resize(vstr, size, cw) (((size + 1) >= (vstr)->capacity) \
+#define _cel_vstring_resize(vstr, size, cw) ((((size_t)size + 1) >= (vstr)->capacity) \
     ? __cel_vstring_resize((CelVString *)vstr, size + 1, cw) : 0)
 #define cel_vstring_resize_a(vstr, size) \
     _cel_vstring_resize(vstr, size, sizeof(CHAR))
@@ -73,6 +73,25 @@ void cel_vstring_assign_w(CelVStringW *vstr, const WCHAR *val, size_t n)
         memcpy(vstr->str, val, n * sizeof(WCHAR));
         vstr->size = n;
     }
+}
+static __inline 
+int cel_vstring_vprintf_a(CelVStringA *vstr, const char *fmt, va_list ap)
+{
+	int n;
+
+	while (TRUE)
+	{
+		n = _vsntprintf(vstr->str, vstr->capacity, fmt, ap);
+		if (n > -1 && n < (int)(vstr->capacity))
+		{
+			vstr->size = n;
+			return vstr->size;
+		}
+		//printf("%d n = %d\r\n", vstr->capacity, n);
+		//n = vstr->capacity * 2;
+		if (cel_vstring_resize_a(vstr, n) != 0)
+			return -1;
+	}
 }
 
 static __inline void cel_vstring_append_a(CelVStringA *vstr, CHAR ch)

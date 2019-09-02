@@ -275,7 +275,7 @@ BOOL os_getautologon(DWORD *dwAuto, char *username, DWORD *dwSize)
         }
         RegCloseKey(hkResult);
     }
-    //_tprintf(_T("%ld ls = %ld %s\r\n"), *dwAuto, ls, cel_geterrstr(cel_sys_geterrno()));
+    //_tprintf(_T("%ld ls = %ld %s\r\n"), *dwAuto, ls, cel_geterrstr());
     return FALSE;
 }
 

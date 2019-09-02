@@ -683,7 +683,7 @@ int cel_logmsg_fwrite(CelLogMsg **msgs, size_t n, void *path)
                 && (cel_mkdirs((TCHAR *)path, CEL_UMASK) == -1
                 || (s_fp = cel_fopen(file_path, _T("a"))) == NULL))
             {
-                _putts(cel_geterrstr(cel_sys_geterrno()));
+                _putts(cel_geterrstr());
                 return 0;
             }
             //cel_chmod(file_path, S_IRWXU|S_IRGRP|S_IROTH);

@@ -71,8 +71,8 @@ long cel_mysqlcon_execute_nonequery(CelMysqlCon *con,
 
     if (mysql_real_query(con, sqlstr, len) != 0)
     {
-        CEL_SETERR((CEL_ERR_MYSQL, 
-            _T("mysql_real_query:%s."), mysql_error(con)));
+		CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_real_query:%s, sqlstr:%s."),
+			mysql_error(con), sqlstr));
         return -1;
     }
     if ((res = mysql_store_result(con)) != NULL)
@@ -94,8 +94,8 @@ CelMysqlRes *cel_mysqlcon_execute_onequery(CelMysqlCon *con,
 
     if (mysql_real_query(con, sqlstr, len) != 0)
     {
-        CEL_SETERR((CEL_ERR_MYSQL,
-            _T("mysql_real_query:%s."), mysql_error(con)));
+        CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_real_query:%s, sqlstr:%s."),
+			mysql_error(con), sqlstr));
         mysql_close(con);
         return NULL;
     }
@@ -108,12 +108,12 @@ CelMysqlRes *cel_mysqlcon_execute_query(CelMysqlCon *con,
     if (con == NULL) 
         return NULL;
 
-    if (mysql_real_query(con, sqlstr, len) != 0)
-    {
-        CEL_SETERR((CEL_ERR_MYSQL,
-            _T("mysql_real_query:%s."),mysql_error(con)));
-        return NULL;
-    }
+	if (mysql_real_query(con, sqlstr, len) != 0)
+	{
+		CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_real_query:%s, sqlstr:%s."),
+			mysql_error(con), sqlstr));
+		return NULL;
+	}
     return mysql_store_result(con);
 }
 
@@ -185,8 +185,8 @@ int cel_mysqlres_rows_seek(CelMysqlRes *res,
         *row = row_offset->data;
         return 0;
     }
-    CEL_SETERR((CEL_ERR_MYSQL, 
-        _T("Mysql data seek failed, offset %lld out of range"), offset));
+    CEL_SETERR((CEL_ERR_MYSQL,
+		_T("Mysql data seek failed, offset %lld out of range"), offset));
 
     return -1;
 }

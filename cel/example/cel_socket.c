@@ -21,7 +21,7 @@ void show_addr()
     CelSockAddr addr;
 
     if (cel_sockaddr_init_str(&addr, _T("")) == -1)
-        _putts(cel_geterrstr(cel_geterrno()));
+        _putts(cel_geterrstr());
     _tprintf(_T("%s\r\n"), cel_sockaddr_ntop(&addr));
 }
 

@@ -30,7 +30,7 @@ int json_test(int argc, TCHAR *argv[])
     cel_json_destroy(&json);
 
     cel_json_init_file(&json, cel_fullpath_a("./profile.conf"));
-    puts(cel_geterrstr_a(cel_geterrno()));
+    puts(cel_geterrstr_a());
     cel_json_serialize_starts(&json, 1);
     memset(buf4, 0, 1024);
     len = 128;

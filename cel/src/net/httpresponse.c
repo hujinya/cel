@@ -405,7 +405,7 @@ static int cel_httpresponse_reading_header(CelHttpResponse *rsp, CelStream *s)
                         "reading return -1(%s)", 
                         (int)value_end - key_start,
                         (char *)(cel_stream_get_buffer(s) + key_start), 
-                        cel_geterrstr(cel_sys_geterrno())));
+                        cel_geterrstr()));
                     else
                         CEL_SETFLAG(rsp->hdr_flags, (ULL(1) << hdr_index));
                 }
