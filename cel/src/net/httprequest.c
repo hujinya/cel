@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -747,7 +747,7 @@ static int cel_httprequest_writing_body(CelHttpRequest *req, CelStream *s)
                 return -1;
             }
             /* Chunk data */
-            if (req->writing_body_offset != -1)
+            if (!cel_httpchunked_is_last(&(req->chunked)))
             {
                 cel_stream_set_position(s, 
                     cel_httpchunked_get_send_buffer_position(&(req->chunked)));
@@ -1186,10 +1186,9 @@ int cel_httprequest_end(CelHttpRequest *req)
 
     if (req->writing_body_offset == 0)
     {
-        cel_httprequest_set_header(req, 
-            CEL_HTTPHDR_CONTENT_LENGTH, &len, sizeof(len));
+        cel_httprequest_set_header(req, CEL_HTTPHDR_CONTENT_LENGTH, &len, sizeof(len));
     }
-    req->writing_body_offset = -1;
+	cel_httpchunked_set_last(&(req->chunked), TRUE);
     if (cel_httprequest_writing(req, &(req->s)) == -1
         && req->writing_error == CEL_HTTP_ERROR)
         return -1;

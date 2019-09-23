@@ -1,4 +1,8 @@
-* Fri Jun 19 2019 Hu Jinya <hjy@gzsunrun.cn> 1.2.0.41
+* Mon Sep 9 2019 Hu Jinya <hjy@gzsunrun.cn> 1.2.1.46
+- 修复：cel_httpcontext_clear清空httprequet\httpresponse\httpclient,造成长连接返回出现段错误。
+- 修复：cel_httpbodycache_read在cache_size为0时段错误。
+
+* Mon Sep 9 2019 Hu Jinya <hjy@gzsunrun.cn> 1.2.0.43
 - 新增：CelStream增加mode属性，标识当前处于读模式还是写模式。
 - 新增：CelHttpFilter增加cros、static过滤器。
 - 新增：CelHttpRoute支持按prefix分组。
@@ -9,9 +13,6 @@
   连接使用完后忘记释放的问题。
 - 新增：CelSqlCon的sqlstr自动增长长度，不需要手动计算。
 - 优化：cel_geterrstr()去掉参数。
-- 优化：CelHttpClient应用CelStream的模式读写数据，应用程序重复调用CelHttpClient
-  的相关函数造成内存地址覆盖时无法定位问题,改为若检测到重复调用CelStream时，直接
-  abort暴露异常?
 
 * Fri Apr 15 2019 Hu Jinya <hjy@gzsunrun.cn> 1.1.3.40
 - 优化：cel_fsysnc拷贝缓存大小设为CEL_LINELEN。

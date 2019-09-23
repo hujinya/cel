@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -133,6 +133,7 @@ struct _CelHttpResponse
 
     CelHttpResponseWritingState writing_state;
     CelHttpError writing_error;
+	size_t writing_hdr_offset;
     long long writing_body_offset;
     CelHttpResponseBodyWriteCallBack body_writing_callback;
     void *body_writing_user_data;
@@ -232,38 +233,43 @@ char *cel_httpresponse_get_ext_header(CelHttpResponse *rsp, char *hdr_name)
     return (char *)cel_rbtree_lookup(&(rsp->ext_hdrs), hdr_name);
 }
 static __inline 
-void cel_httpresponse_set_ext_header(CelHttpResponse *rsp, 
-                                     char *hdr_name, char *hdr_value)
+void cel_httpresponse_set_ext_header(CelHttpResponse *rsp,
+									 char *hdr_name, char *hdr_value)
 {
-    cel_rbtree_insert(&(rsp->ext_hdrs), 
-        cel_strdup(hdr_name), cel_strdup(hdr_value));
+    cel_rbtree_insert(&(rsp->ext_hdrs), cel_strdup(hdr_name), cel_strdup(hdr_value));
 }
 /* 
  * bytes=1000-2000  first = 1000, last = 2000
  * bytes=1000-      first = 1000, last = 0
  * bytes=-1000      first = -1000, last = 0
  */
-#define cel_httpresponse_get_bodey_size(rsp) (rsp)->reading_body_offset
+#define cel_httpresponse_get_recv_body_size(rsp) (rsp)->reading_body_offset
+static __inline long long cel_httpresponse_get_send_body_size(CelHttpResponse *rsp)
+{
+	if (rsp->body_cache.fp != NULL)
+		return rsp->body_cache.size;
+	if (rsp->writing_body_offset != -1)
+		return rsp->writing_body_offset;
+	return 0;
+}
 static __inline 
 long long cel_httpresponse_get_body_data(CelHttpResponse *rsp, 
-                                        long long first, long long last,
-                                        void *buf, size_t buf_size)
+										 long long first, long long last,
+										 void *buf, size_t buf_size)
 {
-    return cel_httpbodycache_read(
-        &(rsp->body_cache), first, last, buf, buf_size);
+	return cel_httpbodycache_read(&(rsp->body_cache), first, last, buf, buf_size);
 }
 static __inline 
 long long cel_httpresponse_save_body_data(CelHttpResponse *rsp,
-                                         long long first, long long last,
-                                         const char *file_path) 
+										  long long first, long long last,
+										  const char *file_path) 
 {
-    return cel_httpbodycache_save_file(
-        &(rsp->body_cache), first, last, file_path);
+	return cel_httpbodycache_save_file(&(rsp->body_cache), first, last, file_path);
 }
 static __inline int cel_httpresponse_move_body_data(CelHttpResponse *rsp,
-                                                    const char *file_path)
+													const char *file_path)
 {
-    return cel_httpbodycache_move_file(&(rsp->body_cache), file_path);
+	return cel_httpbodycache_move_file(&(rsp->body_cache), file_path);
 }
 
 #define cel_httpresponse_get_stream(rsp) (&(rsp->s))
@@ -273,8 +279,7 @@ void cel_httpresponse_seek_send_buffer(CelHttpResponse *rsp, int offset);
 int cel_httpresponse_resize_send_buffer(CelHttpResponse *rsp, size_t resize);
 
 int cel_httpresponse_write(CelHttpResponse *rsp, const void *buf, size_t size);
-int cel_httpresponse_vprintf(CelHttpResponse *rsp, 
-                             const char *fmt, va_list _args);
+int cel_httpresponse_vprintf(CelHttpResponse *rsp, const char *fmt, va_list _args);
 int cel_httpresponse_printf(CelHttpResponse *rsp, const char *fmt, ...);
 int cel_httpresponse_end(CelHttpResponse *rsp);
 

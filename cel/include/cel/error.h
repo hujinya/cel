@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -39,11 +39,13 @@
 #define CEL_ERRSLEN                512
 #endif
 
-typedef union _CelErrBuffer
+typedef struct _CelErrBuffer
 {
 	int err_no;
-	CHAR a_buffer[CEL_ERRSLEN];
-	WCHAR w_buffer[CEL_ERRSLEN];
+	union {
+		CHAR a_buffer[CEL_ERRSLEN];
+		WCHAR w_buffer[CEL_ERRSLEN];
+	};
 }CelErrBuffer;
 
 typedef struct _CelErrItem
@@ -54,6 +56,7 @@ typedef struct _CelErrItem
 
 typedef struct _CelErr
 {
+	CelErrItem *items;
 	BOOL stack_on;
 	size_t stack_used, stack_max;
 	CelList stack;

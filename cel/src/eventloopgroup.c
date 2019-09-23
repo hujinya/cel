@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -25,17 +25,17 @@ CelEventLoopThreadId *_cel_eventloopthread_id()
     if ((ptr = (CelEventLoopThreadId *)
         cel_multithread_get_keyvalue(CEL_MT_KEY_EVENTLOOPTHREADID)) == NULL)
     {
-        if ((ptr = (CelEventLoopThreadId *)
-            _cel_sys_malloc(sizeof(CelEventLoopThreadId))) != NULL)
-        {
-            ptr->i = 0;
-            if (cel_multithread_set_keyvalue(
-                CEL_MT_KEY_EVENTLOOPTHREADID, ptr) != -1
-                && cel_multithread_set_keydestructor(
-                CEL_MT_KEY_EVENTLOOPTHREADID, _cel_sys_free) != -1)
-                return ptr;
-            _cel_sys_free(ptr);
-        }
+		if ((ptr = (CelEventLoopThreadId *)
+			_cel_sys_malloc(sizeof(CelEventLoopThreadId))) != NULL)
+		{
+			ptr->i = 0;
+			if (cel_multithread_set_keyvalue(
+				CEL_MT_KEY_EVENTLOOPTHREADID, ptr) != -1
+				&& cel_multithread_set_keydestructor(
+				CEL_MT_KEY_EVENTLOOPTHREADID, _cel_sys_free) != -1)
+				return ptr;
+			_cel_sys_free(ptr);
+		}
         return NULL;
     }
     return ptr;
@@ -48,8 +48,8 @@ static int cel_eventloopgroup_start(CelEventLoopThread *evt_loop_thread)
     thread_id->i = evt_loop_thread->i;
     //printf("thread id %d\r\n", thread_id->i);
     cel_eventloop_run(evt_loop_thread->evt_loop);
-    CEL_DEBUG((_T("Event loop thread %d exit.(%s)"), 
-       (int)cel_thread_getid(), cel_geterrstr()));
+    CEL_DEBUG((_T("Event loop thread %d exit.(%s)"),
+		(int)cel_thread_getid(), cel_geterrstr()));
     cel_thread_exit(0);
 
     return 0;

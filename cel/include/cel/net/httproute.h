@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -27,9 +27,8 @@ typedef struct _CelHttpRoute
     CelPatTrie root_tries[CEL_HTTPM_CONUT];
     //BOOL policy_on;
     //CelList policies;
-    BOOL filter_on;
+    BOOL filter_on, logger_on;
     CelList filters[CEL_HTTPROUTEST_END];
-	BOOL logger_on;
 	CelHttpFilterHandlerFunc logger_filter;
 }CelHttpRoute;
 
@@ -42,11 +41,6 @@ void cel_httproute_destroy(CelHttpRoute *route);
 
 CelHttpRoute *cel_httproute_new(const char *prefix);
 void cel_httproute_free(CelHttpRoute *route);
-
-int cel_httproute_logger_filter_set(CelHttpRoute *route,
-									CelHttpFilterHandlerFunc handle);
-int cel_httproute_filter_insert(CelHttpRoute *route, 
-                                CelHttpRouteState state, CelHttpFilter *filter);
 
 int cel_httproute_add(CelHttpRoute *route, 
                       CelHttpMethod method, const char *path, 
@@ -64,8 +58,7 @@ int cel_httproute_add(CelHttpRoute *route,
 
 //#define cel_httproute_static_add(route, path);
 
-int cel_httproute_remove(CelHttpRoute *route, 
-                         CelHttpMethod method, const char *path);
+int cel_httproute_remove(CelHttpRoute *route, CelHttpMethod method, const char *path);
 #define cel_httproute_get_remove(route, path) \
     cel_httproute_remove(route, CEL_HTTPM_GET, path)
 #define cel_httproute_post_remove(route, path) \
@@ -78,6 +71,11 @@ int cel_httproute_remove(CelHttpRoute *route,
     cel_httproute_remove(route, CEL_HTTPM_PATCH, path)
 
 //#define cel_httproute_static_remove(route, path);
+
+int cel_httproute_logger_filter_set(CelHttpRoute *route,
+									CelHttpFilterHandlerFunc handle);
+int cel_httproute_filter_insert(CelHttpRoute *route,
+								CelHttpRouteState state, CelHttpFilter *filter);
 
 int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx);
 

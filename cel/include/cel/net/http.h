@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -246,6 +246,7 @@ typedef enum _CelHttpBodySaveType
 {
     CEL_HTTPBODY_SAVE_UNDEFINED = -1,
     CEL_HTTPBODY_SAVE_IN_CACHE,
+	CEL_HTTPBODY_SAVE_IN_FILE,
     CEL_HTTPBODY_SAVE_IN_MULTIPART
 }CelHttpBodySaveType;
 
@@ -386,6 +387,14 @@ void *cel_httpchunked_get_send_buffer(CelHttpChunked *chunked, CelStream *s)
 static __inline void cel_httpchunked_send_seek(CelHttpChunked *chunked, int offset)
 {
     chunked->size += offset;
+}
+static __inline void cel_httpchunked_set_last(CelHttpChunked *chunked, BOOL is_last)
+{
+	chunked->last = TRUE;
+}
+static __inline BOOL cel_httpchunked_is_last(CelHttpChunked *chunked)
+{
+	return chunked->last;
 }
 long cel_httpchunked_writing_last(CelHttpChunked *chunked, CelStream *s);
 

@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -71,6 +71,20 @@ void cel_httproute_free(CelHttpRoute *route)
     cel_free(route);
 }
 
+int cel_httproute_add(CelHttpRoute *route, 
+                      CelHttpMethod method, const char *path, 
+                      CelHttpFilterHandlerFunc handle_func)
+{
+    cel_pattrie_insert(&(route->root_tries[method]), path, handle_func);
+    return 0;
+}
+
+int cel_httproute_remove(CelHttpRoute *route, 
+                         CelHttpMethod method, const char *path)
+{
+    return 0;
+}
+
 int cel_httproute_logger_filter_set(CelHttpRoute *route, 
 									CelHttpFilterHandlerFunc handle)
 {
@@ -84,20 +98,6 @@ int cel_httproute_filter_insert(CelHttpRoute *route,
                                 CelHttpFilter *filter)
 {
     cel_list_push_back(&(route->filters[state_position]), &filter->_item);
-    return 0;
-}
-
-int cel_httproute_add(CelHttpRoute *route, 
-                      CelHttpMethod method, const char *path, 
-                      CelHttpFilterHandlerFunc handle_func)
-{
-    cel_pattrie_insert(&(route->root_tries[method]), path, handle_func);
-    return 0;
-}
-
-int cel_httproute_remove(CelHttpRoute *route, 
-                         CelHttpMethod method, const char *path)
-{
     return 0;
 }
 

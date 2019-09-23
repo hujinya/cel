@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -42,8 +42,7 @@ int cel_task_init(CelTask *task,
     task->trigger.months = months;
     task->task_func = task_func;
     task->user_data = user_data;
-    cel_refcounted_init(&(task->ref_counted),
-        (CelFreeFunc)cel_task_destroy_derefed);
+    cel_refcounted_init(&(task->ref_counted), (CelFreeFunc)cel_task_destroy_derefed);
 
     return 0;
 }

@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -288,6 +288,10 @@ char *cel_httprequest_get_params(CelHttpRequest *req, const char *key,
 
 /* CelHttpVersion cel_httprequest_get_version(CelHttpRequest *req); */
 #define cel_httprequest_get_version(req) (req)->ver
+static __inline const char *cel_httprequest_get_version_str(CelHttpRequest *req)
+{
+	return g_httpversion[req->ver].key_word;
+}
 #define cel_httprequest_set_version(req, version) (req)->ver = version
 
 void *cel_httprequest_get_header(CelHttpRequest *req, CelHttpHeader hdr_index);
@@ -306,7 +310,7 @@ void cel_httprequest_set_ext_header(CelHttpRequest *req,
         cel_strdup(hdr_name), cel_strdup(hdr_value));
 }
 
-#define cel_httprequest_get_body_size(req) (req)->reading_body_offset
+#define cel_httprequest_get_recv_body_size(req) (req)->reading_body_offset
 /* 
  * bytes=1000-2000  first = 1000, last = 2000
  * bytes=1000-      first = 1000, last = 0

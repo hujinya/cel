@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -212,6 +212,7 @@ int cel_httpresponse_init(CelHttpResponse *rsp)
 
     rsp->writing_state = CEL_HTTPRESPONSE_WRITING_INIT;
     rsp->writing_error = 0;
+	rsp->writing_hdr_offset = 0;
     rsp->writing_body_offset = 0;
     rsp->body_writing_callback = NULL;
 
@@ -256,6 +257,7 @@ void cel_httpresponse_clear(CelHttpResponse *rsp)
     
     rsp->writing_state = CEL_HTTPRESPONSE_WRITING_INIT;
     rsp->writing_error = 0;
+	rsp->writing_body_offset = 0;
     rsp->writing_body_offset = 0;
     rsp->body_writing_callback = NULL;
 
@@ -297,6 +299,7 @@ void cel_httpresponse_destroy(CelHttpResponse *rsp)
     
     rsp->writing_state = CEL_HTTPRESPONSE_WRITING_INIT;
     rsp->writing_error = 0;
+	rsp->writing_hdr_offset = 0;
     rsp->writing_body_offset = 0;
     rsp->body_writing_callback = NULL;
 
@@ -395,8 +398,7 @@ static int cel_httpresponse_reading_header(CelHttpResponse *rsp, CelStream *s)
                 }
                 else
                 {
-                    handler = (CelHttpHeaderHandler *)
-                        g_case_httphdr[hdr_index].value2;
+                    handler = (CelHttpHeaderHandler *)g_case_httphdr[hdr_index].value2;
                     if (handler->reading_func(
                         (char *)rsp + s_httprsphdr_offset[hdr_index], 
                         (char *)(cel_stream_get_buffer(s) + value_start), 
@@ -526,8 +528,7 @@ int cel_httpresponse_reading(CelHttpResponse *rsp, CelStream *s)
         {
             if (cel_stream_get_remaining_length(s) < 1)
             {
-                if (cel_stream_get_position(s) - start > 
-                    CEL_HTTPVERSION_LEN)
+                if (cel_stream_get_position(s) - start > CEL_HTTPVERSION_LEN)
                     rsp->reading_state = CEL_HTTP_ERROR;
                 cel_stream_set_position(s, start);
                 return -1;
@@ -670,13 +671,13 @@ static int cel_httpresponse_writing_body(CelHttpResponse *rsp, CelStream *s)
                 return -1;
             }
             /* Chunk data */
-            if (rsp->writing_body_offset != -1)
+            if (!cel_httpchunked_is_last(&(rsp->chunked)))
             {
                 cel_stream_set_position(s, 
-                    cel_httpchunked_get_send_buffer_position(&(rsp->chunked)));
+					cel_httpchunked_get_send_buffer_position(&(rsp->chunked)));
                 if (rsp->body_writing_callback == NULL
                     || (_size = rsp->body_writing_callback(
-                    rsp, s, rsp->body_writing_user_data)) <= 0)
+					rsp, s, rsp->body_writing_user_data)) <= 0)
                 {
                     rsp->writing_error = CEL_HTTP_WANT_WRITE;
                     cel_stream_seal_length(s);
@@ -703,13 +704,12 @@ static int cel_httpresponse_writing_body(CelHttpResponse *rsp, CelStream *s)
         //printf("%d %d\r\n", rsp->content_length, rsp->writing_body_offset);
         if (rsp->writing_body_offset != -1)
         {
-            while ((len = 
-                (long)(rsp->content_length - rsp->writing_body_offset)) > 0)
+            while ((len = (long)(rsp->content_length - rsp->writing_body_offset)) > 0)
             {
                 if (cel_stream_get_remaining_capacity(s) < 1
                     || rsp->body_writing_callback == NULL
                     || (_size = rsp->body_writing_callback(
-                    rsp, s, rsp->body_writing_user_data)) == 0)
+					rsp, s, rsp->body_writing_user_data)) == 0)
                 {
                     rsp->writing_error = CEL_HTTP_WANT_WRITE;
                     cel_stream_seal_length(s);
@@ -739,10 +739,11 @@ int cel_httpresponse_writing(CelHttpResponse *rsp, CelStream *s)
             cel_http_get_reasonphrase(rsp->status));
         //_tprintf(_T("status :%s\r\n"),(char *)(s->buffer));
         rsp->writing_state = CEL_HTTPRESPONSE_WRITING_HEADER;
-    case CEL_HTTPRESPONSE_WRITING_HEADER:
-        if (cel_httpresponse_writing_header(rsp, s) == -1)
-            return -1;
-        cel_httpchunked_init(&(rsp->chunked), cel_stream_get_position(s));
+	case CEL_HTTPRESPONSE_WRITING_HEADER:
+		if (cel_httpresponse_writing_header(rsp, s) == -1)
+			return -1;
+		if (rsp->transfer_encoding == CEL_HTTPTE_CHUNKED)
+			cel_httpchunked_init(&(rsp->chunked), cel_stream_get_position(s));
         rsp->writing_state = CEL_HTTPRESPONSE_WRITING_BODY;
     case CEL_HTTPRESPONSE_WRITING_BODY:
         //puts("CEL_HTTPRESPONSE_WRITING_BODY");
@@ -777,8 +778,7 @@ void *cel_httpresponse_get_header(CelHttpResponse *rsp,
     handler = (CelHttpHeaderHandler *)g_case_httphdr[hdr_index].value2;
     return handler->get_func == NULL
         ? ((char *)rsp + s_httprsphdr_offset[hdr_index])
-        : handler->get_func(
-        ((char *)rsp + s_httprsphdr_offset[hdr_index]));
+        : handler->get_func(((char *)rsp + s_httprsphdr_offset[hdr_index]));
 }
 
 int cel_httpresponse_set_header(CelHttpResponse *rsp, 
@@ -896,8 +896,7 @@ int cel_httpresponse_write(CelHttpResponse *rsp, const void *buf, size_t size)
     rsp_buf.buf = buf;
     rsp_buf.size = size;
     cel_httpresponse_set_body_writing_callback(rsp, 
-        (CelHttpResponseBodyWriteCallBack)cel_httpresponse_body_write,
-        &rsp_buf);
+        (CelHttpResponseBodyWriteCallBack)cel_httpresponse_body_write, &rsp_buf);
     if (cel_httpresponse_writing(rsp, &(rsp->s)) == -1
         && rsp->writing_error == CEL_HTTP_ERROR)
         return -1;
@@ -952,8 +951,8 @@ int cel_httpresponse_vprintf(CelHttpResponse *rsp,
     if (rsp->writing_body_offset == 0)
     {
         cel_httpresponse_set_header(rsp, 
-            CEL_HTTPHDR_TRANSFER_ENCODING,
-            &transfer_encoding, sizeof(transfer_encoding));
+			CEL_HTTPHDR_TRANSFER_ENCODING,
+			&transfer_encoding, sizeof(transfer_encoding));
     }
     fmt_args.fmt = fmt;
 #if defined(_CEL_UNIX)
@@ -995,7 +994,7 @@ int cel_httpresponse_end(CelHttpResponse *rsp)
         cel_httpresponse_set_header(rsp,
             CEL_HTTPHDR_CONTENT_LENGTH, &len, sizeof(len));
     }
-    rsp->writing_body_offset = -1;
+	cel_httpchunked_set_last(&(rsp->chunked), TRUE);
     if (cel_httpresponse_writing(rsp, &(rsp->s)) == -1
         && rsp->writing_error == CEL_HTTP_ERROR)
         return -1;
@@ -1148,6 +1147,7 @@ int cel_httpresponse_send_file(CelHttpResponse *rsp,
         }
     }
     rsp->body_cache.clear_file = FALSE;
+	rsp->body_cache.size = content_length;
     cel_httpresponse_set_body_writing_callback(rsp, 
         (CelHttpResponseBodyWriteCallBack)cel_httpresponse_body_read_file,
         rsp->body_cache.fp);

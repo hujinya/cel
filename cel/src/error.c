@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -19,6 +19,8 @@
 #include "cel/net/ssl.h"
 #include <stdarg.h>
 
+#define CEL_ERR_STACK_MAX 32
+
 void _cel_err_free(CelErr *err)
 {
 	cel_list_destroy(&(err->stack));
@@ -27,18 +29,24 @@ void _cel_err_free(CelErr *err)
 
 CelErr *_cel_err()
 {
-    CelErr *err;
+	CelErr *err;
+	int i;
+	CelErrItem *item;
     
-    if ((err = (CelErr *)
-        cel_multithread_get_keyvalue(CEL_MT_KEY_ERROR)) == NULL)
+    if ((err = (CelErr *)cel_multithread_get_keyvalue(CEL_MT_KEY_ERROR)) == NULL)
     {
-        if ((err = (CelErr *)_cel_sys_malloc(sizeof(CelErr))) != NULL)
+        if ((err = (CelErr *)_cel_sys_malloc(sizeof(CelErr)
+			+ CEL_ERR_STACK_MAX * sizeof(CelErrItem))) != NULL)
         {
             //_tprintf(_T("new %p\r\n"), err);
+			item = (CelErrItem *)(err + 1);
+			cel_list_init(&(err->stack), NULL);
+			for (i = 0; i < CEL_ERR_STACK_MAX; i++)
+				cel_list_push_front(&(err->stack), (CelListItem *)(item + i));
+
 			err->stack_on = TRUE;
 			err->stack_used = 0;
-			err->stack_max = 32;
-			cel_list_init(&(err->stack), cel_free);
+			err->stack_max = CEL_ERR_STACK_MAX;
 
 			err->stic.a_buffer[0] = '\0';
 			err->stic.w_buffer[0] = L'\0';
@@ -55,7 +63,7 @@ CelErr *_cel_err()
 
 CelErrItem *_cel_err_item_read(CelErr *err)
 {
-	if (_cel_err()->stack_used > 0)
+	if (err->stack_used > 0)
 	{
 		return (CelErrItem *)cel_list_get_front(&(err->stack));
 	}
@@ -64,15 +72,9 @@ CelErrItem *_cel_err_item_read(CelErr *err)
 
 CelErrItem *_cel_err_item_write(CelErr *err)
 {
-	if (cel_list_get_size(&(err->stack)) < err->stack_max)
-	{
-		return (CelErrItem *)cel_malloc(sizeof(CelErrItem));
-	}
-	else
-	{
+	if (err->stack_used >= err->stack_max)
 		(err->stack_used)--;
-		return (CelErrItem *)cel_list_pop_back(&(err->stack));
-	}
+	return (CelErrItem *)cel_list_pop_back(&(err->stack));
 }
 
 void cel_clearerr()
@@ -139,7 +141,8 @@ void cel_seterr_a(int err_no, const CHAR *fmt, ...)
 	va_end(ap);
 #endif
 	err_item->buf.err_no = err_no;
-	//printf("cel_seterr_a %p %d-%s\r\n", err_item, err_item->err_no, err_item->buf.a_buffer);
+	/*printf("cel_seterr_a %p %d-%s\r\n", 
+		err_item, err_item->buf.err_no, err_item->buf.a_buffer);*/
 
 	(err->stack_used)++;
 	cel_list_push_front(&(err->stack), (CelListItem *)err_item);

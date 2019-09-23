@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -939,8 +939,7 @@ int cel_httpbodycache_reading(CelHttpBodyCache *cache,
             cel_vstring_resize_a(&(cache->file_path), CEL_PATHLEN);
             cache->file_path.size = snprintf(cache->file_path.str, CEL_PATHLEN,
                 "%s%s_%ld.bdy", 
-                cel_fullpath_a(CEL_HTTPBODY_CACHE_PATH), 
-                dt_filename, cel_getticks());
+				cel_fullpath_a(CEL_HTTPBODY_CACHE_PATH), dt_filename, cel_getticks());
             //puts(cel_vstring_str_a(&(cache->file_path)));
             if ((cache->fp = fopen(
                 cel_vstring_str_a(&(cache->file_path)), "wb+")) == NULL
@@ -987,28 +986,36 @@ long long cel_httpbodycache_read(CelHttpBodyCache *cache,
                                  long long first, long long last,
                                  void *buf, size_t buf_size)
 {
-    long long size = 0;
+	long long _size;
+	long long size = 0;
 
-    if (first < 0 && last == 0)
-    {
-        first = cache->size + first;
-        last = cache->size - 1;
-    }
-    else if (first >= 0 && last == 0)
-    {
-        last = cache->size - 1;
-    }
-    if (buf_size < last + 1 - first)
-        last = first + buf_size;
-    if (cache->fp != NULL)
-    {
-        _fseeki64(cache->fp, first, SEEK_SET);
-        size = fread(buf, 1, buf_size, cache->fp);
-    }
-    else 
-    {
-        memcpy(buf, cel_stream_get_buffer(&(cache->buf)) + first, buf_size);
-    }
+	if (first < 0 && last == 0)
+	{
+		first = cache->size - first;
+		last = cache->size - 1;
+	}
+	else if (first >= 0 && last == 0)
+	{
+		last = cache->size - 1;
+	}
+	if (buf_size < last + 1 - first)
+		last = first + buf_size;
+	if ((_size = last + 1 - first) <= 0)
+	{
+		CEL_SETERR((CEL_ERR_LIB,
+			_T("cel_httpbodycache_read:first %lld or last %lld offset %lld."), 
+            first, last, cache->size));
+		return -1;
+	}
+	if (cache->fp != NULL)
+	{
+		_fseeki64(cache->fp, first, SEEK_SET);
+		size = fread(buf, 1, _size, cache->fp);
+	}
+	else 
+	{
+		memcpy(buf, cel_stream_get_buffer(&(cache->buf)) + first, _size);
+	}
 
     return size;
 }
@@ -1033,7 +1040,7 @@ long long cel_httpbodycache_save_file(CelHttpBodyCache *cache,
     if (first >= cache->size 
         || last >= cache->size)
     {
-        CEL_SETERR((CEL_ERR_LIB, _T("first %lld or last %lld offset %lld.\r\n"), 
+        CEL_SETERR((CEL_ERR_LIB, _T("first %lld or last %lld offset %lld."), 
             first, last, cache->size));
         return -1;
     }

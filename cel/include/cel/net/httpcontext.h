@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -47,6 +47,11 @@ extern "C" {
 int cel_httpcontext_init(CelHttpContext *http_ctx, CelHttpClient *client,
 						 CelHttpRequest *req, CelHttpResponse *rsp);
 void cel_httpcontext_destroy(CelHttpContext *http_ctx);
+
+CelHttpContext *cel_httpcontext_new(CelHttpClient *client,
+									CelHttpRequest *req, CelHttpResponse *rsp);
+void cel_httpcontext_free(CelHttpContext *http_ctx);
+
 void cel_httpcontext_clear(CelHttpContext *http_ctx);
 
 static __inline 

@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -293,7 +293,7 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
                 cel_httpwebclient_do_recv_request) == -1)
             {
                 //if (req->reading_state > CEL_HTTPREQUEST_READING_METHOD)
-				CEL_SETERR((CEL_ERR_LIB,  
+				CEL_SETERR((CEL_ERR_LIB, 
 					_T("cel_httpclient_async_recv_request %s return -1"),
 					cel_httpwebclient_get_remoteaddr_str(client)));
 				cel_httpwebclient_free(client);
@@ -301,7 +301,7 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
         }
         return ;
     case CEL_HTTPREQUEST_READING_OK:
-		cel_httpwebclient_update_host(client, req);
+		//cel_httpwebclient_update_host(client, req);
 		/* Init response common header */
 		cel_httpresponse_set_header(&(client->rsp), CEL_HTTPHDR_SERVER,
 			client->web_ctx->server, strlen(client->web_ctx->server));

@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com)
+ * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com)
  *
  * MPPC Bulk Data Compression
  * Copyright 2014 Marc-Andre Moreau <marcandre.moreau@gmail.com>

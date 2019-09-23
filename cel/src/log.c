@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2018 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -283,16 +283,14 @@ int _cel_logger_freelist_init(CelLogger *logger)
         /*printf("size %d * %d = %d\r\n", 
             sizeof(CelLogMsg), logger->n_bufs, 
             sizeof(CelLogMsg) * logger->n_bufs);*/
-        if ((logger->ring_list = 
-            cel_ringlist_new(logger->n_bufs, NULL)) == NULL)
+        if ((logger->ring_list = cel_ringlist_new(logger->n_bufs, NULL)) == NULL)
         {
             _cel_sys_free(logger->mem_caches);
             logger->mem_caches = NULL;
             cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
             return -1;
         }
-        if ((logger->free_list = 
-            cel_ringlist_new(logger->n_bufs, NULL)) == NULL)
+        if ((logger->free_list = cel_ringlist_new(logger->n_bufs, NULL)) == NULL)
         {
             _cel_sys_free(logger->mem_caches);
             logger->mem_caches = NULL;
