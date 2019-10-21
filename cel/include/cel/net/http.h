@@ -413,8 +413,7 @@ long long cel_httpbodycache_read(CelHttpBodyCache *cache,
 long long cel_httpbodycache_save_file(CelHttpBodyCache *cache,
                                       long long first, long long last,
                                       const char *file_path);
-int cel_httpbodycache_move_file(CelHttpBodyCache *cache, 
-                                const char *file_path);
+int cel_httpbodycache_move_file(CelHttpBodyCache *cache, const char *file_path);
 
 #ifdef __cplusplus
 }

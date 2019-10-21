@@ -2,14 +2,20 @@
 
 int error_test(int argc, TCHAR *argv[])
 {
-    CEL_SETERR((CEL_ERR_USER, _T("1(%s)"), cel_geterrstr()));
-    _tprintf(_T("%s\r\n"), cel_geterrstr());
-    CEL_SETERR((CEL_ERR_USER, _T("2(%s)"), cel_geterrstr()));
-    _tprintf(_T("%s\r\n"), cel_geterrstr());
-    CEL_SETERR((CEL_ERR_USER, _T("3(%s)"), cel_geterrstr()));
-    _tprintf(_T("%s\r\n"), cel_geterrstr());
-    CEL_SETERR((CEL_ERR_USER, _T("4(%s)"), cel_geterrstr()));
-    _tprintf(_T("%s\r\n"), cel_geterrstr());
+	int i = 1000;
 
-    return 0;
+	while (i-- > 0)
+	{
+		CEL_SETERR((CEL_ERR_USER, _T("1(%s)"), cel_geterrstr()));
+		_tprintf(_T("%s\r\n"), cel_geterrstr());
+		CEL_SETERR((CEL_ERR_USER, _T("2(%s)"), cel_geterrstr()));
+		_tprintf(_T("%s\r\n"), cel_geterrstr());
+		CEL_SETERR((CEL_ERR_USER, _T("3(%s)"), cel_geterrstr()));
+		_tprintf(_T("%s\r\n"), cel_geterrstr());
+		CEL_SETERR((CEL_ERR_USER, _T("4(%s)"), cel_geterrstr()));
+		_tprintf(_T("%s\r\n"), cel_geterrstr());
+		sleep(1);
+	}
+
+	return 0;
 }

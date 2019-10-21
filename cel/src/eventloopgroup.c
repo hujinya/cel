@@ -72,8 +72,7 @@ int cel_eventloopgroup_init(CelEventLoopGroup *group,
         n_threads = 4;
 
     if (is_shared
-        && (group->evt_loop = 
-        cel_eventloop_new(n_threads, max_fileds)) == NULL)
+        && (group->evt_loop = cel_eventloop_new(n_threads, max_fileds)) == NULL)
         return -1;
     group->is_shared = is_shared;
     

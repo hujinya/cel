@@ -23,8 +23,7 @@ int cel_httpcontext_init(CelHttpContext *http_ctx,
 	http_ctx->rsp = rsp;
 	http_ctx->state = 0;
 	http_ctx->current_filter = NULL;
-	return cel_rbtree_init(&(http_ctx->params), 
-		(CelCompareFunc)strcmp, NULL, cel_free);
+	return cel_rbtree_init(&(http_ctx->params), (CelCompareFunc)strcmp, NULL, cel_free);
 }
 
 void cel_httpcontext_destroy(CelHttpContext *http_ctx)
