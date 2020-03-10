@@ -37,16 +37,16 @@ typedef char** CelSqlRow;
 typedef int (* CelSqlRowEachFunc) (void **row, int cols, void *user_data);
 
 typedef int  (* CelSqlConOpenFunc)(void *con,
-                                   const char *host, unsigned int port, 
-                                   const char *name, 
-                                   const char *user, const char *pswd);
+								   const char *host, unsigned int port, 
+								   const char *name, 
+								   const char *user, const char *pswd);
 typedef void (* CelSqlConCloseFunc)(void *con);
 typedef long (* CelSqlConExecuteNonequeryFunc)(
-    void *con, const char *sqlstr, unsigned long len);
+	void *con, const char *sqlstr, unsigned long len);
 typedef void* (* CelSqlConExecuteOnequeryFunc)(
-    void *con, const char *sqlstr, unsigned long len);
+	void *con, const char *sqlstr, unsigned long len);
 typedef CelSqlRes* (* CelSqlConExecuteQueryFunc)(
-    void *con, const char *sqlstr, unsigned long len);
+	void *con, const char *sqlstr, unsigned long len);
 typedef long (* CelSqlResRowsFunc)(void *res);
 typedef int (* CelSqlResColsFunc)(void *res);
 typedef unsigned long* (* CelSqlResFetchLengthsFunc)(void *res);
@@ -101,19 +101,19 @@ int cel_sqlcon_init(CelSqlCon *con, CelSqlConType type,
 void cel_sqlcon_destroy(CelSqlCon *con);
 
 CelSqlCon *cel_sqlcon_new(CelSqlConType type, 
-                          const char *host, unsigned int port, 
-                          const char *name, 
-                          const char *user, const char *pswd);
+						  const char *host, unsigned int port, 
+						  const char *name, 
+						  const char *user, const char *pswd);
 void cel_sqlcon_free(CelSqlCon *con);
 
 static __inline int cel_sqlcon_open(CelSqlCon *con)
 {
-    return con->kclass->con_open(
-        con->st_con, con->host, con->port, con->db, con->user, con->passwd);
+	return con->kclass->con_open(
+		con->st_con, con->host, con->port, con->db, con->user, con->passwd);
 }
 static __inline void cel_sqlcon_close(CelSqlCon *con)
 {
-    con->kclass->con_close(con->st_con);
+	con->kclass->con_close(con->st_con);
 }
 
 static __inline int cel_sqlcon_sqlstr_resize(CelSqlCon *con, size_t size)
@@ -124,11 +124,13 @@ static __inline int cel_sqlcon_sqlstr_resize(CelSqlCon *con, size_t size)
 long _cel_sqlcon_execute_nonequery(CelSqlCon *con);
 CelSqlRes *_cel_sqlcon_execute_onequery(CelSqlCon *con);
 CelSqlRes *_cel_sqlcon_execute_query(CelSqlCon *con);
+
 #define CEL_SQLCON_SQLSTR_FMT() {\
 	va_list args;\
 	va_start(args, fmt);\
 	cel_vstring_vprintf_a(&(con->sqlstr), fmt, args); \
 	va_end(args); }
+
 static __inline
 long cel_sqlcon_execute_nonequery(CelSqlCon *con, const char *fmt, ...)
 {
@@ -150,33 +152,33 @@ CelSqlRes *cel_sqlcon_execute_query(CelSqlCon *con, const char *fmt, ...)
 
 static __inline long cel_sqlres_rows(CelSqlRes *res)
 {
-    return res->kclass->res_rows(res->st_res);
+	return res->kclass->res_rows(res->st_res);
 }
 static __inline int cel_sqlres_cols(CelSqlRes *res)
 {
-    return res->kclass->res_cols(res->st_res);
+	return res->kclass->res_cols(res->st_res);
 }
 
 static __inline unsigned long *cel_sqlres_fetch_lengths(CelSqlRes *res)
 {
-    return res->kclass->res_fetch_lengths(res->st_res);
+	return res->kclass->res_fetch_lengths(res->st_res);
 }
 static __inline CelSqlRow cel_sqlres_fetch_row(CelSqlRes *res)
 {
-    return res->kclass->res_fetch_row(res->st_res);
+	return res->kclass->res_fetch_row(res->st_res);
 }
 static __inline CelSqlField *cel_sqlres_fetch_field(CelSqlRes *res)
 {
-    return (CelSqlField *)res->kclass->res_fetch_field(res->st_res);
+	return (CelSqlField *)res->kclass->res_fetch_field(res->st_res);
 }
 
 static __inline void cel_sqlres_free(CelSqlRes *res)
 {
-    if (res != NULL)
-    {
-        res->kclass->res_free(res->st_res);
-        cel_free(res);
-    }
+	if (res != NULL)
+	{
+		res->kclass->res_free(res->st_res);
+		cel_free(res);
+	}
 }
 
 int _cel_sqlcon_execute_onequery_results(CelSqlCon *con,

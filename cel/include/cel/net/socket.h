@@ -163,7 +163,8 @@ int cel_socket_bind_host(CelSocket *sock,
 static __inline int cel_socket_listen(CelSocket *sock, 
                                       CelSockAddr *addr, int backlog)
 {
-    //_tprintf(_T("back log %d\r\n"), backlog);
+    /*_tprintf(_T("family %d, len %d, back log %d\r\n"),
+		(addr)->sa_family, cel_sockaddr_get_len(addr), backlog);*/
     return ((cel_socket_bind(sock, addr) == -1 
         || listen((sock)->fd, backlog) == -1) ? -1 : 0);
 }

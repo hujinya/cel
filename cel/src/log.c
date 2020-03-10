@@ -178,52 +178,6 @@ int cel_logger_hook_unregister(CelLogger *logger, const TCHAR *name)
 static int cel_logger_cache_file_write(CelLogger *logger)
 {
     return -1;
-    /*int i = 0, n;
-    char file_path[CEL_PATHLEN];
-    FILE *fp;
-    CelLogMsg *msg;
-    CelDateTime timestamp_cached;
-    char strtime[26];
-
-    cel_datetime_init_now(&timestamp_cached);
-    cel_datetime_strfltime(&timestamp_cached, strtime, 26, _T("%Y%m%d%H%M%S"));
-    snprintf(file_path, CEL_PATHLEN, "%s%s%ld.log", 
-        cel_fullpath_a(CEL_LOGGER_CACHE_PATH), strtime, cel_getticks());
-
-    cel_multithread_mutex_lock(CEL_MT_MUTEX_LOG);
-    if ((fp = fopen(file_path, "wb+")) == NULL 
-        && (cel_mkdirs_a(cel_filedir_a(file_path), CEL_UMASK) == -1
-        || (fp = fopen(file_path, "wb+")) == NULL))
-    {
-        cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
-        CEL_SETERR((CEL_ERR_LIB, _T("cel_httprequest_save_body_data failed")));
-        return -1;
-    }
-    n = cel_ringlist_pop_do_sp(
-        logger->ring_list, logger->file_caches, logger->n_bufs);
-    timestamp_cached = 0;
-    while (i < n)
-    {
-        msg = logger->file_caches[i];
-        if (timestamp_cached != msg->timestamp)
-        {
-            timestamp_cached = msg->timestamp;
-            cel_datetime_strfltime(
-                &(msg->timestamp), strtime, 26, _T("%b %d %X"));
-        }
-        if (_ftprintf(fp, _T("<%s>%s [%ld]: %s.")CEL_CRLF, 
-            ((msg->facility << 3) | msg->level), 
-            strtime, msg->pid,  msg->content) == EOF)
-        {
-            _putts("write cache file failed.");
-            break;
-        }
-    }
-    cel_fclose(fp);
-    cel_multithread_mutex_unlock(CEL_MT_MUTEX_LOG);
-    cel_ringlist_push_do_sp(logger->free_list, logger->file_caches[0], n);
-
-    return n;*/
 }
 
 static int cel_logger_cache_file_read(CelLogger *logger, CelLogMsg **msgs, size_t n)

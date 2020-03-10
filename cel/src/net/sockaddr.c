@@ -19,7 +19,6 @@
 #include "cel/log.h"
 #include "cel/convert.h"
 
-
 int cel_sockaddr_init(CelSockAddr *addr)
 {
     memset(addr, 0, sizeof(CelSockAddr));
@@ -94,6 +93,7 @@ int cel_sockaddr_str_split(TCHAR *str, int *family, TCHAR **paddr, TCHAR **pport
 {
     TCHAR *p;
 
+	//puts(str);
     p = *paddr = str;
     *pport = NULL;
     *family = AF_INET;
@@ -101,23 +101,22 @@ int cel_sockaddr_str_split(TCHAR *str, int *family, TCHAR **paddr, TCHAR **pport
     {
         if (*p == _T('@'))
         {
-            if (memcmp(paddr, _T("ipv4"), 4 * sizeof(TCHAR)) == 0)
+            if (memcmp(*paddr, _T("ipv4"), 4 * sizeof(TCHAR)) == 0)
                 *family = AF_INET;
-            else if (memcmp(paddr, _T("ipv6"), 4 * sizeof(TCHAR)) == 0)
+            else if (memcmp(*paddr, _T("ipv6"), 4 * sizeof(TCHAR)) == 0)
                 *family = AF_INET6;
 #ifdef _CEL_UNIX
             else if (memcmp(paddr, _T("unix"), 4 * sizeof(TCHAR)) == 0)
             {
                 *family = AF_UNIX;
                 *paddr = p;
-                //strncpy(addr->addr_un.sun_path, ++p, sizeof(addr->addr_un.sun_path));
-                return 0;
+                break;
             }
 #endif
             else
             {
                 *p = _T('\0');
-                CEL_SETERR((CEL_ERR_LIB, _T("Socket address family %s invalid."), paddr));
+                CEL_SETERR((CEL_ERR_LIB, _T("Socket address family %s invalid."), *paddr));
                 return -1;
             }
             p++;
@@ -130,35 +129,33 @@ int cel_sockaddr_str_split(TCHAR *str, int *family, TCHAR **paddr, TCHAR **pport
             while (*p != _T('\0'))
             {
                 if (*p == _T(']'))
+				{
                     *p = _T('\0');
-                else if (*p == _T(':'))
-                {
-                    if ((++p) != _T('\0'))
-                        *pport = p;
-                    return 0;
-                }
-            }
-            break;
+					p++;
+					break;
+				}
+                p++;
+			}
         }
         else if (*p == _T(':'))
         {
             *p = _T('\0');
             if ((++p) != _T('\0'))
                 *pport = p;
-            return 0;
+            break;
         }
 #ifdef _CEL_UNIX
         else if (*str == _T('/'))
         {
             *family = AF_UNIX;
             *paddr = p;
-            //strncpy(addr->addr_un.sun_path, p, sizeof(addr->addr_un.sun_path));
             return 0;
         }
 #endif
         else
             p++;
     }
+
     return 0;
 }
 

@@ -1,6 +1,11 @@
-* Mon Sep 9 2019 Hu Jinya <hjy@gzsunrun.cn> 1.2.1.46
+* Tue Mar 10 2020 Hu Jinya <hjy@gzsunrun.cn> 1.2.1.48
+- 修复：cel_sockaddr_str_split解析ipv6失败问题。
+- 修复：Linux环境下AF_INET6与windows数值不一样，导致c_addrlen获取长度失败。
+
+* Mon Sep 9 2019 Hu Jinya <hjy@gzsunrun.cn> 1.2.0.47
 - 修复：cel_httpcontext_clear清空httprequet\httpresponse\httpclient,造成长连接返回出现段错误。
 - 修复：cel_httpbodycache_read在cache_size为0时段错误。
+- 修复：cel_vstring_vprintf_a循环时需要重新赋值ap变量值，否则会出现空指针断错误。
 
 * Mon Sep 9 2019 Hu Jinya <hjy@gzsunrun.cn> 1.2.0.43
 - 新增：CelStream增加mode属性，标识当前处于读模式还是写模式。

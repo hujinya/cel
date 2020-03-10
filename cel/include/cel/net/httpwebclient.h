@@ -119,13 +119,7 @@ int cel_httpwebclient_routing(CelHttpWebClient *client);
 int cel_httpwebclient_response_write(CelHttpWebClient *client,
 									 CelHttpStatusCode status,
 									 int err_no, const char *msg);
-int cel_httpwebclient_response_sendfile(CelHttpWebClient *client, 
-										const char *file_path, 
-										long long first, long long last,
-										CelDateTime *if_modified_since,
-									char *if_none_match);
-int cel_httpwebclient_response_redirect(CelHttpWebClient *client, 
-										const char *url);
+
 
 #ifdef __cplusplus
 }

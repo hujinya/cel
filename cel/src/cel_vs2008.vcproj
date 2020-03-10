@@ -282,6 +282,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\_regex.c"
+				>
+			</File>
+			<File
 				RelativePath=".\allocator.c"
 				>
 			</File>
@@ -418,10 +422,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\regex.c"
-				>
-			</File>
-			<File
 				RelativePath=".\ringlist.c"
 				>
 			</File>
@@ -469,15 +469,43 @@
 				Name="net"
 				>
 				<File
+					RelativePath=".\net\_balancer.c"
+					>
+				</File>
+				<File
+					RelativePath=".\net\_http2.c"
+					>
+				</File>
+				<File
+					RelativePath=".\net\_httpcontroler.c"
+					>
+				</File>
+				<File
+					RelativePath=".\net\_httpcookie.c"
+					>
+				</File>
+				<File
 					RelativePath=".\net\_httpprxoy.c"
 					>
 				</File>
 				<File
-					RelativePath=".\net\_proxy.c"
+					RelativePath=".\net\_httpsession.c"
 					>
 				</File>
 				<File
-					RelativePath=".\net\_quic.c"
+					RelativePath=".\net\_monitor.c"
+					>
+				</File>
+				<File
+					RelativePath=".\net\_node.c"
+					>
+				</File>
+				<File
+					RelativePath=".\net\_pool.c"
+					>
+				</File>
+				<File
+					RelativePath=".\net\_smtp.c"
 					>
 				</File>
 				<File
@@ -493,10 +521,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\net\balancer.c"
-					>
-				</File>
-				<File
 					RelativePath=".\net\ethernet.c"
 					>
 				</File>
@@ -509,23 +533,11 @@
 					>
 				</File>
 				<File
-					RelativePath=".\net\http2.c"
-					>
-				</File>
-				<File
 					RelativePath=".\net\httpclient.c"
 					>
 				</File>
 				<File
 					RelativePath=".\net\httpcontext.c"
-					>
-				</File>
-				<File
-					RelativePath=".\net\httpcontroler.c"
-					>
-				</File>
-				<File
-					RelativePath=".\net\httpcookie.c"
 					>
 				</File>
 				<File
@@ -553,10 +565,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\net\httpsession.c"
-					>
-				</File>
-				<File
 					RelativePath=".\net\httpwebclient.c"
 					>
 				</File>
@@ -566,22 +574,6 @@
 				</File>
 				<File
 					RelativePath=".\net\if.c"
-					>
-				</File>
-				<File
-					RelativePath=".\net\monitor.c"
-					>
-				</File>
-				<File
-					RelativePath=".\net\node.c"
-					>
-				</File>
-				<File
-					RelativePath=".\net\pool.c"
-					>
-				</File>
-				<File
-					RelativePath=".\net\smtp.c"
 					>
 				</File>
 				<File
@@ -1178,6 +1170,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\include\cel\_regex.h"
+				>
+			</File>
+			<File
 				RelativePath="..\include\cel\allocator.h"
 				>
 			</File>
@@ -1318,10 +1314,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\include\cel\regex.h"
-				>
-			</File>
-			<File
 				RelativePath=".\resource.h"
 				>
 			</File>
@@ -1385,15 +1377,39 @@
 				Name="net"
 				>
 				<File
+					RelativePath="..\include\cel\net\_balancer.h"
+					>
+				</File>
+				<File
+					RelativePath="..\include\cel\net\_httpcontroler.h"
+					>
+				</File>
+				<File
+					RelativePath="..\include\cel\net\_httpcookie.h"
+					>
+				</File>
+				<File
 					RelativePath="..\include\cel\net\_httpproxy.h"
 					>
 				</File>
 				<File
-					RelativePath="..\include\cel\net\_proxy.h"
+					RelativePath="..\include\cel\net\_httpsession.h"
 					>
 				</File>
 				<File
-					RelativePath="..\include\cel\net\_quic.h"
+					RelativePath="..\include\cel\net\_monitor.h"
+					>
+				</File>
+				<File
+					RelativePath="..\include\cel\net\_node.h"
+					>
+				</File>
+				<File
+					RelativePath="..\include\cel\net\_pool.h"
+					>
+				</File>
+				<File
+					RelativePath="..\include\cel\net\_smtp.h"
 					>
 				</File>
 				<File
@@ -1406,10 +1422,6 @@
 				</File>
 				<File
 					RelativePath="..\include\cel\net\_telnet.h"
-					>
-				</File>
-				<File
-					RelativePath="..\include\cel\net\balancer.h"
 					>
 				</File>
 				<File
@@ -1437,14 +1449,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\include\cel\net\httpcontroler.h"
-					>
-				</File>
-				<File
-					RelativePath="..\include\cel\net\httpcookie.h"
-					>
-				</File>
-				<File
 					RelativePath="..\include\cel\net\httpfilter.h"
 					>
 				</File>
@@ -1469,10 +1473,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\include\cel\net\httpsession.h"
-					>
-				</File>
-				<File
 					RelativePath="..\include\cel\net\httpwebclient.h"
 					>
 				</File>
@@ -1486,22 +1486,6 @@
 				</File>
 				<File
 					RelativePath="..\include\cel\net\ip.h"
-					>
-				</File>
-				<File
-					RelativePath="..\include\cel\net\monitor.h"
-					>
-				</File>
-				<File
-					RelativePath="..\include\cel\net\node.h"
-					>
-				</File>
-				<File
-					RelativePath="..\include\cel\net\pool.h"
-					>
-				</File>
-				<File
-					RelativePath="..\include\cel\net\smtp.h"
 					>
 				</File>
 				<File

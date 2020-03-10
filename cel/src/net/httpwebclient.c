@@ -367,21 +367,3 @@ int cel_httpwebclient_response_write(CelHttpWebClient *client,
     }
     return CEL_RET_OK;
 }
-
-int cel_httpwebclient_response_sendfile(CelHttpWebClient *client, 
-										const char *file_path, 
-										long long first, long long last,
-										CelDateTime *if_modified_since,
-										char *if_none_match)
-{
-    cel_httpresponse_send_file(&(client->rsp), 
-        file_path, first, last, if_modified_since, if_none_match);
-	return CEL_RET_OK;
-}
-
-int cel_httpwebclient_response_redirect(CelHttpWebClient *client, 
-										const char *url)
-{
-    cel_httpresponse_send_redirect(&(client->rsp), url);
-	return CEL_RET_OK;
-}

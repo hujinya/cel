@@ -21,9 +21,9 @@ const int c_addrlen[] =
 { 
     0, sizeof(struct sockaddr_un), sizeof(struct sockaddr_in), 0, 0, /* 0 - 4*/
     0, 0, 0, 0, 0, /* 5 - 9 */
-    0, 0, 0, 0, 0, /* 10 - 14 */
+    sizeof(struct sockaddr_in6), 0, 0, 0, 0, /* 10 - 14 */
     0, 0, 0, 0, 0, /* 15 - 19 */
-    0, 0, 0, sizeof(struct sockaddr_in6), 0 /* 20 - 24 */
+    0, 0, 0, 0, 0 /* 20 - 24 */
 };
 
 int cel_sockaddr_init_unix(CelSockAddr *addr, const TCHAR *path)

@@ -191,8 +191,8 @@ static int cel_json_string_decode(CelJson *json, char ch)
                 case 'r': ch = '\r'; break; 
                 case 't': ch = '\t'; break; 
                 default: 
-                    CEL_SETERR((CEL_ERR_LIB, _T("Json string decode error, undefined escap(%c)."), 
-                        ch));
+                    CEL_SETERR((CEL_ERR_LIB, 
+						_T("Json string decode error, undefined escap(%c)."), ch));
                     json->state = CEL_JSONDS_ERROR;
                     return -1;
                 }

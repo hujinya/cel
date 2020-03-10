@@ -407,9 +407,9 @@ int cel_httpbodycache_reading(CelHttpBodyCache *cache,
                               const char *value, size_t size);
 int cel_httpbodycache_writing(CelHttpBodyCache *cache, CelStream *s);
 
-long long cel_httpbodycache_read(CelHttpBodyCache *cache, 
-                                 long long first, long long last,
-                                 void *buf, size_t buf_size);
+int cel_httpbodycache_read(CelHttpBodyCache *cache, 
+						   long long first, long long last,
+						   void *buf, size_t buf_size);
 long long cel_httpbodycache_save_file(CelHttpBodyCache *cache,
                                       long long first, long long last,
                                       const char *file_path);

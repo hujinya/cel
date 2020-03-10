@@ -470,8 +470,7 @@ int cel_httpdatetime_writing(const char *hdr_name,
         cel_stream_printf(s, "%s: ", hdr_name);
         if ((size = cel_datetime_strfgmtime_a(dt, 
             (char *)cel_stream_get_pointer(s), 
-            cel_stream_get_remaining_capacity(s), 
-            "%a, %d %b %Y %X GMT\r\n")) > 0)
+            cel_stream_get_remaining_capacity(s), "%a, %d %b %Y %X GMT\r\n")) > 0)
             cel_stream_seek(s, size);
     }
     return  0;
@@ -643,27 +642,22 @@ int cel_httpcookie_reading(CelHttpCookie *cookie,
         {
             value_end = i;
             if (key_end - key_start == 7
-                && memcmp(&value[key_start], 
-                "Expires", key_end - key_start) == 0)
+                && memcmp(&value[key_start], "Expires", key_end - key_start) == 0)
                 cel_datetime_init_strtime_a(&(cookie->expires),
                 &value[value_start]);
             else if (key_end - key_start == 6
-                && memcmp(&value[key_start], 
-                "Domain", key_end - key_start) == 0)
+                && memcmp(&value[key_start], "Domain", key_end - key_start) == 0)
                 cel_vstring_assign_a(&(cookie->domain),
                 &value[value_start], value_end - value_start);
             else if (key_end - key_start == 4
-                && memcmp(&value[key_start], 
-                "Path", key_end - key_start) == 0)
+                && memcmp(&value[key_start], "Path", key_end - key_start) == 0)
                 cel_vstring_assign_a(&(cookie->path), 
                 &value[value_start], value_end - value_start);
             else if (key_end - key_start == 6
-                && memcmp(&value[key_start], 
-                "Secure", key_end - key_start) == 0)
+                && memcmp(&value[key_start], "Secure", key_end - key_start) == 0)
                 cookie->secure = TRUE;
             else if (key_end - key_start == 8
-                && memcmp(&value[key_start], 
-                "Httponly", key_end - key_start) == 0)
+                && memcmp(&value[key_start], "Httponly", key_end - key_start) == 0)
                 cookie->httponly = TRUE;
             else
                 cel_vstring_assign_a(&(cookie->values),
@@ -693,11 +687,9 @@ int cel_httpcookie_writing(const char *hdr_name,
                 cel_stream_seek(s, size);
         }
         if (cel_vstring_len(&(cookie->domain)) > 0)
-            cel_stream_printf(s, ";Domain=%s", 
-            cel_vstring_str_a(&(cookie->domain)));
+            cel_stream_printf(s, ";Domain=%s", cel_vstring_str_a(&(cookie->domain)));
         if (cel_vstring_len(&(cookie->path)) > 0)
-            cel_stream_printf(s, ";Path=%s", 
-            cel_vstring_str_a(&(cookie->path)));
+            cel_stream_printf(s, ";Path=%s", cel_vstring_str_a(&(cookie->path)));
         if (cookie->secure)
             cel_stream_printf(s, ";Secure");
         if (cookie->httponly)
@@ -728,14 +720,12 @@ int cel_httprange_writing(const char *hdr_name,
                           CelHttpRange *range, CelStream *s)
 {
     if (range->first < 0 && range->last == 0)
-        cel_stream_printf(s, "%s: bytes=%lld\r\n", 
-        hdr_name, range->last);
+        cel_stream_printf(s, "%s: bytes=%lld\r\n", hdr_name, range->last);
     if (range->first > 0 &&  range->last == 0)
-        cel_stream_printf(s, "%s: bytes=%lld-\r\n", 
-        hdr_name, range->first);
+        cel_stream_printf(s, "%s: bytes=%lld-\r\n", hdr_name, range->first);
     else
         cel_stream_printf(s, "%s: bytes=%lld-%lld\r\n", 
-        hdr_name, range->first, range->last);
+		hdr_name, range->first, range->last);
     return 0;
 }
 
@@ -856,8 +846,7 @@ long cel_httpchunked_writing_last(CelHttpChunked *chunked, CelStream *s)
     cel_stream_set_position(s, chunked->start);
     if (chunked->size > 0)
     {
-        sprintf((char *)cel_stream_get_pointer(s), 
-            "%07x", chunked->size);
+        sprintf((char *)cel_stream_get_pointer(s), "%07x", chunked->size);
         cel_stream_seek(s, 7);
         cel_stream_write(s, "\r\n", 2);
         cel_stream_seek(s, chunked->size);
@@ -982,12 +971,12 @@ int cel_httpbodycache_writing(CelHttpBodyCache *cache, CelStream *s)
     return 0;
 }
 
-long long cel_httpbodycache_read(CelHttpBodyCache *cache, 
-                                 long long first, long long last,
-                                 void *buf, size_t buf_size)
+int cel_httpbodycache_read(CelHttpBodyCache *cache, 
+						   long long first, long long last,
+						   void *buf, size_t buf_size)
 {
-	long long _size;
-	long long size = 0;
+	size_t _size;
+	int size = 0;
 
 	if (first < 0 && last == 0)
 	{
@@ -1000,7 +989,7 @@ long long cel_httpbodycache_read(CelHttpBodyCache *cache,
 	}
 	if (buf_size < last + 1 - first)
 		last = first + buf_size;
-	if ((_size = last + 1 - first) <= 0)
+	if ((_size = (size_t)(last + 1 - first)) <= 0)
 	{
 		CEL_SETERR((CEL_ERR_LIB,
 			_T("cel_httpbodycache_read:first %lld or last %lld offset %lld."), 

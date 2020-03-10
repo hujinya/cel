@@ -52,8 +52,8 @@ size_t cel_capacity_get_min(size_t capacity);
 #define cel_system_commit os_system_commit
 
 int cel_allocator_hook_register(CelMallocFunc malloc_func, 
-                                CelFreeFunc free_func,
-                                CelReallocFunc realloc_func);
+								CelFreeFunc free_func,
+								CelReallocFunc realloc_func);
 void cel_allocator_hook_unregister(void);
 
 void *cel_allocate(size_t size);

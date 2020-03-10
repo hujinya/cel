@@ -17,6 +17,7 @@
 
 #include "cel/types.h"
 #include "cel/convert.h"
+#include <stdarg.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -78,19 +79,23 @@ static __inline
 int cel_vstring_vprintf_a(CelVStringA *vstr, const char *fmt, va_list ap)
 {
 	int n;
+	va_list ap1;
 
 	while (TRUE)
 	{
-		n = _vsntprintf(vstr->str, vstr->capacity, fmt, ap);
+		va_copy(ap1, ap);
+		n = _vsntprintf(vstr->str, vstr->capacity, fmt, ap1);
+		//printf("%d n = %d\r\n", (int)vstr->capacity, n);
 		if (n > -1 && n < (int)(vstr->capacity))
 		{
 			vstr->size = n;
 			return vstr->size;
 		}
-		//printf("%d n = %d\r\n", vstr->capacity, n);
-		//n = vstr->capacity * 2;
+		n = vstr->capacity * 2;
 		if (cel_vstring_resize_a(vstr, n) != 0)
+		{
 			return -1;
+		}
 	}
 }
 

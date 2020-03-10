@@ -44,15 +44,18 @@ int cel_tcplistener_init_addr(CelTcpListener *listener,
             memcpy(&(listener->addr), addr, cel_sockaddr_get_len(addr));
             return 0;
         }
+		printf("cel_socket_listen(%s)\r\n", cel_sys_strerror(cel_sys_geterrno()));
         cel_socket_destroy(&(listener->sock));
+		return -1;
     }
+	printf("cel_tcplistener_init(%s)\r\n", cel_sys_strerror(cel_sys_geterrno()));
     return -1;
 }
 
 int cel_tcplistener_init_str(CelTcpListener *listener,
                              const TCHAR *str, CelSslContext *ssl_ctx)
 {
-    int ret;
+    int ret = 0;
     TCHAR *node, *service;
     ADDRINFOT *addr_info, *result, hints;
     TCHAR addrs[CEL_ADDRLEN];
@@ -67,7 +70,9 @@ int cel_tcplistener_init_str(CelTcpListener *listener,
     if (cel_sockaddr_str_split(addrs, &hints.ai_family, &node, &service) != 0
         || (ret = GetAddrInfo(node, service, &hints, &addr_info)) != 0)
     {
-        CEL_SETERR((CEL_ERR_LIB, _T("GetAddrInfo():%s."), gai_strerror(ret)));
+		CEL_SETERR((CEL_ERR_LIB, _T("GetAddrInfo():%d@[%s]:%s(%s)."), 
+			hints.ai_family, node, service, 
+			ret != 0 ? gai_strerror(ret) : cel_geterrstr()));
         return -1;
     }
     result = addr_info;

@@ -240,8 +240,7 @@ static __inline
 int cel_httprequest_set_query(CelHttpRequest *req, 
                               const char *key, const char *value, size_t size)
 {
-    return cel_httpvstring_set_value(
-        &(req->url.query), '&', '=', key, value, size);
+    return cel_httpvstring_set_value(&(req->url.query), '&', '=', key, value, size);
 }
 #define cel_httprequest_get_query_string(req, key, str, size) \
     cel_keystr((CelKeyGetFunc)cel_httprequest_get_query, req, key, str, size)
@@ -258,8 +257,7 @@ static __inline
 char *cel_httprequest_get_form(CelHttpRequest *req, const char *key, 
                                char *value, size_t *size)
 {
-    return cel_strgetkeyvalue_a(
-        (char *)cel_stream_get_buffer(&(req->body_cache.buf)),
+    return cel_strgetkeyvalue_a((char *)cel_stream_get_buffer(&(req->body_cache.buf)),
         '&', '=', key, value, size);
 }
 #define cel_httprequest_get_form_string(req, key, str, size) \
