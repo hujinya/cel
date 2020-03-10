@@ -1066,7 +1066,7 @@ int cel_httpresponse_send_file(CelHttpResponse *rsp,
     if (if_modified_since != NULL)
     {
         //printf("%ld %ld\r\n", *if_modified_since, file_stat.st_mtime);
-        if (cel_datetime_diffseconds(if_modified_since, &(file_stat.st_mtime)) <= 0)
+        if (*if_modified_since >= file_stat.st_mtime)
         {
             //printf("not modified\r\n");
             return cel_httpresponse_send(rsp, CEL_HTTPSC_NOT_MODIFIED, NULL, 0);
