@@ -170,7 +170,7 @@ struct _CelHttpResponse
     CelVStringA proxy_authenticate;
     CelVStringA retry_after;
     CelVStringA server;
-    CelHttpCookie set_cookie;
+    CelHttpSetCookieArray set_cookie;
     CelVStringA trailer;
     CelHttpTransferEncoding transfer_encoding;
     CelVStringA upgrade;

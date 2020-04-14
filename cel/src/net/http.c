@@ -101,6 +101,16 @@ CelHttpHeaderHandler g_httpcookie_handler = {
     (CelHttpHeaderWritingFunc)cel_httpcookie_writing
 };
 
+CelHttpHeaderHandler g_httpsetcookiearray_handler = {
+	sizeof(CelHttpSetCookieArray),
+	(CelHttpHeaderInitFunc)cel_httpsetcookiearray_init,
+	(CelHttpHeaderDestroyFunc)cel_httpsetcookiearray_destroy,
+	(CelHttpHeaderGetFunc)NULL,
+	(CelHttpHeaderSetFunc)cel_httpsetcookiearray_set,
+	(CelHttpHeaderReadingFunc)cel_httpsetcookiearray_reading, 
+	(CelHttpHeaderWritingFunc)cel_httpsetcookiearray_writing
+};
+
 CelHttpHeaderHandler g_httprange_handler = {
     sizeof(CelHttpRange),
     NULL,
@@ -244,7 +254,7 @@ CelKeywordA g_case_httphdr[] =
     "server", "Server", &g_httpvstring_handler },                       /* rfc2616.14.38 */
 
     { sizeof("set-cookie") - 1, 
-    "set-cookie", "Set-Cookie", &g_httpcookie_handler },
+    "set-cookie", "Set-Cookie", &g_httpsetcookiearray_handler },
     { sizeof("te") - 1, 
     "te", "TE", &g_httpvstring_handler },                              /* rfc2616.14.39 */
     { sizeof("trailer") - 1, 
@@ -399,12 +409,12 @@ int cel_httpvstring_set_value(CelVString *vstr,
         cel_vstring_clear(vstr);
         while (TRUE)
         {
-            if (old_values[i] == '=')
+            if (old_values[i] == value_delimiter)
             {
                 key_end = i;
                 value_start = i + 1;
             }
-            if (old_values[i] == ';' || old_values[i] == '\0')
+            if (old_values[i] == key_delimiter || old_values[i] == '\0')
             {
                 value_end = i;
                 if (key_len == (key_end - key_start)
@@ -412,7 +422,7 @@ int cel_httpvstring_set_value(CelVString *vstr,
                     break;
                 _cel_vstring_nappend_a(vstr, 
                     &old_values[key_start], value_end - key_start);
-                cel_vstring_append_a(vstr, ';');
+                cel_vstring_append_a(vstr, key_delimiter);
                 if (old_values[i] == '\0')
                     break;
                 key_start = value_start = i + 1;
@@ -420,17 +430,16 @@ int cel_httpvstring_set_value(CelVString *vstr,
             i++;
         }
         _cel_vstring_nappend_a(vstr, key, key_len);
-        cel_vstring_append_a(vstr, '=');
+        cel_vstring_append_a(vstr, value_delimiter);
         _cel_vstring_nappend_a(vstr, value, value_size);
         if ((key_start = i + 1) < old_len)
-            _cel_vstring_nappend_a(vstr, 
-            &old_values[key_start], old_len - key_start);
+            _cel_vstring_nappend_a(vstr, &old_values[key_start], old_len - key_start);
         cel_free(old_values);
     }
     else
     {
          _cel_vstring_nappend_a(vstr, key, key_len);
-        cel_vstring_append_a(vstr, '=');
+        cel_vstring_append_a(vstr, value_delimiter);
         _cel_vstring_nappend_a(vstr, value, value_size);
     }
 
@@ -579,6 +588,26 @@ void cel_httpcookie_destroy(CelHttpCookie *cookie)
     cookie->httponly = FALSE;
 }
 
+CelHttpCookie *cel_httpcookie_new()
+{
+	CelHttpCookie *cookie;
+
+	if ((cookie = (CelHttpCookie *)cel_malloc(sizeof(CelHttpCookie))) != NULL)
+	{
+		if (cel_httpcookie_init(cookie) == 0)
+			return cookie;
+		cel_free(cookie);
+	}
+
+	return NULL;
+}
+
+void cel_httpcookie_free(CelHttpCookie *cookie)
+{
+	cel_httpcookie_destroy(cookie);
+	cel_free(cookie);
+}
+
 int cel_httpcookie_set_attribute(CelHttpCookie *cookie, 
                                  CelDateTime *expires, long max_age,
                                  const char *domain, const char *path, 
@@ -696,6 +725,77 @@ int cel_httpcookie_writing(const char *hdr_name,
             cel_stream_printf(s, ";Httponly");
         cel_stream_write(s, "\r\n", 2);
     }
+    return 0;
+}
+
+int cel_httpsetcookiearray_init(CelHttpSetCookieArray *set_cookies)
+{
+	return cel_arraylist_init(&(set_cookies->list), (CelFreeFunc)cel_httpcookie_destroy);
+}
+
+void cel_httpsetcookiearray_destroy(CelHttpSetCookieArray *set_cookies)
+{
+	return cel_arraylist_destroy(&(set_cookies->list));
+}
+
+int cel_httpsetcookiearray_add(CelHttpSetCookieArray *set_cookies,
+							   const char *key,
+							   const char *value, size_t value_size,
+							   CelDateTime *expires, long max_age,
+							   const char *domain, const char *path, 
+							   BOOL secure, BOOL httponly)
+{
+	CelHttpCookie *cookie;
+
+	cookie = cel_httpcookie_new();
+	cel_httpcookie_set_value(cookie, key, value, value_size);
+	cel_httpcookie_set_attribute(cookie, expires, max_age, domain, path, secure, httponly);
+	cel_arraylist_push_back(&(set_cookies->list), cookie);
+	return 0;
+}
+
+void *cel_httpsetcookiearray_set(CelHttpSetCookieArray *set_cookies1,
+								 CelHttpSetCookieArray *set_cookies2, size_t len)
+{
+	int ret;
+	size_t i;
+	CelArrayList *list2 = &(set_cookies2->list);
+	CelHttpCookie *cookie;
+
+	for (i = 0; i < list2->size; i++)
+	{
+		cookie = cel_httpcookie_new();
+		cel_httpcookie_set(cookie, (CelHttpCookie *)(list2->items[i]), sizeof(CelHttpCookie));
+		cel_arraylist_push_back(&(set_cookies1->list), cookie);
+	}
+
+	return set_cookies1;
+}
+
+int cel_httpsetcookiearray_reading(CelHttpSetCookieArray *set_cookies, 
+								   const char *value, size_t size)
+{
+	CelHttpCookie *cookie;
+	if ((cookie = cel_httpcookie_new()) != NULL
+		&& cel_httpcookie_reading(cookie, value, size) != -1)
+	{
+		cel_arraylist_push_back(&(set_cookies->list), cookie);
+		return 0;
+	}
+	return -1;
+}
+
+int cel_httpsetcookiearray_writing(const char *hdr_name, 
+								   CelHttpSetCookieArray *set_cookies, CelStream *s)
+{
+    size_t i;
+	CelArrayList *list = &(set_cookies->list);
+
+	for (i = 0; i < list->size; i++)
+    {
+		cel_httpcookie_writing(hdr_name, (CelHttpCookie *)(list->items[i]), s);
+    }
+
     return 0;
 }
 

@@ -22,6 +22,7 @@
 #include "cel/datetime.h"
 #include "cel/keyword.h"
 #include "cel/convert.h"
+#include "cel/arraylist.h"
 
 #define CEL_HTTPVERSION_LEN             8
 #define CEL_HTTPHDR_LEN_MAX           128
@@ -176,13 +177,18 @@ typedef struct _CelHttpCookie
     BOOL secure, httponly;
 }CelHttpCookie, CelHttpSetCookie;
 
-#define cel_httpsetcookie_init cel_httpcookie_init
-#define cel_httpsetcookie_destroy cel_httpcookie_destroy
-#define cel_httpsetcookie_new cel_httpcookie_new
-#define cel_httpsetcookie_free cel_httpcookie_free
-#define cel_httpsetcookie_set_value cel_httpcookie_set_value
-#define cel_httpsetcookie_set_attribute cel_httpcookie_set_attribute
-#define cel_httpsetcookie_set cel_httpcookie_set
+typedef struct _CelHttpSetCookieArray
+{
+	CelArrayList list;
+}CelHttpSetCookieArray;
+
+//#define cel_httpsetcookie_init cel_httpcookie_init
+//#define cel_httpsetcookie_destroy cel_httpcookie_destroy
+//#define cel_httpsetcookie_new cel_httpcookie_new
+//#define cel_httpsetcookie_free cel_httpcookie_free
+//#define cel_httpsetcookie_set_value cel_httpcookie_set_value
+//#define cel_httpsetcookie_set_attribute cel_httpcookie_set_attribute
+//#define cel_httpsetcookie_set cel_httpcookie_set
 
 /* 
  * bytes=1000-2000  first = 1000, last = 2000
@@ -232,6 +238,7 @@ extern CelHttpHeaderHandler g_httpll_handler;
 extern CelHttpHeaderHandler g_httpconnection_handler;
 extern CelHttpHeaderHandler g_httpcontentrange_handler;
 extern CelHttpHeaderHandler g_httpcookie_handler;
+extern CelHttpHeaderHandler g_httpsetcookiearray_handler;
 extern CelHttpHeaderHandler g_httprange_handler;
 extern CelHttpHeaderHandler g_httptransferencoding_handler;
 
@@ -345,6 +352,23 @@ int cel_httpcookie_reading(CelHttpCookie *set_cookie,
                            const char *value, size_t size);
 int cel_httpcookie_writing(const char *hdr_name, 
                            CelHttpCookie *set_cookie, CelStream *s);
+
+int cel_httpsetcookiearray_init(CelHttpSetCookieArray *set_cookies);
+void cel_httpsetcookiearray_destroy(CelHttpSetCookieArray *set_cookies);
+
+int cel_httpsetcookiearray_add(CelHttpSetCookieArray *set_cookies,
+							   const char *key,
+							   const char *value, size_t value_size,
+							   CelDateTime *expires, long max_age,
+							   const char *domain, const char *path, 
+							   BOOL secure, BOOL httponly);
+
+void *cel_httpsetcookiearray_set(CelHttpSetCookieArray *set_cookies1,
+								 CelHttpSetCookieArray *set_cookies2, size_t len);
+int cel_httpsetcookiearray_reading(CelHttpSetCookieArray *set_cookies, 
+								   const char *value, size_t size);
+int cel_httpsetcookiearray_writing(const char *hdr_name, 
+								   CelHttpSetCookieArray *set_cookies, CelStream *s);
 
 int cel_httprange_reading(CelHttpRange *range, const char *value, size_t size);
 int cel_httprange_writing(const char *hdr_name, 
