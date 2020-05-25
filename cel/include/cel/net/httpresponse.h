@@ -292,11 +292,20 @@ int cel_httpresponse_send_redirect(CelHttpResponse *rsp, const char *url);
  * bytes=1000-      first = 1000, last = 0
  * bytes=-1000      first = -1000, last = 0
  */
-int cel_httpresponse_send_file(CelHttpResponse *rsp, 
-                               const char *file_path, 
+int cel_httpresponse_send_tryfile(CelHttpResponse *rsp, 
+                               const char *file_path, const char *uri_file_path,
                                long long first, long long last,
                                CelDateTime *if_modified_since, 
                                char *if_none_match);
+static __inline int cel_httpresponse_send_file(CelHttpResponse *rsp, 
+											   const char *file_path, 
+											   long long first, long long last,
+											   CelDateTime *if_modified_since, 
+											   char *if_none_match)
+{
+	return cel_httpresponse_send_tryfile(rsp, 
+		file_path, NULL, first, last, if_modified_since, if_none_match);
+}
 
 int cel_httpresponse_recv_file(CelHttpResponse *rsp, const char *file_path);
 

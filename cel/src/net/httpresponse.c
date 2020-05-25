@@ -1043,11 +1043,11 @@ static int cel_httpresponse_body_read_file(CelHttpResponse *rsp, CelStream *s,
     return size;
 }
 
-int cel_httpresponse_send_file(CelHttpResponse *rsp, 
-                               const char *file_path,
-                               long long first, long long last,
-                               CelDateTime *if_modified_since, 
-                               char *if_none_match)
+int cel_httpresponse_send_tryfile(CelHttpResponse *rsp, 
+								  const char *file_path, const char *uri_file_path,
+								  long long first, long long last,
+								  CelDateTime *if_modified_since, 
+								  char *if_none_match)
 {
     struct stat file_stat;
     CelDateTime dt;
@@ -1057,12 +1057,18 @@ int cel_httpresponse_send_file(CelHttpResponse *rsp,
     char disposition[256];
     size_t len;
 
-    if (stat(file_path, &file_stat) != 0
-        || (file_stat.st_mode & S_IFREG) != S_IFREG)
-    {
-        //printf("%d\r\n", file_stat.st_mode);
-        return cel_httpresponse_send(rsp, CEL_HTTPSC_NOT_FOUND, NULL, 0);
-    }
+	if (stat(file_path, &file_stat) != 0
+		|| (file_stat.st_mode & S_IFREG) != S_IFREG)
+	{
+		//printf("%d\r\n", file_stat.st_mode);
+		if (uri_file_path != NULL)
+		{
+			file_path = uri_file_path;
+			if (stat(file_path, &file_stat) != 0
+				|| (file_stat.st_mode & S_IFREG) != S_IFREG)
+				return cel_httpresponse_send(rsp, CEL_HTTPSC_NOT_FOUND, NULL, 0);
+		}
+	}
     if (if_modified_since != NULL)
     {
         //printf("%ld %ld\r\n", *if_modified_since, file_stat.st_mtime);

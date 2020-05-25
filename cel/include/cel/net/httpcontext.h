@@ -84,6 +84,11 @@ int cel_httpcontext_routing_again(CelHttpContext *http_ctx);
 
 int cel_httpcontext_response_write(CelHttpContext *http_ctx, CelHttpStatusCode status,
 								   int err_no, const char *msg);
+int cel_httpcontext_response_tryfiles(CelHttpContext *http_ctx, 
+									  const char *file_path, const char *uri_file_path,
+									  long long first, long long last,
+									  CelDateTime *if_modified_since,
+									  char *if_none_match);
 int cel_httpcontext_response_sendfile(CelHttpContext *http_ctx, const char *file_path, 
 									  long long first, long long last,
 									  CelDateTime *if_modified_since,

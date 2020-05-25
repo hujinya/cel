@@ -81,6 +81,16 @@ int cel_httpcontext_response_write(CelHttpContext *http_ctx,
 		(CelHttpWebClient *)(http_ctx->client), status, err_no, msg);
 }
 
+int cel_httpcontext_response_tryfiles(CelHttpContext *http_ctx, 
+									  const char *file_path, const char *uri_file_path,
+									  long long first, long long last,
+									  CelDateTime *if_modified_since,
+									  char *if_none_match)
+{
+	return cel_httpresponse_send_tryfile(http_ctx->rsp, 
+		file_path, uri_file_path, first, last, if_modified_since, if_none_match);
+}
+
 int cel_httpcontext_response_sendfile(CelHttpContext *http_ctx, 
 									  const char *file_path, 
 									  long long first, long long last,

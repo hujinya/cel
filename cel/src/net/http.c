@@ -735,7 +735,7 @@ int cel_httpsetcookiearray_init(CelHttpSetCookieArray *set_cookies)
 
 void cel_httpsetcookiearray_destroy(CelHttpSetCookieArray *set_cookies)
 {
-	return cel_arraylist_destroy(&(set_cookies->list));
+	cel_arraylist_destroy(&(set_cookies->list));
 }
 
 int cel_httpsetcookiearray_add(CelHttpSetCookieArray *set_cookies,
@@ -757,7 +757,6 @@ int cel_httpsetcookiearray_add(CelHttpSetCookieArray *set_cookies,
 void *cel_httpsetcookiearray_set(CelHttpSetCookieArray *set_cookies1,
 								 CelHttpSetCookieArray *set_cookies2, size_t len)
 {
-	int ret;
 	size_t i;
 	CelArrayList *list2 = &(set_cookies2->list);
 	CelHttpCookie *cookie;

@@ -1,5 +1,6 @@
-* Tue Apr 14 2020 Hu Jinya <hjy@gzsunrun.cn> 1.2.2.50
+* Tue Apr 14 2020 Hu Jinya <hjy@gzsunrun.cn> 1.2.2.51
 - 新增：CelHttpSetCookieArray支持设置多个cookie。
+- 新增：CelHttpResponse支持send_tryfile。
 
 * Tue Mar 10 2020 Hu Jinya <hjy@gzsunrun.cn> 1.2.1.49
 - 修复：cel_sockaddr_str_split解析ipv6失败问题。
