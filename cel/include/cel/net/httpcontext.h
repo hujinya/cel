@@ -34,6 +34,7 @@ typedef struct _CelHttpContext
 	CelHttpClient *client;
     CelHttpRequest *req;
 	CelHttpResponse *rsp;
+	char user[CEL_UNLEN];
 	void *user_data;
 	CelHttpRouteState state;
 	CelPatTrieParams params;

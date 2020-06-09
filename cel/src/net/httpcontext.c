@@ -21,6 +21,8 @@ int cel_httpcontext_init(CelHttpContext *http_ctx,
 	http_ctx->client = client;
 	http_ctx->req = req;
 	http_ctx->rsp = rsp;
+	http_ctx->user[0] = '\0';
+	http_ctx->user_data = NULL;
 	http_ctx->state = 0;
 	http_ctx->current_filter = NULL;
 	return cel_rbtree_init(&(http_ctx->params), (CelCompareFunc)strcmp, NULL, cel_free);
@@ -31,6 +33,8 @@ void cel_httpcontext_destroy(CelHttpContext *http_ctx)
 	http_ctx->client = NULL;
 	http_ctx->req = NULL;
 	http_ctx->rsp = NULL;
+	http_ctx->user[0] = '\0';
+	http_ctx->user_data = NULL;
 	http_ctx->state = 0;
 	http_ctx->current_filter = NULL;
 	cel_rbtree_destroy(&(http_ctx->params));

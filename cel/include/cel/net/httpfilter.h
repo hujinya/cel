@@ -85,7 +85,7 @@ typedef struct _CelHttpFilterLog
 }CelHttpFilterLog;
 
 int cel_httpfilter_log_init(CelHttpFilterLog *log_filter, 
-							   const char *path);
+							const char *path);
 void cel_httpfilter_log_destroy(CelHttpFilterLog *log_filter);
 
 #ifdef __cplusplus
