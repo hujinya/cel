@@ -683,6 +683,7 @@ static int cel_httpresponse_writing_body(CelHttpResponse *rsp, CelStream *s)
                     cel_stream_seal_length(s);
                     return -1;
                 }
+				//printf("chunked send seek%d \r\n", (int)_size);
                 cel_httpchunked_send_seek(&(rsp->chunked), _size);
                 cel_stream_seal_length(s);
                 rsp->writing_body_offset += _size;
@@ -693,6 +694,7 @@ static int cel_httpresponse_writing_body(CelHttpResponse *rsp, CelStream *s)
             else
             {
                 /* Last chunk */
+				//printf("chuked size %d\r\n", (int)rsp->chunked.size);
                 cel_httpchunked_writing_last(&(rsp->chunked), s);
                 cel_stream_seal_length(s);
                 return 0;
@@ -869,9 +871,9 @@ static int cel_httpresponse_body_write(CelHttpResponse *rsp,
                                        CelStream *s, 
                                        CelHttpResponseBuf *rsp_buf)
 {
-    if (cel_stream_get_remaining_capacity(s) < rsp_buf->size)
+	if (cel_httpchunked_get_send_buffer_size(&(rsp->chunked), s) < rsp_buf->size)
     {
-        cel_stream_remaining_resize(s, rsp_buf->size);
+		cel_httpchunked_resize_send_buffer(&(rsp->chunked), s, rsp_buf->size);
         /*printf("cel_httpresponse_body_write resize "
             "remaing %d capacity %d buf_size %d\r\n", 
             (int)cel_stream_get_remaining_capacity(s), 
@@ -919,15 +921,15 @@ static int cel_httpresponse_body_printf(CelHttpResponse *rsp,
     int remaining_size;
     //puts(fmt_args->fmt);
     
-    remaining_size = cel_stream_get_remaining_capacity(s);
+	remaining_size = cel_httpchunked_get_send_buffer_size(&(rsp->chunked), s);
     fmt_args->size = vsnprintf((char *)cel_stream_get_pointer(s), 
         remaining_size, fmt_args->fmt, fmt_args->args);
     if (fmt_args->size < 0 || fmt_args->size >= remaining_size)
     {
-        if (fmt_args->size > 0)
-            cel_stream_remaining_resize(s, fmt_args->size);
-        else
-            cel_stream_remaining_resize(s, remaining_size + 1);
+		if (fmt_args->size > 0)
+			cel_httpchunked_resize_send_buffer(&(rsp->chunked), s, fmt_args->size);
+		else
+			cel_httpchunked_resize_send_buffer(&(rsp->chunked), s, remaining_size + 1);
        /* printf("cel_httpresponse_body_printf remaining %d capacity %d\r\n", 
             (int)cel_stream_get_remaining_capacity(s), (int)s->capacity);*/
         remaining_size = cel_stream_get_remaining_capacity(s);
