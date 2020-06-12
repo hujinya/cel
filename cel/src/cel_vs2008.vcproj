@@ -565,6 +565,10 @@
 					>
 				</File>
 				<File
+					RelativePath=".\net\httpstream.c"
+					>
+				</File>
+				<File
 					RelativePath=".\net\httpwebclient.c"
 					>
 				</File>
@@ -1470,6 +1474,10 @@
 				</File>
 				<File
 					RelativePath="..\include\cel\net\httproute.h"
+					>
+				</File>
+				<File
+					RelativePath="..\include\cel\net\httpstream.h"
 					>
 				</File>
 				<File

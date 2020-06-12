@@ -18,6 +18,7 @@
 #include "cel/file.h"
 #include "cel/rbtree.h"
 #include "cel/net/http.h"
+#include "cel/net/httpstream.h"
 #include "cel/net/httpmultipart.h"
 
 #define CEL_HTTPMETHOD_LEN_MAX                  7
@@ -82,8 +83,6 @@ typedef struct _CelHttpUrl
 typedef struct _CelHttpRequest CelHttpRequest;
 typedef int (* CelHttpRequestBodyReadCallBack)(
 	CelHttpRequest *req, CelStream *s, size_t len, void *user_data);
-typedef int (* CelHttpRequestBodyWriteCallBack)(
-	CelHttpRequest *req, CelStream *s, void *user_data);
 
 /*
  * Request = Request-Line ; RFC2616.5.1
@@ -97,9 +96,21 @@ typedef int (* CelHttpRequestBodyWriteCallBack)(
  */
 struct _CelHttpRequest
 {
-    CelStream s;
+	union {
+		struct {
+			CelStream s;
+			BOOL is_chunked;
+			CelHttpChunked chunked;
+		};
+		CelHttpStream hs;
+	};
     void *_rsp;
     void *_async_callback;
+
+	CelHttpContentType body_content_type;
+    CelHttpBodySaveType body_save_in;
+    CelHttpBodyCache body_cache;
+    CelHttpMultipart multipart;
     
     CelHttpRequestReadingState reading_state;
     CelHttpError reading_error;
@@ -111,7 +122,7 @@ struct _CelHttpRequest
     CelHttpRequsetWritingState writing_state;
     CelHttpError writing_error;
     long long writing_body_offset;
-    CelHttpRequestBodyWriteCallBack body_writing_callback;
+    CelHttpStreamWriteCallBack body_writing_callback;
     void *body_writing_user_data;
 
     CelHttpMethod method;
@@ -170,12 +181,6 @@ struct _CelHttpRequest
     CelVStringA x_real_ip;
     CelVStringA x_requested_with;
     CelRbTree ext_hdrs;
-
-    CelHttpContentType body_content_type;
-    CelHttpChunked chunked;
-    CelHttpBodySaveType body_save_in;
-    CelHttpBodyCache body_cache;
-    CelHttpMultipart multipart;
 };
 
 #ifdef __cplusplus

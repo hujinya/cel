@@ -18,6 +18,7 @@
 #include "cel/file.h"
 #include "cel/rbtree.h"
 #include "cel/net/http.h"
+#include "cel/net/httpstream.h"
 
 #define CEL_HTTPSTATUS_LEN               3
 #define CEL_HTTPREASON_LEN_MAX         256
@@ -106,8 +107,6 @@ typedef struct _CelHttpResponse CelHttpResponse;
 
 typedef int (* CelHttpResponseBodyReadCallBack)(
     CelHttpResponse *rsp, CelStream *s, size_t len, void *user_data);
-typedef int (* CelHttpResponseBodyWriteCallBack)(
-    CelHttpResponse *rsp, CelStream *s, void *user_data);
 /*
  * Response = Status-Line ; RFC2616.6.1
  *            *((general-header ;   RFC2616.4.5
@@ -120,9 +119,19 @@ typedef int (* CelHttpResponseBodyWriteCallBack)(
  */
 struct _CelHttpResponse
 {
-    CelStream s;
+	union {
+		struct {
+			CelStream s;
+			BOOL is_chunked;
+			CelHttpChunked chunked;
+		};
+		CelHttpStream hs;
+	};
     void *_req;
     void *_async_callback;
+
+    CelHttpBodySaveType body_save_in;
+    CelHttpBodyCache body_cache;
 
     CelHttpResponseReadingState reading_state;
     CelHttpError reading_error;
@@ -135,7 +144,7 @@ struct _CelHttpResponse
     CelHttpError writing_error;
 	size_t writing_hdr_offset;
     long long writing_body_offset;
-    CelHttpResponseBodyWriteCallBack body_writing_callback;
+    CelHttpStreamWriteCallBack body_writing_callback;
     void *body_writing_user_data;
 
     CelHttpVersion ver;
@@ -180,11 +189,6 @@ struct _CelHttpResponse
     CelVStringA www_authenticate;
     CelVStringA x_powered_by;
     CelRbTree ext_hdrs;
-
-    //CelStream hdr_cache;
-    CelHttpChunked chunked;
-    CelHttpBodySaveType body_save_in;
-    CelHttpBodyCache body_cache;
 };
 
 #ifdef __cplusplus

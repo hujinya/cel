@@ -17,8 +17,8 @@
 
 #include "cel/types.h"
 #include "cel/allocator.h"
-#include "cel/stream.h"
 #include "cel/vstring.h"
+#include "cel/stream.h"
 #include "cel/datetime.h"
 #include "cel/keyword.h"
 #include "cel/convert.h"
@@ -242,13 +242,6 @@ extern CelHttpHeaderHandler g_httpsetcookiearray_handler;
 extern CelHttpHeaderHandler g_httprange_handler;
 extern CelHttpHeaderHandler g_httptransferencoding_handler;
 
-typedef struct _CelHttpChunked
-{
-    BOOL last;
-    int start;
-    unsigned int size;
-}CelHttpChunked;
-
 typedef enum _CelHttpBodySaveType
 {
     CEL_HTTPBODY_SAVE_UNDEFINED = -1,
@@ -381,47 +374,6 @@ int cel_httptransferencoding_writing(const char *hdr_name,
                                      CelStream *s);
 
 int cel_httpextheader_writing(char *hdr_name, char *value, CelStream *s);
-
-static __inline int cel_httpchunked_init(CelHttpChunked *chunked, int start)
-{
-    chunked->last = FALSE;
-    chunked->start = start;
-    chunked->size = 0;
-    return 0;
-}
-
-long cel_httpchunked_reading(CelStream *s);
-
-static __inline 
-int cel_httpchunked_get_send_buffer_position(CelHttpChunked *chunked)
-{
-    return chunked->start + chunked->size + 9;
-}
-static __inline 
-void *cel_httpchunked_get_send_buffer(CelHttpChunked *chunked, CelStream *s)
-{
-    cel_stream_set_position(s,
-        cel_httpchunked_get_send_buffer_position(chunked));
-    return cel_stream_get_pointer(s);
-}
-#define cel_httpchunked_get_send_buffer_size(chunked, s) \
-    (cel_stream_get_remaining_capacity(s) - 11 - 5)
-#define cel_httpchunked_resize_send_buffer(chunked, s, resize) \
-    cel_stream_remaining_resize(s, resize + 11 + 5)
-static __inline void cel_httpchunked_send_seek(CelHttpChunked *chunked, int offset)
-{
-    chunked->size += offset;
-}
-static __inline void cel_httpchunked_set_last(CelHttpChunked *chunked, BOOL is_last)
-{
-	chunked->last = TRUE;
-}
-static __inline BOOL cel_httpchunked_is_last(CelHttpChunked *chunked)
-{
-	return chunked->last;
-}
-long cel_httpchunked_writing_last(CelHttpChunked *chunked, CelStream *s);
-
 
 int cel_httpbodycache_init(CelHttpBodyCache *cache, size_t buf_max_size);
 void cel_httpbodycache_destroy(CelHttpBodyCache *cache);
