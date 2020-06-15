@@ -268,7 +268,7 @@ void cel_httpwebclient_do_recv_request(CelHttpWebClient *client,
     /*printf("cel_httpwebclient_do_recv_request,"
              "result = %ld, reading_state %d\r\n", 
               result->ret, req->reading_state);
-    puts((char *)req->s.buffer);*/
+    puts((char *)req->hs.s.buffer);*/
     switch (req->reading_state)
     {
     case CEL_HTTPREQUEST_READING_INIT:

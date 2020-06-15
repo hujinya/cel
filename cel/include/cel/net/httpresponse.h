@@ -119,29 +119,20 @@ typedef int (* CelHttpResponseBodyReadCallBack)(
  */
 struct _CelHttpResponse
 {
-	union {
-		struct {
-			CelStream s;
-			BOOL is_chunked;
-			CelHttpChunked chunked;
-		};
-		CelHttpStream hs;
-	};
-    void *_req;
+    CelHttpStream hs;
+    //void *_req;
     void *_async_callback;
 
     CelHttpBodySaveType body_save_in;
     CelHttpBodyCache body_cache;
 
     CelHttpResponseReadingState reading_state;
-    CelHttpError reading_error;
     size_t reading_hdr_offset;
     long long reading_body_offset;
     CelHttpResponseBodyReadCallBack body_reading_callback;
     void *body_reading_user_data;
 
     CelHttpResponseWritingState writing_state;
-    CelHttpError writing_error;
 	size_t writing_hdr_offset;
     long long writing_body_offset;
     CelHttpStreamWriteCallBack body_writing_callback;
@@ -218,8 +209,8 @@ void cel_httpresponse_clear(CelHttpResponse *rsp);
 #define cel_httpresponse_get_writing_state(rsp) (rsp)->writing_state
 #define cel_httpresponse_get_writing_error(rsp) (rsp)->writing_error
 
-int cel_httpresponse_reading(CelHttpResponse *rsp, CelStream *s);
-int cel_httpresponse_writing(CelHttpResponse *rsp, CelStream *s);
+int cel_httpresponse_reading(CelHttpResponse *rsp);
+int cel_httpresponse_writing(CelHttpResponse *rsp);
 
 #define cel_httpresponse_get_version(rsp) (rsp)->ver
 #define cel_httpresponse_set_version(rsp, ver) (rsp)->ver = ver
@@ -276,7 +267,7 @@ static __inline int cel_httpresponse_move_body_data(CelHttpResponse *rsp,
 	return cel_httpbodycache_move_file(&(rsp->body_cache), file_path);
 }
 
-#define cel_httpresponse_get_stream(rsp) (&(rsp->s))
+#define cel_httpresponse_get_stream(rsp) (&(rsp->hs.s))
 void *cel_httpresponse_get_send_buffer(CelHttpResponse *rsp);
 size_t cel_httpresponse_get_send_buffer_size(CelHttpResponse *rsp);
 void cel_httpresponse_seek_send_buffer(CelHttpResponse *rsp, int offset);

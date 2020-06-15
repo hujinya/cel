@@ -274,7 +274,7 @@ CelKeywordA g_case_httphdr[] =
     { sizeof("via") - 1,
     "via", "Via", &g_httpvstring_handler },                            /* rfc2616.14.45 */
     { sizeof("warning") - 1, 
-    "warning", "Warning", &g_httpvstring_handler },                /* rfc2616.14.46 */
+    "warning", "Warning", &g_httpvstring_handler },                    /* rfc2616.14.46 */
 
     { sizeof("www-authenticate") - 1, 
     "www-authenticate", "WWW-Authenticate", &g_httpvstring_handler },  /* rfc2616.14.47 */

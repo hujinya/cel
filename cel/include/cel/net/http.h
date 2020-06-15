@@ -35,8 +35,8 @@
 
 typedef enum _CelHttpError
 {
-    CEL_HTTP_NO_ERROR = 0,
-    CEL_HTTP_ERROR,
+	CEL_HTTP_ERROR = -1,
+    CEL_HTTP_NO_ERROR = 0, 
     CEL_HTTP_WANT_READ,
     CEL_HTTP_WANT_WRITE
 }CelHttpError;
@@ -138,6 +138,8 @@ typedef enum _CelHttpHeader
     CEL_HTTPHDR_X_POWERED_BY,
     CEL_HTTPHDR_X_REAL_IP,
     CEL_HTTPHDR_X_REQUESTED_WITH,
+
+	CEL_HTTPHDR_EXT,
     
     CEL_HTTPHDR_COUNT
 }CelHttpHeader;
@@ -390,6 +392,7 @@ long long cel_httpbodycache_save_file(CelHttpBodyCache *cache,
                                       long long first, long long last,
                                       const char *file_path);
 int cel_httpbodycache_move_file(CelHttpBodyCache *cache, const char *file_path);
+
 
 #ifdef __cplusplus
 }

@@ -43,20 +43,20 @@ int cel_httpchunked_init(CelHttpChunked *chunked, int start)
 long cel_httpchunked_reading(CelStream *s);
 
 static __inline 
-int cel_httpchunked_get_send_buffer_position(CelHttpChunked *chunked)
+int cel_httpchunked_get_send_position(CelHttpChunked *chunked)
 {
     return chunked->start + chunked->size + 9;
 }
 static __inline 
-void *cel_httpchunked_get_send_buffer(CelHttpChunked *chunked, CelStream *s)
+void *cel_httpchunked_get_send_pointer(CelHttpChunked *chunked, CelStream *s)
 {
     cel_stream_set_position(s,
-        cel_httpchunked_get_send_buffer_position(chunked));
+        cel_httpchunked_get_send_position(chunked));
     return cel_stream_get_pointer(s);
 }
 #define cel_httpchunked_get_send_buffer_size(chunked, s) \
     (cel_stream_get_remaining_capacity(s) - 11 - 5)
-#define cel_httpchunked_resize_send_buffer(chunked, s, resize) \
+#define cel_httpchunked_remaing_resize(chunked, s, resize) \
     cel_stream_remaining_resize(s, resize + 11 + 5)
 static __inline void cel_httpchunked_send_seek(CelHttpChunked *chunked, int offset)
 {
@@ -105,21 +105,21 @@ int cel_httpstream_writing(CelHttpStream *hs);
 static __inline int cel_httpstream_remaining_resize(CelHttpStream *hs, size_t new_size)
 {
 	return (hs->is_chunked 
-		? cel_httpchunked_resize_send_buffer(&(hs->chunked), &(hs->s), new_size) 
+		? cel_httpchunked_remaing_resize(&(hs->chunked), &(hs->s), new_size) 
 		: cel_stream_remaining_resize(&(hs->s), new_size));
 }
 
-static __inline int cel_httpstream_get_write_position(CelHttpStream *hs)
+static __inline int cel_httpstream_get_position(CelHttpStream *hs)
 {
 	return (hs->is_chunked
 		? hs->chunked.start + hs->chunked.size + 9
 		: hs->s.pointer - hs->s.buffer);
 }
-static __inline void *cel_httpstream_get_write_buffer(CelHttpStream *hs)
+static __inline void *cel_httpstream_get_pointer(CelHttpStream *hs)
 {
 	if (hs->is_chunked )
 		cel_stream_set_position(&(hs->s),
-		cel_httpchunked_get_send_buffer_position(&(hs->chunked)));
+		cel_httpchunked_get_send_position(&(hs->chunked)));
     return cel_stream_get_pointer(&(hs->s));
 }
 static __inline size_t cel_httpsteam_get_write_buffer_size(CelHttpStream *hs)

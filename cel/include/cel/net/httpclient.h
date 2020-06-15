@@ -87,8 +87,7 @@ void cel_httpclient_free(CelHttpClient *client);
 #define cel_httpclient_get_remoteaddr_str(client) \
     cel_sockaddr_ntop(cel_tcpclient_get_remoteaddr(client))
 
-int cel_httpclient_reading_recv_request(CelHttpClient *client, 
-                                        CelStream *s, CelHttpRequest *req);
+int cel_httpclient_reading_recv_request(CelHttpClient *client, CelHttpRequest *req);
 
 static __inline 
 int cel_httpclient_connect(CelHttpClient *client, CelSockAddr *remote_addr)

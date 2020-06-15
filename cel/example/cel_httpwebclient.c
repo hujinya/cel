@@ -95,7 +95,7 @@ int httpwebclient_test(int argc, TCHAR *argv[])
         "{\"username\":\"%s\",\"password\":\"%s\",\"action\":\"login\"}", 
         "hujinya", "password");
     cel_httprequest_end(&(client->req));
-    puts((char *)client->req.s.buffer);
+    //puts((char *)client->req.hs.s.buffer);
     cel_httpwebclient_async_execute_request(client, httpwebclient_close);
 
     for (i = 0; i < work_num; i++)

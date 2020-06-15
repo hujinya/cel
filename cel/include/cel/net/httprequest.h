@@ -96,16 +96,9 @@ typedef int (* CelHttpRequestBodyReadCallBack)(
  */
 struct _CelHttpRequest
 {
-	union {
-		struct {
-			CelStream s;
-			BOOL is_chunked;
-			CelHttpChunked chunked;
-		};
-		CelHttpStream hs;
-	};
-    void *_rsp;
-    void *_async_callback;
+	CelHttpStream hs;
+	//void *_rsp;
+	void *_async_callback;
 
 	CelHttpContentType body_content_type;
     CelHttpBodySaveType body_save_in;
@@ -113,14 +106,12 @@ struct _CelHttpRequest
     CelHttpMultipart multipart;
     
     CelHttpRequestReadingState reading_state;
-    CelHttpError reading_error;
     size_t reading_hdr_offset;
     long long reading_body_offset;
     CelHttpRequestBodyReadCallBack body_reading_callback;
     void *body_reading_user_data;
 
     CelHttpRequsetWritingState writing_state;
-    CelHttpError writing_error;
     long long writing_body_offset;
     CelHttpStreamWriteCallBack body_writing_callback;
     void *body_writing_user_data;
@@ -204,8 +195,8 @@ void cel_httprequest_clear(CelHttpRequest *req);
     (req)->body_writing_callback = _callback,\
     (req)->body_writing_user_data = _user_data
 
-int cel_httprequest_reading(CelHttpRequest *req, CelStream *s);
-int cel_httprequest_writing(CelHttpRequest *req, CelStream *s);
+int cel_httprequest_reading(CelHttpRequest *req);
+int cel_httprequest_writing(CelHttpRequest *req);
 
 /* CelHttpMethod cel_httprequest_get_method(CelHttpRequest *req); */
 #define cel_httprequest_get_method(req) (req)->method
@@ -349,7 +340,7 @@ CelHttpMultipart *cel_httprequest_get_multipart(CelHttpRequest *req)
     return &(req->multipart);
 }
 
-#define cel_httprequest_get_stream(req) (&(req->s))
+#define cel_httprequest_get_stream(req) (&(req->hs.s))
 void *cel_httprequest_get_send_buffer(CelHttpRequest *req);
 size_t cel_httprequest_get_send_buffer_size(CelHttpRequest *req);
 void cel_httprequest_seek_send_buffer(CelHttpRequest *req, int offset);

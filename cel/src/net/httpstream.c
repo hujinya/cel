@@ -158,7 +158,7 @@ int cel_httpstream_printf(CelHttpStream *hs, CelHttpStreamFmtArgs *fmt_args)
 	//puts(fmt_args->fmt);
 
 	remaining_size = cel_httpsteam_get_write_buffer_size(hs);
-	fmt_args->size = vsnprintf((char *)cel_httpstream_get_write_buffer(hs), 
+	fmt_args->size = vsnprintf((char *)cel_httpstream_get_pointer(hs), 
 		remaining_size, fmt_args->fmt, fmt_args->args);
 	if (fmt_args->size < 0 || fmt_args->size >= remaining_size)
 	{
