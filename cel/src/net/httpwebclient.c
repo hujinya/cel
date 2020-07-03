@@ -323,21 +323,25 @@ int cel_httpwebclient_response_write(CelHttpWebClient *client,
     switch (status)
     {
     case CEL_HTTPSC_REQUEST_OK:
-        cel_httpresponse_set_statuscode(&(client->rsp), status);
-        if (client->rsp.writing_body_offset == 0)
-        {
+		//cel_httpresponse_set_statuscode(&(client->rsp), status);
+		if (client->rsp.writing_body_offset == 0)
+		{
 			cel_httpresponse_set_header(&(client->rsp), 
 				CEL_HTTPHDR_CONTENT_TYPE,
 				CEL_HTTPWEB_CONTENT_TYPE, CEL_HTTPWEB_CONTENT_TYPE_LEN);
 			if (msg != NULL)
+			{
 				cel_httpresponse_printf(&(client->rsp), 
-				"{\"error\":%d,\"message\":\"%s\"}", err_no, msg);
+					"{\"error\":%d,\"message\":\"%s\"}", err_no, msg);
+				cel_httpresponse_end(&(client->rsp));
+			}
 			else
-				cel_httpresponse_write(&(client->rsp), 
-				CEL_HTTPWEB_SUCCESSED_MSG, CEL_HTTPWEB_SUCCESSED_MSG_LEN);
-        }
-        cel_httpresponse_end(&(client->rsp));
-        break;
+			{
+				cel_httpresponse_send(&(client->rsp), status,
+					CEL_HTTPWEB_SUCCESSED_MSG, CEL_HTTPWEB_SUCCESSED_MSG_LEN);
+			}
+		}
+		break;
     case CEL_HTTPSC_CREATED:
     case CEL_HTTPSC_ACCEPTED:
     case CEL_HTTPSC_NO_CONTENT:

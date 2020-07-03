@@ -21,6 +21,18 @@
 
 typedef int (* CelHttpRouteHandleFunc)(CelHttpContext *http_ctx);
 
+typedef struct _CelHttpRouteData CelHttpRouteData;
+typedef int (* CelHttpRouteEachFunc)(CelHttpRouteData *rt_data, void *user_data);
+
+struct _CelHttpRouteData
+{
+	CelHttpMethod method;
+	char *path;
+	CelHttpRouteHandleFunc handle_func;
+	CelHttpRouteEachFunc _each_func;
+	void *_user_data;
+};
+
 typedef struct _CelHttpRoute
 {
 	CelVStringA prefix;
@@ -69,6 +81,9 @@ int cel_httproute_remove(CelHttpRoute *route, CelHttpMethod method, const char *
     cel_httproute_remove(route, CEL_HTTPM_PUT, path)
 #define cel_httproute_patch_remove(route, path) \
     cel_httproute_remove(route, CEL_HTTPM_PATCH, path)
+
+int cel_httproute_foreach(CelHttpRoute *route,
+						  CelHttpRouteEachFunc each_func, void *user_data);
 
 //#define cel_httproute_static_remove(route, path);
 

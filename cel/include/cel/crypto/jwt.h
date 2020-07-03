@@ -77,6 +77,13 @@ void cel_jwt_payload_add_bool(CelJwt *jwt, const char *key, BOOL value)
     cel_json_object_add_bool(jwt->payload.root_node, key, value);
 }
 static __inline 
+void cel_jwt_payload_add_int(CelJwt *jwt, const char *key, int value)
+{
+    if (jwt->payload.root_node == NULL)
+        jwt->payload.root_node = cel_json_object_new();
+    cel_json_object_add_int(jwt->payload.root_node, key, value);
+}
+static __inline 
 void cel_jwt_payload_add_long(CelJwt *jwt, const char *key, long value)
 {
     if (jwt->payload.root_node == NULL)
@@ -123,6 +130,12 @@ int cel_jwt_payload_get_int(CelJwt *jwt, const char *key, int *value)
 {
     return jwt->payload.root_node == NULL ?
         -1 : cel_json_object_get_int(jwt->payload.root_node, key, value);
+}
+static __inline 
+int cel_jwt_payload_get_long(CelJwt *jwt, const char *key, long *value)
+{
+    return jwt->payload.root_node == NULL ?
+        -1 : cel_json_object_get_long(jwt->payload.root_node, key, value);
 }
 static __inline 
 int cel_jwt_payload_get_double(CelJwt *jwt, const char *key, double *value)

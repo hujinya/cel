@@ -96,6 +96,13 @@ void _cel_pattrie_node_remove(CelPatTrieNode *node,
     ((pat_trie)->root == NULL ? NULL \
     : _cel_pattrie_node_remove((pat_trie)->root, \
     key, strlen(key), (pat_trie)->value_free_func))
+
+/*
+ * \return     0 foreach successful; 1 each func return end; -1 error.
+ */
+int cel_pattrie_foreach(CelPatTrie *pat_trie, 
+						CelKeyValuePairEachFunc each_func, void *user_data);
+
 void cel_pattrie_clear(CelPatTrie *pat_trie);
 
 #ifdef __cplusplus

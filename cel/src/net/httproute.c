@@ -82,7 +82,34 @@ int cel_httproute_add(CelHttpRoute *route,
 int cel_httproute_remove(CelHttpRoute *route, 
                          CelHttpMethod method, const char *path)
 {
-    return 0;
+	//cel_pattrie_remove(&(route->root_tries[method]), path);
+	return 0;
+}
+
+static int _cel_httproute_each(char *key, void *value, CelHttpRouteData *rt_data)
+{
+	rt_data->path = key;
+	rt_data->handle_func = value;
+	return rt_data->_each_func(rt_data, rt_data->_user_data);
+}
+
+int cel_httproute_foreach(CelHttpRoute *route,
+						  CelHttpRouteEachFunc each_func, void *user_data)
+{
+	int i, ret;
+	CelHttpRouteData rt_data;
+
+	rt_data._each_func = each_func;
+	rt_data._user_data = user_data;
+	for (i = 0; i < CEL_HTTPM_CONUT; i++)
+	{
+		rt_data.method = i;
+		if ((ret = cel_pattrie_foreach(
+			&(route->root_tries[i]),
+			(CelKeyValuePairEachFunc)_cel_httproute_each, &rt_data)) != 0)
+			return ret;
+	}
+	return 0;
 }
 
 int cel_httproute_logger_filter_set(CelHttpRoute *route, 

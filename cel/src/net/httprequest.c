@@ -20,7 +20,7 @@
 #include "cel/file.h"
 #include <stdarg.h>
 
-static CelKeywordA s_reqmethod[] = 
+CelKeywordA g_requestmethod[] = 
 {
     { sizeof("CONNECT") - 1, "CONNECT" },
     { sizeof("DELETE") - 1, "DELETE" },
@@ -572,7 +572,7 @@ int cel_httprequest_reading(CelHttpRequest *req)
         }while ((char)ch != ' ');
         end = cel_stream_get_position(s);
         if ((req->method = (CelHttpMethod)cel_keyword_binary_search_a(
-            s_reqmethod,CEL_HTTPM_CONUT, 
+            g_requestmethod,CEL_HTTPM_CONUT, 
             (char *)(cel_stream_get_buffer(s) + start), end - start - 1)) == -1)
         {
             CEL_SETERR((CEL_ERR_LIB, _T("Invalid http request method.")));
@@ -742,7 +742,7 @@ static int cel_httprequest_writing_body(CelHttpRequest *req, CelStream *s)
                     cel_stream_seal_length(s);
                     return CEL_HTTP_WANT_WRITE;
                 }
-                //cel_httpchunked_send_seek(&(req->hs.chunked), _size);
+				//printf("chunked send seek%d \r\n", (int)_size);
                 req->writing_body_offset += _size;
                 req->content_length += _size;
                 cel_stream_seal_length(s);
@@ -753,6 +753,7 @@ static int cel_httprequest_writing_body(CelHttpRequest *req, CelStream *s)
                 /* Last chunk */
                 cel_httpstream_write_end(&(req->hs));
                 cel_stream_seal_length(s);
+				//printf("chuked size %d stream size %d\r\n", (int)req->hs.chunked.size, s->length);
                 return 0;
             }
         }
@@ -782,6 +783,8 @@ static int cel_httprequest_writing_body(CelHttpRequest *req, CelStream *s)
 int cel_httprequest_writing(CelHttpRequest *req)
 {
 	CelStream *s = cel_httprequest_get_stream(req);
+	int ret;
+
     switch (req->writing_state)
     {
     case CEL_HTTPREQUEST_WRITING_INIT:
@@ -795,7 +798,7 @@ int cel_httprequest_writing(CelHttpRequest *req)
             if (cel_vstring_len(&(req->url.fragment)) != 0)
             {
                 cel_stream_printf(s, "%s %s?%s#%s %s\r\n", 
-                    s_reqmethod[req->method].key_word, 
+                    g_requestmethod[req->method].key_word, 
                     cel_vstring_str_a(&(req->url.path)),
                     cel_vstring_str_a(&(req->url.query)), 
                     cel_vstring_str_a(&(req->url.fragment)),
@@ -804,7 +807,7 @@ int cel_httprequest_writing(CelHttpRequest *req)
             else
             {
                 cel_stream_printf(s, "%s %s?%s %s\r\n", 
-                    s_reqmethod[req->method].key_word, 
+                    g_requestmethod[req->method].key_word, 
                     cel_vstring_str_a(&(req->url.path)),
                     cel_vstring_str_a(&(req->url.query)),
                     g_httpversion[req->ver].key_word);
@@ -815,7 +818,7 @@ int cel_httprequest_writing(CelHttpRequest *req)
             if (cel_vstring_len(&(req->url.fragment)) != 0)
             {
                 cel_stream_printf(s, "%s %s#%s %s\r\n", 
-                    s_reqmethod[req->method].key_word, 
+                    g_requestmethod[req->method].key_word, 
                     cel_vstring_str_a(&(req->url.path)),
                     cel_vstring_str_a(&(req->url.fragment)),
                     g_httpversion[req->ver].key_word);
@@ -823,28 +826,27 @@ int cel_httprequest_writing(CelHttpRequest *req)
             else
             {
                 cel_stream_printf(s, "%s %s %s\r\n", 
-                    s_reqmethod[req->method].key_word, 
+                    g_requestmethod[req->method].key_word, 
                     cel_vstring_str_a(&(req->url.path)),
                     g_httpversion[req->ver].key_word);
             }
         }
         req->writing_state = CEL_HTTPREQUEST_WRITING_HEADER;
     case CEL_HTTPREQUEST_WRITING_HEADER:
-        if (cel_httprequest_writing_header(req, s) == -1)
-            return -1;
+        if ((ret = cel_httprequest_writing_header(req, s)) != CEL_HTTP_NO_ERROR)
+            return ret;
 		cel_httpchunked_init(&(req->hs.chunked), cel_stream_get_position(s));
         req->writing_state = CEL_HTTPREQUEST_WRITING_BODY;
     case CEL_HTTPREQUEST_WRITING_BODY:
-        if (cel_httprequest_writing_body(req, s) == -1)
-            return -1;
+        if ((ret = cel_httprequest_writing_body(req, s)) != CEL_HTTP_NO_ERROR)
+            return ret;
         req->writing_state = CEL_HTTPREQUEST_WRITING_OK;
     case CEL_HTTPREQUEST_WRITING_OK:
         break;
     default :
         CEL_SETERR((CEL_ERR_LIB, _T("Invalid http request writing state %d."), 
             req->writing_state));
-        req->writing_state = CEL_HTTP_ERROR;
-        return -1;
+        return CEL_HTTP_ERROR;
     }
 
     return 0;
@@ -852,7 +854,7 @@ int cel_httprequest_writing(CelHttpRequest *req)
 
 const char *cel_httprequest_get_method_str(CelHttpRequest *req)
 {
-	return s_reqmethod[req->method].key_word;
+	return g_requestmethod[req->method].key_word;
 }
 
 int cel_httprequest_set_url_str(CelHttpRequest *req, const char *url)
@@ -1108,13 +1110,13 @@ int cel_httprequest_end(CelHttpRequest *req)
 {
     long long len = 0;
 
-    if (req->writing_body_offset == 0)
-    {
-        cel_httprequest_set_header(req, CEL_HTTPHDR_CONTENT_LENGTH, &len, sizeof(len));
-    }
-	cel_httpchunked_set_last(&(req->hs.chunked), TRUE);
-    if (cel_httprequest_writing(req) == CEL_HTTP_ERROR)
-        return -1;
+	if (req->writing_body_offset == 0)
+		cel_httprequest_set_header(req, CEL_HTTPHDR_CONTENT_LENGTH, &len, sizeof(len));
+	else
+		cel_httpchunked_set_last(&(req->hs.chunked), TRUE);
+	//printf("chunked last %d\r\n", req->hs.chunked.last);
+	if (cel_httprequest_writing(req) == CEL_HTTP_ERROR)
+		return -1;
 
     return 0;
 }

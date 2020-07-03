@@ -174,6 +174,8 @@ struct _CelHttpRequest
     CelRbTree ext_hdrs;
 };
 
+extern CelKeywordA g_requestmethod[];
+
 #ifdef __cplusplus
 extern "C" {
 #endif

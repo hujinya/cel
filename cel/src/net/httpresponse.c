@@ -671,7 +671,6 @@ static int cel_httpresponse_writing_body(CelHttpResponse *rsp, CelStream *s)
                     return CEL_HTTP_WANT_WRITE;
                 }
 				//printf("chunked send seek%d \r\n", (int)_size);
-                //cel_httpchunked_send_seek(&(rsp->hs.chunked), _size);
                 cel_stream_seal_length(s);
                 rsp->writing_body_offset += _size;
                 rsp->content_length += _size;
@@ -915,18 +914,17 @@ int cel_httpresponse_printf(CelHttpResponse *rsp, const char *fmt, ...)
 
 int cel_httpresponse_end(CelHttpResponse *rsp)
 {
-    long long len = 0;
+	long long len = 0;
 
-    if (rsp->writing_body_offset == 0)
-    {
-        cel_httpresponse_set_header(rsp,
-            CEL_HTTPHDR_CONTENT_LENGTH, &len, sizeof(len));
-    }
-	cel_httpchunked_set_last(&(rsp->hs.chunked), TRUE);
-    if (cel_httpresponse_writing(rsp) == CEL_HTTP_ERROR)
-        return -1;
+	if (rsp->writing_body_offset == 0)
+		cel_httpresponse_set_header(rsp,
+		CEL_HTTPHDR_CONTENT_LENGTH, &len, sizeof(len));
+	else
+		cel_httpchunked_set_last(&(rsp->hs.chunked), TRUE);
+	if (cel_httpresponse_writing(rsp) == CEL_HTTP_ERROR)
+		return -1;
 
-    return 0;
+	return 0;
 }
 
 int cel_httpresponse_send(CelHttpResponse *rsp, 
@@ -938,7 +936,7 @@ int cel_httpresponse_send(CelHttpResponse *rsp,
     cel_httpresponse_set_statuscode(rsp, status);
     _content_len = content_len;
     cel_httpresponse_set_header(rsp,
-        CEL_HTTPHDR_CONTENT_LENGTH, &_content_len, sizeof(_content_len));
+		CEL_HTTPHDR_CONTENT_LENGTH, &_content_len, sizeof(_content_len));
     if (content != NULL)
         cel_httpresponse_write(rsp, content, content_len);
     cel_httpresponse_end(rsp);
@@ -948,8 +946,7 @@ int cel_httpresponse_send(CelHttpResponse *rsp,
 
 int cel_httpresponse_send_redirect(CelHttpResponse *rsp, const char *url)
 {
-    cel_httpresponse_set_header(rsp, 
-        CEL_HTTPHDR_LOCATION, url, strlen(url));
+    cel_httpresponse_set_header(rsp, CEL_HTTPHDR_LOCATION, url, strlen(url));
     return cel_httpresponse_send(rsp, CEL_HTTPSC_MOVED_TEMP, NULL, 0);
 }
 

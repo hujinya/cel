@@ -506,8 +506,7 @@ static int cel_jwt_verify_head(CelJwt *jwt, const char *head, size_t head_len)
     /* If alg is not NONE, there should be a typ. */
     if (jwt->alg != CEL_JWT_ALG_NONE) 
     {
-        if (cel_json_object_get_string(
-            head_json->root_node, "typ", val, 6) == -1 
+        if (cel_json_object_get_string(head_json->root_node, "typ", val, 6) == -1 
             || strcasecmp(val, "JWT") != 0)
         {
             ret = -1;

@@ -87,41 +87,41 @@ CelPatTrieNode *cel_pattrie_node_new(CelPatTrieNodeType type,
 
 void cel_pattrie_node_free(CelPatTrieNode *node, CelFreeFunc value_free_func)
 {
-    CelList *list;
-    CelPatTrieNode *child, *next;
+	CelList *list;
+	CelPatTrieNode *child, *next;
 
-    if ((list = node->static_children) != NULL)
-    {
-        child = (CelPatTrieNode *)(list->head.next);
-        while (child != (CelPatTrieNode *)cel_list_get_tail(list))
-        {
-            //printf("child key %s\r\n", child->key);
-            next = (CelPatTrieNode *)child->item.next;
-            cel_pattrie_node_free(child, value_free_func);
-            child = next;
-        }
-    }
-    if ((list = node->param_children) != NULL)
-    {
-        child = (CelPatTrieNode *)(list->head.next);
-        while (child != (CelPatTrieNode *)cel_list_get_tail(list))
-        {
-            //printf("child key %s\r\n", child->key);
-            next = (CelPatTrieNode *)child->item.next;
-            cel_pattrie_node_free(child, value_free_func);
-            child = next;
-        }
-    }
-    /*printf("free key %s\r\n", node->key);*/
-    if (node->key != NULL)
-        cel_free(node->key);
-    if (node->value != NULL && value_free_func != NULL)
-        value_free_func(node->value);
-    if (node->param_name != NULL)
-        cel_free(node->param_name);
-    if (node->regexp != NULL)
-        cel_free(node->regexp);
-    cel_free(node);
+	if ((list = node->static_children) != NULL)
+	{
+		child = (CelPatTrieNode *)(list->head.next);
+		while (child != (CelPatTrieNode *)cel_list_get_tail(list))
+		{
+			//printf("child key %s\r\n", child->key);
+			next = (CelPatTrieNode *)child->item.next;
+			cel_pattrie_node_free(child, value_free_func);
+			child = next;
+		}
+	}
+	if ((list = node->param_children) != NULL)
+	{
+		child = (CelPatTrieNode *)(list->head.next);
+		while (child != (CelPatTrieNode *)cel_list_get_tail(list))
+		{
+			//printf("child key %s\r\n", child->key);
+			next = (CelPatTrieNode *)child->item.next;
+			cel_pattrie_node_free(child, value_free_func);
+			child = next;
+		}
+	}
+	/*printf("free key %s\r\n", node->key);*/
+	if (node->key != NULL)
+		cel_free(node->key);
+	if (node->value != NULL && value_free_func != NULL)
+		value_free_func(node->value);
+	if (node->param_name != NULL)
+		cel_free(node->param_name);
+	if (node->regexp != NULL)
+		cel_free(node->regexp);
+	cel_free(node);
 }
 
 int _cel_pattrie_child_node_insert(CelPatTrieNode *node, 
@@ -390,6 +390,81 @@ next_static_children:
         }
     }
     return -1;
+}
+
+typedef struct _CelPattrieEachUserData
+{
+	CelKeyValuePairEachFunc each_func;
+	void *user_data;
+	size_t key_len;
+	char key[CEL_PATHLEN];
+}CelPattrieEachUserData;
+
+int _cel_pattrie_node_foreach(CelPatTrieNode *node, 
+							  CelEachFunc each_func, CelPattrieEachUserData *ud)
+{
+	int ret;
+    CelList *list;
+    CelPatTrieNode *child, *next;
+
+	memcpy(&(ud->key[ud->key_len]), node->key, node->key_len);
+	(ud->key_len) += (node->key_len);
+	ud->key[ud->key_len] = '\0';
+    if ((list = node->static_children) != NULL)
+    {
+        child = (CelPatTrieNode *)(list->head.next);
+        while (child != (CelPatTrieNode *)cel_list_get_tail(list))
+        {
+            //printf("child key %s\r\n", child->key);
+            next = (CelPatTrieNode *)child->item.next;
+            if ((ret = _cel_pattrie_node_foreach(child, each_func, ud)) != 0)
+				return ret;
+            child = next;
+        }
+    }
+    if ((list = node->param_children) != NULL)
+    {
+        child = (CelPatTrieNode *)(list->head.next);
+        while (child != (CelPatTrieNode *)cel_list_get_tail(list))
+        {
+            //printf("child key %s\r\n", child->key);
+            next = (CelPatTrieNode *)child->item.next;
+            if ((ret = _cel_pattrie_node_foreach(child, each_func, ud)) != 0)
+				return ret;
+            child = next;
+        }
+    }
+	//printf("_cel_pattrie_node_foreach %p %p\r\n", each_func, user_data);
+	ret = each_func(node, ud);
+	(ud->key_len) -= (node->key_len);
+	ud->key[ud->key_len] = '\0';
+
+	return ret;
+}
+
+int _cel_pattrie_node_each(CelPatTrieNode *node, CelPattrieEachUserData *ud)
+{
+	//printf("%s %p\r\n", node->key, node->value);
+	if (node->value != NULL)
+		return ud->each_func(ud->key, node->value, ud->user_data);
+	return 0;
+}
+
+int cel_pattrie_foreach(CelPatTrie *pat_trie, 
+						CelKeyValuePairEachFunc each_func, void *user_data)
+{
+	CelPattrieEachUserData ud;
+
+	ud.each_func = each_func;
+	ud.user_data = user_data;
+
+	ud.key_len = 0;
+	ud.key[0] = '\0';
+
+	if (pat_trie->root != NULL)
+		return _cel_pattrie_node_foreach(pat_trie->root,
+		(CelEachFunc)_cel_pattrie_node_each, &ud);
+	return 0;
 }
 
 void cel_pattrie_clear(CelPatTrie *pat_trie)

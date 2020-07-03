@@ -98,11 +98,9 @@ void cel_httpwebclient_free(CelHttpWebClient *client);
 const char *cel_httpwebclient_get_request_file_path(CelHttpWebClient *client,
                                                     char *path, size_t *path_len);
 void cel_httpwebclient_do_recv_request(CelHttpWebClient *client, 
-                                       CelHttpRequest *req,
-                                       CelAsyncResult *result);
+                                       CelHttpRequest *req, CelAsyncResult *result);
 void _cel_httpwebclient_execute_callback(CelHttpWebClient *client,
-                                         CelHttpRequest *req,
-										 CelHttpResponse *rsp,
+                                         CelHttpRequest *req, CelHttpResponse *rsp,
                                          CelAsyncResult *result);
 static __inline 
 int cel_httpwebclient_async_execute_request(CelHttpWebClient *client,
