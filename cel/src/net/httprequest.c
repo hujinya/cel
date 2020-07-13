@@ -892,8 +892,7 @@ int cel_httprequest_set_url_str(CelHttpRequest *req, const char *url)
             host_start = url_end;
             while (TRUE)
             {
-                if (url[url_end] == ':' 
-                    || url[url_end] == '/' || url[url_end] == '\0')
+                if (url[url_end] == ':' || url[url_end] == '/' || url[url_end] == '\0')
                 {
                     url_start = url_end;
                     host_end = url_end;

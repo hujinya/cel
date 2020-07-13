@@ -1002,6 +1002,7 @@ int cel_httpbodycache_read(CelHttpBodyCache *cache,
 	else 
 	{
 		memcpy(buf, cel_stream_get_buffer(&(cache->buf)) + first, _size);
+		size = _size;
 	}
 
     return size;
