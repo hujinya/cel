@@ -714,7 +714,8 @@ int cel_httpresponse_writing(CelHttpResponse *rsp)
 {
 	int ret;
 	CelStream *s = cel_httpresponse_get_stream(rsp);
-    switch (rsp->writing_state)
+
+	switch (rsp->writing_state)
     {
     case CEL_HTTPRESPONSE_WRITING_INIT:
         rsp->writing_state = CEL_HTTPRESPONSE_WRITING_VERSION;

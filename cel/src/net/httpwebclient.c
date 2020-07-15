@@ -320,9 +320,9 @@ int cel_httpwebclient_response_write(CelHttpWebClient *client,
 									 CelHttpStatusCode status,
 									 int err_no, const char *msg)
 {
-    switch (status)
-    {
-    case CEL_HTTPSC_REQUEST_OK:
+	switch (status)
+	{
+	case CEL_HTTPSC_REQUEST_OK:
 		//cel_httpresponse_set_statuscode(&(client->rsp), status);
 		if (client->rsp.writing_body_offset == 0)
 		{
@@ -340,6 +340,10 @@ int cel_httpwebclient_response_write(CelHttpWebClient *client,
 				cel_httpresponse_send(&(client->rsp), status,
 					CEL_HTTPWEB_SUCCESSED_MSG, CEL_HTTPWEB_SUCCESSED_MSG_LEN);
 			}
+		}
+		else
+		{
+			cel_httpresponse_end(&(client->rsp));
 		}
 		break;
     case CEL_HTTPSC_CREATED:
