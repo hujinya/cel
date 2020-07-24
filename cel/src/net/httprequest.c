@@ -651,13 +651,26 @@ int cel_httprequest_reading(CelHttpRequest *req)
         }
         if (req->body_content_type == CEL_HTTPCONTENTTYPE_URLENCODED)
         {
+			if ((size1 = cel_vstring_len(&(req->url.path))) > 0)
+            {
+                size2 = size1;
+				cel_http_url_decode(cel_vstring_str_a(&(req->url.path)), &size2,
+					cel_vstring_str_a(&(req->url.path)), size1);
+				req->url.path.size = size2;
+            }
             if ((size1 = cel_vstring_len(&(req->url.query))) > 0)
             {
                 size2 = size1;
-                cel_http_url_decode(
-                    cel_vstring_str_a(&(req->url.query)), &size2,
+                cel_http_url_decode(cel_vstring_str_a(&(req->url.query)), &size2,
                     cel_vstring_str_a(&(req->url.query)), size1);
                 req->url.query.size = size2;
+            }
+			if ((size1 = cel_vstring_len(&(req->url.fragment))) > 0)
+            {
+                size2 = size1;
+                cel_http_url_decode(cel_vstring_str_a(&(req->url.fragment)), &size2,
+                    cel_vstring_str_a(&(req->url.fragment)), size1);
+                req->url.fragment.size = size2;
             }
             if ((size1 = cel_stream_get_length(&(req->body_cache.buf))) > 0)
             {

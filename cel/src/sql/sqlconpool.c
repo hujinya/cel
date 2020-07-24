@@ -162,6 +162,7 @@ CelSqlRes *cel_sqlconpool_execute_query(CelSqlConPool *pool, const char *fmt, ..
 	if ((con = cel_sqlconpool_get(pool)) == NULL)
 		return NULL;
 	CEL_SQLCON_SQLSTR_FMT();
+	//puts(con->sqlstr.str);
 	res = _cel_sqlcon_execute_query(con);
 	cel_sqlconpool_return(pool, con);
 	return res;
