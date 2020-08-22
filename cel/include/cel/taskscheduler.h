@@ -18,7 +18,7 @@
 #include "cel/types.h"
 #include "cel/refcounted.h"
 #include "cel/minheap.h"
-#include "cel/datetime.h"
+#include "cel/time.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,14 +46,14 @@ typedef struct _CelTaskTrigger
 
 typedef void * CelTaskId;
 typedef struct _CelTask CelTask;
-typedef int (* CelTaskFunc) (CelTask *task, CelDateTime *now, void *user_data);
+typedef int (* CelTaskFunc) (CelTask *task, CelTime *now, void *user_data);
 
 struct _CelTask
 {
     CelTaskId id;
     BOOL enable;
-    CelDateTime start_dt;
-    CelDateTime end_dt;
+    CelTime start_dt;
+    CelTime end_dt;
     CelTaskTrigger trigger;
     CelTaskFunc task_func;
     void *user_data;
@@ -86,7 +86,7 @@ void cel_task_free(CelTask *task);
 
 int cel_task_compare(CelTask *task2, CelTask *task1);
 BOOL cel_task_is_expired(CelTask *task, struct tm *now);
-int cel_task_start(CelTask *task, CelDateTime *dt, struct tm *now);
+int cel_task_start(CelTask *task, CelTime *dt, struct tm *now);
 
 int cel_taskscheduler_init(CelTaskScheduler *scheduler, CelFreeFunc task_free);
 void cel_taskscheduler_destroy(CelTaskScheduler *scheduler);
@@ -100,7 +100,7 @@ void cel_taskscheduler_remove_task(CelTaskScheduler *scheduler,
                                    CelTaskId task_id);
 
 long cel_taskscheduler_expired_timeout(CelTaskScheduler *scheduler, 
-                                       CelDateTime *dt);
+                                       CelTime *dt);
 int cel_taskscheduler_expired(CelTaskScheduler *scheduler);
 
 #ifdef __cplusplus

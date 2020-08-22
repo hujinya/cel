@@ -256,8 +256,7 @@ CHAR *cel_strgetkeyvalue_a(const CHAR *str,
                     //    *size, value_end - value_start);
                     //puts(&str[value_start]);
                     //printf("%p\r\n", value);
-                    return cel_strncpy(value, size, 
-                        &str[value_start], value_end - value_start);
+                    return cel_strncpy(value, size, &str[value_start], value_end - value_start);
                 }
                 if (str[i] == '\0')
                     break;

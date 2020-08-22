@@ -132,7 +132,7 @@ BOOL cel_task_is_expired(CelTask *task, struct tm *now)
         return FALSE;
 }
 
-int cel_task_start(CelTask *task, CelDateTime *dt, struct tm *now)
+int cel_task_start(CelTask *task, CelTime *dt, struct tm *now)
 {
     switch (task->trigger.type)
     {
@@ -158,10 +158,10 @@ int cel_task_start(CelTask *task, CelDateTime *dt, struct tm *now)
 
 int cel_taskscheduler_init(CelTaskScheduler *scheduler, CelFreeFunc task_free)
 {
-    CelDateTime dt;
+    CelTime dt;
 
-    cel_datetime_init_now(&dt);
-    localtime_r(&dt, &(scheduler->tms));
+    cel_time_init_now(&dt);
+	localtime_r((time_t *)&(dt.tv_sec), &(scheduler->tms));
     cel_minheap_init(
         &(scheduler->tasks[0]),(CelCompareFunc)cel_task_compare, task_free);
     cel_minheap_init(
@@ -230,7 +230,7 @@ static void cel_taskscheduler_switch(CelTaskScheduler *scheduler)
 }
 
 long cel_taskscheduler_expired_timeout(CelTaskScheduler *scheduler, 
-                                       CelDateTime *dt)
+                                       CelTime *dt)
 {
     long diffmilliseconds;
     CelTask *task;
@@ -253,10 +253,10 @@ int cel_taskscheduler_expired(CelTaskScheduler *scheduler)
     int mday = scheduler->tms.tm_mday;
     CelFreeFunc free_func = scheduler->expired_tasks->array_list.free_func;
     CelTask *task;
-    CelDateTime dt;
+    CelTime dt;
 
-    cel_datetime_init_now(&dt);
-    localtime_r(&dt, &(scheduler->tms));
+    cel_time_init_now(&dt);
+    localtime_r((time_t *)&(dt.tv_sec), &(scheduler->tms));
     if (mday != scheduler->tms.tm_mday)
     {
         scheduler->tms.tm_hour = 23;

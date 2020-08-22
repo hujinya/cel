@@ -15,7 +15,7 @@
 #include "cel/net/http.h"
 #include "cel/error.h"
 #include "cel/log.h"
-#include "cel/datetime.h"
+#include "cel/time.h"
 #include "cel/convert.h"
 #include "cel/file.h"
 
@@ -37,9 +37,9 @@ CelHttpHeaderHandler g_httpvstring_handler = {
     (CelHttpHeaderWritingFunc)cel_httpvstring_writing
 };
 CelHttpHeaderHandler g_httpvdatetime_handler = {
-    sizeof(CelDateTime),
-    (CelHttpHeaderInitFunc)cel_datetime_init,
-    (CelHttpHeaderDestroyFunc)cel_datetime_destroy,
+    sizeof(CelTime),
+    (CelHttpHeaderInitFunc)cel_time_init,
+    (CelHttpHeaderDestroyFunc)cel_time_destroy,
     (CelHttpHeaderGetFunc)NULL,
     (CelHttpHeaderSetFunc)memcpy,
     (CelHttpHeaderReadingFunc)cel_httpdatetime_reading, 
@@ -465,19 +465,19 @@ int cel_httpvstring_writing(const char *hdr_name,
     return 0;
 }
 
-int cel_httpdatetime_reading(CelDateTime *dt, const char *value, size_t size)
+int cel_httpdatetime_reading(CelTime *dt, const char *value, size_t size)
 {
-    return cel_datetime_init_strtime_a(dt, value);;
+    return cel_time_init_strtime_a(dt, value);;
 }
 
 int cel_httpdatetime_writing(const char *hdr_name,
-                             CelDateTime *dt, CelStream *s)
+                             CelTime *dt, CelStream *s)
 {
     int size;
-    if (*dt != 0)
+	if (dt->tv_sec != 0)
     {
         cel_stream_printf(s, "%s: ", hdr_name);
-        if ((size = cel_datetime_strfgmtime_a(dt, 
+        if ((size = cel_time_strfgmtime_a(dt, 
             (char *)cel_stream_get_pointer(s), 
             cel_stream_get_remaining_capacity(s), "%a, %d %b %Y %X GMT\r\n")) > 0)
             cel_stream_seek(s, size);
@@ -567,7 +567,7 @@ int cel_httpcookie_init(CelHttpCookie *cookie)
 {
     //puts("cel_httpcookie_init");
     cel_vstring_init_a(&(cookie->values));
-    cel_datetime_init(&(cookie->expires));
+    cel_time_init(&(cookie->expires));
     cookie->max_age = 0;
     cel_vstring_init_a(&(cookie->domain));
     cel_vstring_init_a(&(cookie->path));
@@ -580,7 +580,7 @@ int cel_httpcookie_init(CelHttpCookie *cookie)
 void cel_httpcookie_destroy(CelHttpCookie *cookie)
 {
     cel_vstring_destroy_a(&(cookie->values));
-    cel_datetime_destroy(&(cookie->expires));
+    cel_time_destroy(&(cookie->expires));
     cookie->max_age = 0;
     cel_vstring_destroy_a(&(cookie->domain));
     cel_vstring_destroy_a(&(cookie->path));
@@ -609,12 +609,12 @@ void cel_httpcookie_free(CelHttpCookie *cookie)
 }
 
 int cel_httpcookie_set_attribute(CelHttpCookie *cookie, 
-                                 CelDateTime *expires, long max_age,
+                                 CelTime *expires, long max_age,
                                  const char *domain, const char *path, 
                                  BOOL secure, BOOL httponly)
 {
     if (expires != NULL)
-        memcpy(&(cookie->expires), expires, sizeof(CelDateTime));
+        memcpy(&(cookie->expires), expires, sizeof(CelTime));
     if (max_age > 0)
         cookie->max_age = max_age;
     if (domain != NULL)
@@ -637,7 +637,7 @@ void *cel_httpcookie_set(CelHttpCookie *cookie1,
         cel_vstring_str_a(&(cookie2->values)), 
         cel_vstring_len(&(cookie2->values)));
     memcpy(&(cookie1->expires), 
-        &(cookie2->expires), sizeof(CelDateTime));
+        &(cookie2->expires), sizeof(CelTime));
     cookie1->max_age = cookie2->max_age;
     if (cel_vstring_len(&(cookie2->domain)) > 0)
         cel_vstring_assign_a(&(cookie1->domain), 
@@ -672,7 +672,7 @@ int cel_httpcookie_reading(CelHttpCookie *cookie,
             value_end = i;
             if (key_end - key_start == 7
                 && memcmp(&value[key_start], "Expires", key_end - key_start) == 0)
-                cel_datetime_init_strtime_a(&(cookie->expires),
+                cel_time_init_strtime_a(&(cookie->expires),
                 &value[value_start]);
             else if (key_end - key_start == 6
                 && memcmp(&value[key_start], "Domain", key_end - key_start) == 0)
@@ -707,9 +707,9 @@ int cel_httpcookie_writing(const char *hdr_name,
     {
         cel_stream_printf(s, "%s: %s", 
             hdr_name, cel_vstring_str_a(&(cookie->values)));
-        if (cookie->expires != 0)
+		if (cookie->expires.tv_sec != 0)
         {
-            if ((size = cel_datetime_strfgmtime_a(&(cookie->expires), 
+            if ((size = cel_time_strfgmtime_a(&(cookie->expires), 
                 (char *)cel_stream_get_pointer(s), 
                 cel_stream_get_remaining_capacity(s), 
                 ";Expires=%a, %d %b %Y %X GMT")) > 0)
@@ -741,7 +741,7 @@ void cel_httpsetcookiearray_destroy(CelHttpSetCookieArray *set_cookies)
 int cel_httpsetcookiearray_add(CelHttpSetCookieArray *set_cookies,
 							   const char *key,
 							   const char *value, size_t value_size,
-							   CelDateTime *expires, long max_age,
+							   CelTime *expires, long max_age,
 							   const char *domain, const char *path, 
 							   BOOL secure, BOOL httponly)
 {
@@ -913,7 +913,7 @@ int cel_httpbodycache_reading(CelHttpBodyCache *cache,
                               const char *value, size_t size)
 {
     size_t _size, w_size;
-    CelDateTime dt;
+    CelTime dt;
     char dt_filename[15];
 
     //_size = cel_stream_get_length(&(cache->buf));
@@ -921,8 +921,8 @@ int cel_httpbodycache_reading(CelHttpBodyCache *cache,
     {
         if (cache->fp == NULL)
         {
-            cel_datetime_init_now(&dt);
-            cel_datetime_strfltime(&dt, dt_filename, 15, _T("%Y%m%d%H%M%S"));
+            cel_time_init_now(&dt);
+            cel_time_strfltime(&dt, dt_filename, 15, _T("%Y%m%d%H%M%S"));
             cel_vstring_resize_a(&(cache->file_path), CEL_PATHLEN);
             cache->file_path.size = snprintf(cache->file_path.str, CEL_PATHLEN,
                 "%s%s_%ld.bdy", 

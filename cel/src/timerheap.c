@@ -84,12 +84,12 @@ CelTimer *cel_timerheap_get_earliest(CelTimerHeap *timer_heap)
 }
 
 long cel_timerheap_pop_timeout(CelTimerHeap *timer_heap, 
-                               const struct timeval *now)
+                               const CelTime *now)
 {
     long diffmilliseconds;
     CelTimer *timer;
 
-    CEL_TIMEVAL_NOW(now);
+    CEL_TIME_NOW(now);
     if ((timer = cel_timerheap_get_earliest(timer_heap)) == NULL)
     {
         //_tprintf(_T("cel_timerheap_get_earliest null"));
@@ -102,12 +102,12 @@ long cel_timerheap_pop_timeout(CelTimerHeap *timer_heap,
 
 int cel_timerheap_pop_expired(CelTimerHeap *timer_heap, 
                               CelTimer **timers, int max_timers, 
-                              const struct timeval *now)
+                              const CelTime *now)
 {
     int i = 0;
     CelTimer *timer;
 
-    CEL_TIMEVAL_NOW(now);
+    CEL_TIME_NOW(now);
     //puts("cel_timerheap_pop_expired start");
     while (i < max_timers
         && (timer = 
@@ -129,12 +129,12 @@ int cel_timerheap_pop_expired(CelTimerHeap *timer_heap,
 }
 
 int cel_timerheap_remove_expired(CelTimerHeap *timer_heap, 
-                                 const struct timeval *now)
+                                 const CelTime *now)
 {
     int i = 0;
     CelTimer *timer;
 
-    CEL_TIMEVAL_NOW(now);
+    CEL_TIME_NOW(now);
     while ((timer = 
         (CelTimer *)cel_minheap_get_min(&(timer_heap->heap))) != NULL)
     {

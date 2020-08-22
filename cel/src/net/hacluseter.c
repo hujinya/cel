@@ -300,7 +300,7 @@ static int cel_hacluster_multicast_send(void *buf, size_t size)
 static int cel_hacluster_multicast_recv(void *buf, size_t size)
 {
     fd_set nfds;
-    struct timeval timeout = { 0, 0 };
+    CelTime timeout = { 0, 0 };
     int r_size = 0;
 
     if (s_hac->multicast_fd <= 0 
@@ -376,7 +376,7 @@ static int cel_hacluster_unicast_recvfrom(void *buf, size_t size, CelIpAddr *ip_
 {
     int r_size = 0;
     fd_set nfds;
-    struct timeval timeout = { 0, 0 };
+    CelTime timeout = { 0, 0 };
     socklen_t from_len;
     struct sockaddr_in from;
 
@@ -487,7 +487,7 @@ static int cel_hagroup_send_advertisment(CelHaGroup *ha_grp, BYTE priority)
 
 static int cel_hacluster_recv_advertisment(void *buf, size_t len, 
                                            CelIpAddr *local, 
-                                           CelIpAddr *from, struct timeval *now)
+                                           CelIpAddr *from, CelTime *now)
 {
     int i;
     CelHaDeviceMsg *dev_msg;
@@ -528,7 +528,7 @@ static int cel_hacluster_recv_advertisment(void *buf, size_t len,
             grp_msg->priority, grp_msg->current_priority, grp_msg->state);
          */   
         meb->state = (CelHaState)grp_msg->state;
-        cel_timeval_set(&(meb->down_timer), now, CEL_HA_DOWN_INTERVAL(ha_grp)); 
+        cel_time_set_milliseconds(&(meb->down_timer), now, CEL_HA_DOWN_INTERVAL(ha_grp)); 
         switch (ha_grp->self->state)
         {
         case CEL_HA_STATE_INIT: 
@@ -571,9 +571,9 @@ static int cel_hacluster_recv_advertisment(void *buf, size_t len,
                         && self->priority > grp_msg->priority)
                     {
                         self->want_state = CEL_HA_STATE_STANDYBY;
-                        cel_timeval_set(
+                        cel_time_set_milliseconds(
                             &(self->coup_timer), now, CEL_HA_DOWN_INTERVAL(ha_grp));
-                        cel_timeval_clear(&(ha_grp->adver_timer));
+                        cel_time_clear(&(ha_grp->adver_timer));
                     }
                     else
                     {
@@ -621,7 +621,7 @@ static int cel_hacluster_recv_advertisment(void *buf, size_t len,
                 /* active resign message*/
                 if (grp_msg->state == CEL_HA_STATE_ACTIVE)
                 {
-                    cel_timeval_set(&(self->coup_timer), now, 0);
+                    cel_time_set_milliseconds(&(self->coup_timer), now, 0);
                     ha_grp->is_update = TRUE;
                 }
                 /* standyby resign message  */
@@ -641,7 +641,7 @@ static int cel_hacluster_recv_advertisment(void *buf, size_t len,
                     }
                     else
                     {
-                        cel_timeval_set(&(self->coup_timer), now, 0);
+                        cel_time_set_milliseconds(&(self->coup_timer), now, 0);
                         ha_grp->is_update = TRUE;
                     }
                 }
@@ -662,7 +662,7 @@ static int cel_hacluster_recv_advertisment(void *buf, size_t len,
     return 0;
 }
 
-static int cel_hagroup_recv_advertisment(CelHaGroup *ha_grp, struct timeval *now)
+static int cel_hagroup_recv_advertisment(CelHaGroup *ha_grp, CelTime *now)
 {
     int r_size;
     int iphdr_len, msg_len;
@@ -699,14 +699,14 @@ static int cel_hagroup_recv_advertisment(CelHaGroup *ha_grp, struct timeval *now
     if (ha_grp->next != NULL
         && ha_grp->next != ha_grp->self
         && (ha_grp->next->state != CEL_HA_STATE_STANDYBY
-        || (cel_timeval_is_expired(&(ha_grp->next->down_timer), now))))
+        || (cel_time_is_expired(&(ha_grp->next->down_timer), now))))
     {
         ha_grp->next = NULL;
     }
     if (ha_grp->active != NULL 
         && ha_grp->active != ha_grp->self
         && (ha_grp->active->state != CEL_HA_STATE_ACTIVE
-        || cel_timeval_is_expired(&(ha_grp->active->down_timer), now)))
+        || cel_time_is_expired(&(ha_grp->active->down_timer), now)))
     {
         ha_grp->active = NULL;
     }
@@ -866,7 +866,7 @@ static int cel_hagroup_vaddrs_track(CelHaGroup *ha_grp, BOOL is_update)
     return 0;
 }
 
-static int cel_hagroup_transition_state(CelHaGroup *ha_grp, struct timeval *now)
+static int cel_hagroup_transition_state(CelHaGroup *ha_grp, CelTime *now)
 {
     switch (ha_grp->self->want_state)
     {
@@ -885,7 +885,7 @@ static int cel_hagroup_transition_state(CelHaGroup *ha_grp, struct timeval *now)
         ha_grp->next = NULL;
         ha_grp->is_update = FALSE;
         //cel_hagroup_send_advertisment(ha_grp, ha_grp->self->priority);
-        cel_timeval_set(&(ha_grp->adver_timer), now, CEL_HA_ADVER_INTERVAL(ha_grp));
+        cel_time_set_milliseconds(&(ha_grp->adver_timer), now, CEL_HA_ADVER_INTERVAL(ha_grp));
         CEL_DEBUG((_T("Enter active state.")));
         break;
     case CEL_HA_STATE_STANDYBY:
@@ -905,7 +905,7 @@ static int cel_hagroup_transition_state(CelHaGroup *ha_grp, struct timeval *now)
         ha_grp->self->state = CEL_HA_STATE_STANDYBY;
         //ha_grp->active = NULL;
         ha_grp->next = ha_grp->self;
-        cel_timeval_set(&(ha_grp->adver_timer), now, CEL_HA_ADVER_INTERVAL(ha_grp));
+        cel_time_set_milliseconds(&(ha_grp->adver_timer), now, CEL_HA_ADVER_INTERVAL(ha_grp));
         CEL_DEBUG((_T("Enter standyby state.")));
         break;
     case CEL_HA_STATE_INIT:
@@ -924,7 +924,7 @@ static int cel_hagroup_transition_state(CelHaGroup *ha_grp, struct timeval *now)
         ha_grp->self->state = CEL_HA_STATE_INIT;
         ha_grp->active = NULL;
         ha_grp->next = NULL;
-        cel_timeval_clear(&(ha_grp->adver_timer));
+        cel_time_clear(&(ha_grp->adver_timer));
         CEL_DEBUG((_T("Enter inite state.")));
         break;
     default:
@@ -936,7 +936,7 @@ static int cel_hagroup_transition_state(CelHaGroup *ha_grp, struct timeval *now)
     return 0;
 }
 
-static int cel_hagroup_state_init(CelHaGroup *ha_grp, struct timeval *now)
+static int cel_hagroup_state_init(CelHaGroup *ha_grp, CelTime *now)
 {
     //puts("cel_hagroup_state_init");
     if (!CEL_CHECKFLAG(ha_grp->evt, CEL_HA_EVENT_SHUTDOWN))
@@ -951,19 +951,19 @@ static int cel_hagroup_state_init(CelHaGroup *ha_grp, struct timeval *now)
             if (ha_grp->self->want_state != CEL_HA_STATE_STANDYBY)
             {
                 ha_grp->self->want_state = CEL_HA_STATE_STANDYBY;
-                cel_timeval_clear(&(ha_grp->adver_timer));
-                cel_timeval_set(
+                cel_time_clear(&(ha_grp->adver_timer));
+                cel_time_set_milliseconds(
                     &(ha_grp->self->coup_timer), now, CEL_HA_DOWN_INTERVAL(ha_grp));
             }
             //_tprintf(_T("want state %d")CEL_CRLF, ha_grp->self->want_state);
-            if (cel_timeval_is_expired(&(ha_grp->self->coup_timer), now))
+            if (cel_time_is_expired(&(ha_grp->self->coup_timer), now))
             {
                 if (ha_grp->next == NULL)
                     return cel_hagroup_transition_state(ha_grp, now);
             }
-            if (cel_timeval_is_expired(&(ha_grp->adver_timer), now))
+            if (cel_time_is_expired(&(ha_grp->adver_timer), now))
             {
-                cel_timeval_set(
+                cel_time_set_milliseconds(
                     &(ha_grp->adver_timer), now, CEL_HA_ADVER_INTERVAL(ha_grp));
                 cel_hagroup_send_advertisment(ha_grp, CEL_HA_PRIORITY_COUP);
             }
@@ -971,15 +971,15 @@ static int cel_hagroup_state_init(CelHaGroup *ha_grp, struct timeval *now)
         else
         {
             ha_grp->self->want_state = CEL_HA_STATE_INIT;
-            cel_timeval_clear(&(ha_grp->adver_timer));
-            cel_timeval_clear(&(ha_grp->self->coup_timer));
+            cel_time_clear(&(ha_grp->adver_timer));
+            cel_time_clear(&(ha_grp->self->coup_timer));
         }
     }
 
     return 0;
 }
 
-static int cel_hagroup_state_active(CelHaGroup *ha_grp, struct timeval *now)
+static int cel_hagroup_state_active(CelHaGroup *ha_grp, CelTime *now)
 {
     if (CEL_CHECKFLAG(ha_grp->evt, CEL_HA_EVENT_FORCE_TO_STANDYBY)
         || CEL_CHECKFLAG(ha_grp->evt, CEL_HA_EVENT_SHUTDOWN))
@@ -992,9 +992,9 @@ static int cel_hagroup_state_active(CelHaGroup *ha_grp, struct timeval *now)
     if (ha_grp->self->want_state != ha_grp->self->state)
         return cel_hagroup_transition_state(ha_grp, now);
      /* Check expired, send advertisment */
-    if (cel_timeval_is_expired(&(ha_grp->adver_timer), now))
+    if (cel_time_is_expired(&(ha_grp->adver_timer), now))
     {
-        cel_timeval_set(&(ha_grp->adver_timer), now, CEL_HA_ADVER_INTERVAL(ha_grp));
+        cel_time_set_milliseconds(&(ha_grp->adver_timer), now, CEL_HA_ADVER_INTERVAL(ha_grp));
         cel_hagroup_send_advertisment(ha_grp, ha_grp->self->priority);
         if (ha_grp->is_update)
         {
@@ -1019,7 +1019,7 @@ static int cel_hagroup_state_active(CelHaGroup *ha_grp, struct timeval *now)
     return 0;
 }
 
-static int cel_hagroup_state_standyby(CelHaGroup *ha_grp, struct timeval *now)
+static int cel_hagroup_state_standyby(CelHaGroup *ha_grp, CelTime *now)
 {
     if (CEL_CHECKFLAG(ha_grp->evt, CEL_HA_EVENT_FORCE_TO_STANDYBY)
         || CEL_CHECKFLAG(ha_grp->evt, CEL_HA_EVENT_SHUTDOWN))
@@ -1034,9 +1034,9 @@ static int cel_hagroup_state_standyby(CelHaGroup *ha_grp, struct timeval *now)
     if (ha_grp->self->want_state != ha_grp->self->state)
         return cel_hagroup_transition_state(ha_grp, now);
     /* Check expired, send advertisment */
-    if (cel_timeval_is_expired(&(ha_grp->adver_timer), now))
+    if (cel_time_is_expired(&(ha_grp->adver_timer), now))
     {
-        cel_timeval_set(&(ha_grp->adver_timer),
+        cel_time_set_milliseconds(&(ha_grp->adver_timer),
             now, CEL_HA_ADVER_INTERVAL(ha_grp));
         if (cel_hagroup_send_advertisment(ha_grp, ha_grp->self->priority) == -1)
             return -1;
@@ -1045,11 +1045,11 @@ static int cel_hagroup_state_standyby(CelHaGroup *ha_grp, struct timeval *now)
     return 0;
 }
 
-int cel_hagroup_check_state(CelHaGroup *ha_grp, CelHaState *state, struct timeval *now)
+int cel_hagroup_check_state(CelHaGroup *ha_grp, CelHaState *state, CelTime *now)
 {
     int ret = -1;
 
-    CEL_TIMEVAL_NOW(now);
+    CEL_TIME_NOW(now);
     //_tprintf(_T("event 0x%x\r\n"), ha_grp->evt);
     switch (ha_grp->self->state)
     {
@@ -1220,7 +1220,7 @@ int cel_hagroup_init(CelHaGroup *ha_grp, int id, int preempt, TCHAR *if_name,
             if (ip_addr.s_addr == s_hac->multicast_src.s_addr)
                 ha_grp->self = ha_grp->members[i];
         }
-        cel_timeval_clear(&(ha_grp->members[i]->down_timer));
+        cel_time_clear(&(ha_grp->members[i]->down_timer));
         ha_grp->n_members++;
         /*
         _tprintf(_T("j = %d peer %s\r\n"), 
@@ -1355,7 +1355,7 @@ members_reload:
             members[i], _tcslen(members[i]) * sizeof(TCHAR));
         ha_grp->members[i]->dev = NULL;
         memcpy(&(ha_grp->members[i]->ip), &ip_addr, sizeof(ip_addr));
-        cel_timeval_clear(&(ha_grp->members[i]->down_timer));
+        cel_time_clear(&(ha_grp->members[i]->down_timer));
         /*
         _tprintf(_T("j = %d peer %s\r\n"), 
         j, cel_ipaddr_ntop(&(ha_grp->members[i]->ip)));

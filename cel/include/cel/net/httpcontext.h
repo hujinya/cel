@@ -15,42 +15,49 @@
 #ifndef __CEL_NET_HTTPCONTEXT_H__
 #define __CEL_NET_HTTPCONTEXT_H__
 
-#include "cel/net/httprequest.h"
-#include "cel/net/httpresponse.h"
 #include "cel/net/httpclient.h"
-#include "cel/pattrie.h"
+#include "cel/net/httpresponse.h"
+#include "cel/net/httproute.h"
 
-typedef enum _CelHttpRouteState
-{
-    CEL_HTTPROUTEST_BEFORE_ROUTER,
-    CEL_HTTPROUTEST_BEFORE_EXEC,
-    CEL_HTTPROUTEST_AFTER_EXEC,
-    CEL_HTTPROUTEST_FINISH_ROUTER,
-    CEL_HTTPROUTEST_END
-}CelHttpRouteState;
+#define CEL_HTTPCONTEXT_CONTENT_TYPE         "application/json; charset=utf-8"
+#define CEL_HTTPCONTEXT_CONTENT_TYPE_LEN     (sizeof(CEL_HTTPCONTEXT_CONTENT_TYPE) - 1)
+#define CEL_HTTPCONTEXT_SUCCESSED_MSG        "{\"error\":0, \"message\":\"Successed\"}"
+#define CEL_HTTPCONTEXT_SUCCESSED_MSG_LEN    (sizeof(CEL_HTTPCONTEXT_SUCCESSED_MSG) - 1)
 
-typedef struct _CelHttpContext
+typedef CelHttpContext *(* CelHttpContextNewFunc)(size_t size, int fd);
+typedef void (* CelHttpContextFreeFunc)(CelHttpContext *http_ctx);
+
+typedef struct _CelHttpServeContext
 {
-	CelHttpClient *client;
-    CelHttpRequest *req;
-	CelHttpResponse *rsp;
-	char user[CEL_UNLEN];
-	void *user_data;
+    char server[CEL_SNLEN];
+    CelHttpRoute route;
+    CelHttpContextNewFunc new_func;
+    CelHttpContextFreeFunc free_func;
+}CelHttpServeContext;
+
+struct _CelHttpContext
+{
+	CelHttpClient http_client;
+    CelHttpRequest req;
+	CelHttpResponse rsp;
+	// Context data
+	CelHttpServeContext *serve_ctx;
+	CelTime req_start_dt, rsp_finish_dt;
 	CelHttpRouteState state;
 	CelPatTrieParams params;
 	CelListItem *current_filter;
-}CelHttpContext;
+	CelVString err_msg;
+	// Token user
+	char user[CEL_UNLEN];
+	void *user_data;
+};
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-int cel_httpcontext_init(CelHttpContext *http_ctx, CelHttpClient *client,
-						 CelHttpRequest *req, CelHttpResponse *rsp);
-void cel_httpcontext_destroy(CelHttpContext *http_ctx);
-
 CelHttpContext *cel_httpcontext_new(CelHttpClient *client,
-									CelHttpRequest *req, CelHttpResponse *rsp);
+									CelHttpServeContext *serve_ctx);
 void cel_httpcontext_free(CelHttpContext *http_ctx);
 
 void cel_httpcontext_clear(CelHttpContext *http_ctx);
@@ -81,20 +88,49 @@ char *cel_httpcontext_get_param(CelHttpContext *http_ctx,
 #define cel_httpcontext_get_param_double(http_ctx, key, d)\
     cel_keydouble((CelKeyGetFunc)cel_httpcontext_get_param, http_ctx, key, d)
 
-int cel_httpcontext_routing_again(CelHttpContext *http_ctx);
+static __inline long cel_httpcontext_request_time(CelHttpContext *http_ctx)
+{
+	return cel_time_diffmilliseconds(&(http_ctx->rsp_finish_dt),
+		&(http_ctx->req_start_dt));
+}
+
+static __inline TCHAR *cel_httpcontxt_get_errstr(CelHttpContext *http_ctx)
+{
+	return cel_vstring_str(&(http_ctx->err_msg));
+}
+
+int cel_httpcontext_routing(CelHttpContext *http_ctx);
+#define cel_httpcontext_routing_again cel_httpcontext_routing
 
 int cel_httpcontext_response_write(CelHttpContext *http_ctx, CelHttpStatusCode status,
 								   int err_no, const char *msg);
+static __inline 
 int cel_httpcontext_response_tryfiles(CelHttpContext *http_ctx, 
 									  const char *file_path, const char *uri_file_path,
 									  long long first, long long last,
-									  CelDateTime *if_modified_since,
-									  char *if_none_match);
-int cel_httpcontext_response_sendfile(CelHttpContext *http_ctx, const char *file_path, 
+									  CelTime *if_modified_since, 
+									  char *if_none_match)
+{
+	return cel_httpresponse_send_tryfile(&(http_ctx->rsp), 
+		file_path, uri_file_path, first, last, if_modified_since, if_none_match);
+}
+
+static __inline 
+int cel_httpcontext_response_sendfile(CelHttpContext *http_ctx, 
+									  const char *file_path, 
 									  long long first, long long last,
-									  CelDateTime *if_modified_since,
-									  char *if_none_match);
-int cel_httpcontext_response_redirect(CelHttpContext *http_ctx, const char *url);
+									  CelTime *if_modified_since,
+									  char *if_none_match)
+{
+	return cel_httpresponse_send_file(&(http_ctx->rsp), 
+		file_path, first, last, if_modified_since, if_none_match);
+}
+
+static __inline 
+int cel_httpcontext_response_redirect(CelHttpContext *http_ctx, const char *url)
+{
+	return cel_httpresponse_send_redirect(&(http_ctx->rsp), url);
+}
 
 
 #ifdef __cplusplus

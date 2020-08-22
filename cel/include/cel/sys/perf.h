@@ -16,6 +16,7 @@
 #define __CEL_SYS_PERF_H__
 
 #include "cel/types.h"
+#include "cel/time.h"
 #include "cel/net/if.h" //CEL_IFNLEN
 
 #ifdef __cplusplus
@@ -98,7 +99,7 @@ CelCpuPerf *cel_getcpuperf(void);
 CelMemPerf *cel_getmemperf(void);
 CelFsPerf *cel_getfsperf(void);
 CelNetPerf *cel_getnetperf(void);
-CelPerf *cel_getperf(const struct timeval *now, int reset);
+CelPerf *cel_getperf(const CelTime *now, int reset);
 
 int cel_perfserialize(CelPerf *pi, char *buf, size_t size, int indent);
 int cel_perfmaxserialize(CelPerf *pi, char *buf, size_t size, int indent);

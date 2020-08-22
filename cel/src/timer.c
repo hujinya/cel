@@ -17,76 +17,6 @@
 #include "cel/error.h"
 #include "cel/log.h"
 
-void cel_timeval_set(struct timeval *tv, 
-                     const struct timeval *now, long milliseconds)
-{
-    CEL_TIMEVAL_NOW(now);
-    tv->tv_sec = now->tv_sec + (milliseconds / 1000L);
-    if ((tv->tv_usec = now->tv_usec 
-        + ((milliseconds % 1000L) * 1000L)) > 1000000L)
-    {
-        tv->tv_sec += (tv->tv_usec / 1000000L);
-        tv->tv_usec = (tv->tv_usec % 1000000L);
-    }
-    //_tprintf(_T("%ld - %ld %ld\n"), tv->tv_sec, tv->tv_usec, milliseconds);
-}
-
-int cel_timeval_compare(const struct timeval *tv2, const struct timeval *tv1)
-{
-    CEL_TIMEVAL_NOW(tv1);
-
-    /*_tprintf(_T("%ld %ld - %ld %ld\n"), 
-               tv2->tv_sec, tv2->tv_usec, tv1->tv_sec, tv1->tv_usec);*/
-    if (tv2->tv_sec > tv1->tv_sec)
-        return 1;
-    else if (tv2->tv_sec < tv1->tv_sec)
-        return -1;
-    else if (tv2->tv_usec > tv1->tv_usec)
-        return 1;
-    else if (tv2->tv_usec < tv1->tv_usec)
-        return -1;
-    return 0;
-}
-
-long long cel_timeval_diffmicroseconds(const struct timeval *tv2, 
-                                       const struct timeval *tv1)
-{
-    long long diff_microseconds;
-
-    CEL_TIMEVAL_NOW(tv1);
-    diff_microseconds = tv2->tv_usec - tv1->tv_usec;
-    diff_microseconds += (tv2->tv_sec - tv1->tv_sec) * LL(1000000);
-
-    return diff_microseconds;
-}
-
-long cel_timeval_diffmilliseconds(const struct timeval *tv2, 
-                                  const struct timeval *tv1)
-{
-    long diff_microseconds, diff_milliseconds;
-
-    CEL_TIMEVAL_NOW(tv1);
-    diff_milliseconds = (tv2->tv_sec - tv1->tv_sec) * L(1000);
-    diff_milliseconds += 
-        (diff_microseconds = tv2->tv_usec - tv1->tv_usec) / L(1000);
-    if (diff_microseconds % L(1000) != 0)
-    {
-        if (diff_milliseconds >= 0)
-        {
-            if (diff_microseconds > 0)
-                diff_milliseconds += 1;
-        }
-        else if (diff_microseconds < 0)
-            diff_milliseconds += -1;
-    }
-    /*
-    _tprintf(_T("%ld %ld - %ld %ld\n"), 
-        tv2->tv_sec, tv2->tv_usec, tv1->tv_sec, tv1->tv_usec);
-        */
-
-    return diff_milliseconds;
-}
-
 int cel_timer_init(CelTimer *timer, long milliseconds, int repeat,
                    CelTimerCallbackFunc call_back, void *user_data)
 {
@@ -104,7 +34,7 @@ int cel_timer_init(CelTimer *timer, long milliseconds, int repeat,
 
 void cel_timer_destroy(CelTimer *timer)
 {
-    cel_timeval_clear(&(timer->expired));
+    cel_time_clear(&(timer->expired));
     timer->repeat = 0;
     timer->timer_id = 0;
     timer->interval = 0;

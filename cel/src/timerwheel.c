@@ -127,7 +127,7 @@ void cel_timerwheel_free(CelTimerWheel *timer_wheel)
 }
 
 static long cel_timerwheel_expries(CelTimerWheel *timer_wheel,
-                                   const struct timeval *tv)
+                                   const CelTime *tv)
 {
     long expries;
 
@@ -151,7 +151,7 @@ static long cel_timerwheel_expries(CelTimerWheel *timer_wheel,
         tv->tv_sec, tv->tv_usec,
         timer_wheel->base_timeval.tv_sec, timer_wheel->base_timeval.tv_usec);*/
 
-    return (cel_timeval_diffmilliseconds(tv, &timer_wheel->base_timeval)
+    return (cel_time_diffmilliseconds(tv, &timer_wheel->base_timeval)
         / CEL_TIMEWHEEL_BASE_SPOKE_RES);
 }
 
@@ -314,12 +314,12 @@ int cel_timerwheel_cancel(CelTimerWheel *timer_wheel, CelTimerId timer_id)
 }
 
 long cel_timerwheel_pop_timeout(CelTimerWheel *timer_wheel,
-                                const struct timeval *now)
+                                const CelTime *now)
 {
     long diffmilliseconds;
     CelTimer *timer;
 
-    CEL_TIMEVAL_NOW(now);
+    CEL_TIME_NOW(now);
     if ((timer = cel_timerwheel_get_earliest(timer_wheel)) == NULL)
         return -1;
     return ((diffmilliseconds = cel_timer_expired_interval(timer, now)) < 0)
@@ -329,13 +329,13 @@ long cel_timerwheel_pop_timeout(CelTimerWheel *timer_wheel,
 static int cel_timerwheel_pop_expired_intern(CelTimerWheel *timer_wheel, 
                                              CelTimer **timers,
                                              int max_timers, 
-                                             const struct timeval *now,
+                                             const CelTime *now,
                                              BOOL is_remove)
 {
     int i = 0;
     CelTimer *timer;
 
-    CEL_TIMEVAL_NOW(now);
+    CEL_TIME_NOW(now);
     timer_wheel->now_expires += cel_timerwheel_expries(timer_wheel, now);
     //printf("now expires %ld\r\n", timer_wheel->now_expires);
     do 
@@ -424,14 +424,14 @@ static int cel_timerwheel_pop_expired_intern(CelTimerWheel *timer_wheel,
 }
 
 int cel_timerwheel_pop_expired(CelTimerWheel *timer_wheel, CelTimer **timers, 
-                               int max_timers, const struct timeval *now)
+                               int max_timers, const CelTime *now)
 {
     return cel_timerwheel_pop_expired_intern(
         timer_wheel, timers, max_timers, now, FALSE);
 }
 
 int cel_timerwheel_remove_expired(CelTimerWheel *timer_wheel, 
-                                  const struct timeval *now)
+                                  const CelTime *now)
 {
     return cel_timerwheel_pop_expired_intern(timer_wheel, NULL, 0, now, TRUE);
 }

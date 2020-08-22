@@ -15,7 +15,7 @@
 #include "cel/net/httpresponse.h"
 #include "cel/error.h"
 #include "cel/log.h"
-#include "cel/datetime.h"
+#include "cel/time.h"
 #include "cel/keyword.h"
 #include "cel/convert.h"
 #include "cel/file.h"
@@ -954,11 +954,11 @@ int cel_httpresponse_send_redirect(CelHttpResponse *rsp, const char *url)
 int cel_httpresponse_send_tryfile(CelHttpResponse *rsp, 
 								  const char *file_path, const char *uri_file_path,
 								  long long first, long long last,
-								  CelDateTime *if_modified_since, 
+								  CelTime *if_modified_since, 
 								  char *if_none_match)
 {
     struct stat file_stat;
-    CelDateTime dt;
+    CelTime dt;
     CelHttpContentRange content_range;
     long long content_length;
     char file_ext[CEL_EXTLEN];
@@ -980,7 +980,7 @@ int cel_httpresponse_send_tryfile(CelHttpResponse *rsp,
     if (if_modified_since != NULL)
     {
         //printf("%ld %ld\r\n", *if_modified_since, file_stat.st_mtime);
-        if (*if_modified_since >= file_stat.st_mtime)
+		if (if_modified_since->tv_sec >= file_stat.st_mtime)
         {
             //printf("not modified\r\n");
             return cel_httpresponse_send(rsp, CEL_HTTPSC_NOT_MODIFIED, NULL, 0);
@@ -1024,11 +1024,11 @@ int cel_httpresponse_send_tryfile(CelHttpResponse *rsp,
     }
     cel_httpresponse_set_header(rsp,
         CEL_HTTPHDR_CONTENT_LENGTH, &content_length, sizeof(content_length));
-    cel_datetime_init_now(&dt);
-    cel_httpresponse_set_header(rsp, CEL_HTTPHDR_DATE, &dt, sizeof(CelDateTime));
-    cel_datetime_destroy(&dt);
+    cel_time_init_now(&dt);
+    cel_httpresponse_set_header(rsp, CEL_HTTPHDR_DATE, &dt, sizeof(CelTime));
+    cel_time_destroy(&dt);
     cel_httpresponse_set_header(rsp, 
-        CEL_HTTPHDR_LAST_MODIFIED, &(file_stat.st_mtime), sizeof(CelDateTime));
+        CEL_HTTPHDR_LAST_MODIFIED, &(file_stat.st_mtime), sizeof(CelTime));
 
     if (cel_fileext_r_a(file_path, file_ext, CEL_EXTLEN) != NULL)
     {

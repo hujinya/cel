@@ -17,7 +17,7 @@
 
 #include "cel/types.h"
 #include "cel/json.h"
-#include "cel/datetime.h"
+#include "cel/time.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -112,11 +112,11 @@ static __inline void cel_jwt_payload_iss_set(CelJwt *jwt, const char *iss)
 
 static __inline void cel_jwt_payload_exp_set(CelJwt *jwt, long seconds)
 {
-    CelDateTime dt;
+    CelTime dt;
 
-    cel_datetime_init_now(&dt);
-    cel_datetime_add_seconds(&dt, seconds);
-    cel_jwt_payload_add_long(jwt, "exp", (long)dt);
+    cel_time_init_now(&dt);
+    cel_time_add_seconds(&dt, seconds);
+	cel_jwt_payload_add_long(jwt, "exp", (long)dt.tv_sec);
 }
 
 static __inline 

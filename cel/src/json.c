@@ -491,9 +491,9 @@ static int cel_json_deserialize_object(CelJson *json, char *buf, size_t size,
             return -1;
         return 0;
     }
-    else if ((new_node = 
-        (CelJsonNode *)cel_calloc(1, sizeof(CelJsonNode))) != NULL)
-    {
+	else if ((new_node = 
+		(CelJsonNode *)cel_calloc(1, sizeof(CelJsonNode))) != NULL)
+	{
         new_node->parent = json->cur_node;
         json->cur_node->child_size++;
         json->cur_node->child = new_node;

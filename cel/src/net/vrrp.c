@@ -86,7 +86,7 @@ static int cel_vrrp_sendto(SOCKET fd, void *buf, size_t size,
 static int cel_vrrp_receive(SOCKET fd, void *buf, size_t size)
 {
     fd_set nfds;
-    struct timeval timeout = { 0, 0 };
+    CelTime timeout = { 0, 0 };
     int r_size = 0;
 
     FD_ZERO(&nfds);
@@ -375,7 +375,7 @@ static int cel_vrrp_remove_vaddr(CelVrrpRouter *router)
     return 0;
 }
 
-static int cel_vrrprouter_transition_state(CelVrrpRouter *router, struct timeval *now)
+static int cel_vrrprouter_transition_state(CelVrrpRouter *router, CelTime *now)
 {
     switch (router->want_state)
     {
@@ -384,13 +384,13 @@ static int cel_vrrprouter_transition_state(CelVrrpRouter *router, struct timeval
             || cel_vrrp_send_advertisement(router, router->current_priority) == -1)
             return -1;
         /* Init Advertisement ticks */
-        cel_timeval_set(&(router->adver_timer), now, CEL_VRRP_ADVER_INTERVAL(router));
+        cel_time_set_milliseconds(&(router->adver_timer), now, CEL_VRRP_ADVER_INTERVAL(router));
         CEL_DEBUG((_T("Enter master state.")));
         router->state = CEL_VRRP_STATE_MAST;
         break;
     case CEL_VRRP_STATE_BACK:
-        cel_timeval_set(&(router->down_timer), now, CEL_VRRP_DOWN_INTERVAL(router));
-        cel_timeval_clear(&(router->adver_timer));
+        cel_time_set_milliseconds(&(router->down_timer), now, CEL_VRRP_DOWN_INTERVAL(router));
+        cel_time_clear(&(router->adver_timer));
          /* If we goto back, warn the other routers to speed up the recovery */
         if (cel_vrrp_remove_vaddr(router) == -1)
             return -1;
@@ -416,7 +416,7 @@ static int cel_vrrprouter_transition_state(CelVrrpRouter *router, struct timeval
     return 0;
 }
 
-static int cel_vrrprouter_state_init(CelVrrpRouter *router, struct timeval *now)
+static int cel_vrrprouter_state_init(CelVrrpRouter *router, CelTime *now)
 {
     int ret;
 
@@ -445,7 +445,7 @@ static int cel_vrrprouter_state_init(CelVrrpRouter *router, struct timeval *now)
     return 0;
 }
 
-static int cel_vrrprouter_state_master(CelVrrpRouter *router, struct timeval *now)
+static int cel_vrrprouter_state_master(CelVrrpRouter *router, CelTime *now)
 {
     BYTE peer_priority;
     int ret;
@@ -453,19 +453,19 @@ static int cel_vrrprouter_state_master(CelVrrpRouter *router, struct timeval *no
 
     if (router->recv_event == CEL_VRRP_EVENT_SHUTDOWN)
     {
-        cel_timeval_clear(&(router->adver_timer));
+        cel_time_clear(&(router->adver_timer));
         cel_vrrp_send_advertisement(router, CEL_VRRP_PRIO_STOP);
         router->want_state = CEL_VRRP_STATE_INIT;
         CEL_DEBUG((_T("Transition to the Init state.")));
         return cel_vrrprouter_transition_state(router, now);
     }
     /* Check expired, send advertisment */
-    if (cel_timeval_is_expired(&(router->adver_timer), now))
+    if (cel_time_is_expired(&(router->adver_timer), now))
     {
         CEL_DEBUG((_T("Advertisment expired, send an advertisement.")));
         if (cel_vrrp_send_advertisement(router, router->current_priority) == -1)
             return -1;
-        cel_timeval_set(
+        cel_time_set_milliseconds(
             &(router->adver_timer), now, CEL_VRRP_ADVER_INTERVAL(router));
         CEL_DEBUG((_T("Reset the Adver_Timer to Advertisement_Interval.")));
     }
@@ -482,7 +482,7 @@ static int cel_vrrprouter_state_master(CelVrrpRouter *router, struct timeval *no
                 CEL_DEBUG((_T("Receive master stop message.")));
                 if (cel_vrrp_send_advertisement(router, router->current_priority) == -1)
                     return -1;
-                cel_timeval_set(
+                cel_time_set_milliseconds(
                     &(router->adver_timer), now, CEL_VRRP_ADVER_INTERVAL(router));
             }
             else 
@@ -492,8 +492,8 @@ static int cel_vrrprouter_state_master(CelVrrpRouter *router, struct timeval *no
                     &&  ntohl(peer_ip.s_addr) > ntohl(router->if_ip.s_addr)))
                 {
                     CEL_DEBUG((_T("Receive master advertisement message, goto backup state.")));
-                    cel_timeval_clear(&(router->adver_timer));
-                    cel_timeval_set(
+                    cel_time_clear(&(router->adver_timer));
+                    cel_time_set_milliseconds(
                         &(router->adver_timer), now, CEL_VRRP_DOWN_INTERVAL(router));
                     router->want_state = CEL_VRRP_STATE_BACK;
                 }
@@ -511,18 +511,18 @@ static int cel_vrrprouter_state_master(CelVrrpRouter *router, struct timeval *no
     return 0;
 }
 
-static int cel_vrrprouter_state_backup(CelVrrpRouter *router, struct timeval *now)
+static int cel_vrrprouter_state_backup(CelVrrpRouter *router, CelTime *now)
 {
     BYTE peer_priority;
     int ret;
 
     if (router->recv_event == CEL_VRRP_EVENT_SHUTDOWN)
     {
-        cel_timeval_clear(&(router->down_timer));
+        cel_time_clear(&(router->down_timer));
         router->want_state = CEL_VRRP_STATE_INIT;
         return cel_vrrprouter_transition_state(router, now);
     }
-    if (cel_timeval_is_expired(&(router->down_timer), now))
+    if (cel_time_is_expired(&(router->down_timer), now))
     {
         CEL_DEBUG((_T("Receive Master_Down_Timer expired, goto master.")));
         router->want_state = CEL_VRRP_STATE_MAST;
@@ -538,7 +538,7 @@ static int cel_vrrprouter_state_backup(CelVrrpRouter *router, struct timeval *no
             if (peer_priority == 0)
             {
                 CEL_DEBUG((_T("Set the Master_Down_Timer to Skew_Time.")));
-                cel_timeval_set(
+                cel_time_set_milliseconds(
                     &(router->down_timer), now, CEL_VRRP_SKEW_TIME(router));
             }
             else 
@@ -546,7 +546,7 @@ static int cel_vrrprouter_state_backup(CelVrrpRouter *router, struct timeval *no
                 if(!(router->preempt) || peer_priority >= router->current_priority)
                 {
                     CEL_DEBUG((_T("Reset the Master_Down_Timer to Master_Down_Interval.")));
-                    cel_timeval_set(
+                    cel_time_set_milliseconds(
                         &(router->down_timer), now, CEL_VRRP_DOWN_INTERVAL(router));
                 }
                 else
@@ -729,11 +729,11 @@ void cel_vrrprouter_free(CelVrrpRouter *router)
 }
 
 int cel_vrrprouter_check_state(CelVrrpRouter *router, 
-                               CelVrrpState *state, struct timeval *now)
+                               CelVrrpState *state, CelTime *now)
 {
     int ret = -1;
 
-    CEL_TIMEVAL_NOW(now);
+    CEL_TIME_NOW(now);
     switch (router->state)
     {
     case CEL_VRRP_STATE_MAST:

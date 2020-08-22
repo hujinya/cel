@@ -15,14 +15,14 @@
 #ifndef __CEL_NET_HTTPSESSION_H__
 #define __CEL_NET_HTTPSESSION_H__
 
-#include "cel/datetime.h"
+#include "cel/time.h"
 #include "cel/hashtable.h"
 #include "cel/net/_httpcookie.h"
 
 typedef struct _CelHttpSessionMap
 {
     char *id;
-    CelDateTime last_access_time;
+    CelTime last_access_time;
     CelHashTable key_values;
 }CelHttpSession;
 

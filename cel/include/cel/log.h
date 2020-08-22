@@ -18,7 +18,7 @@
 /* http://www.ietf.org/rfc/rfc3164.txt */
 
 #include "cel/types.h"
-#include "cel/datetime.h"
+#include "cel/time.h"
 #include "cel/list.h"
 #include "cel/ringlist.h"
 #include <stdarg.h>
@@ -72,7 +72,7 @@ typedef struct _CelLogMsg
 {
     CelLogSeverity level;         /**< RFC3164.4.1.1 */
     CelLogFacility facility;
-    CelDateTime timestamp;        /**< RFC3164.4.1.2 */
+    CelTime timestamp;        /**< RFC3164.4.1.2 */
     TCHAR *hostname;
     TCHAR *processname;           /**< RFC3164.4.1.3 */
     unsigned long pid;

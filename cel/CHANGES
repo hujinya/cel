@@ -1,11 +1,15 @@
-* Tue Apr 14 2020 Hu Jinya <hjy@gzsunrun.cn> 1.2.4.55
+* Thu Aug 20 2020 Hu Jinya <hjy@gzsunrun.cn> 1.3.0.58
+- 优化：调整CelHttpWebClient为CelHttpWebRequest,调整CelHttpWebListener为CelHttpServe。
+
+* Tue Apr 14 2020 Hu Jinya <hjy@gzsunrun.cn> 1.2.4.56
 - 新增：CelHttpSetCookieArray支持设置多个cookie。
 - 新增：CelHttpResponse支持send_tryfile。
 - 修复：cel_httpresponse_writing_xx\cel_httprequest_writing_xx resize漏掉chunked尾部，
         导致返回chunked编码数据异常。
 - 修复: cel_httprequest_writing去掉错误码后未调整返回，返回-1导致chunked last未生效。
-- 修复：cel_httpbodycache_read内存读取数据时为返回size。
+- 修复：cel_httpbodycache_read内存读取数据时未返回size。
 - 修复：cel_httprequest_reading增加对uri的path,fragment解码。
+- 优化：CelTime支持毫秒。
 
 * Tue Mar 10 2020 Hu Jinya <hjy@gzsunrun.cn> 1.2.1.49
 - 修复：cel_sockaddr_str_split解析ipv6失败问题。
@@ -21,7 +25,7 @@
 - 新增：CelStream增加mode属性，标识当前处于读模式还是写模式。
 - 新增：CelHttpFilter增加cros、static过滤器。
 - 新增：CelHttpRoute支持按prefix分组。
-- 优化：CelHttpWebClient改为通过Filter来支持cros、static;
+- 优化：CelHttpWebRequest改为通过Filter来支持cros、static;
   CelHttpWebContex去掉prefix，采用route group支持前缀。
 - 新增：CelErr支持保存32个错误消息堆栈。
 - 新增：CelSqlConPool支持常用的sql操作，应用直接调用CelSqlConPool的操作函数避免
@@ -42,9 +46,9 @@
 - 修复：cel_httpbodycache_save_file读取缓存漏掉一个字节问题。
 
 * Mon Jan 01 2019 Hu Jinya <hjy@gzsunrun.cn> 1.1.1.34
-- 修复：cel_httpwebclient_async_send_response_result状态码201、203、204会自动填充body问题。
+- 修复：cel_httpwebrequest_async_send_response_result状态码201、203、204会自动填充body问题。
 - 优化：应用使用时CelSqlCon不再需要加载mysql\sqllite等头文件。
-- 修复：cel_httpwebclient_do_recv_request支持跨域访问。
+- 修复：cel_httpwebrequest_do_recv_request支持跨域访问。
 
 * Mon Dec 21 2018 Hu Jinya <hjy@gzsunrun.cn> 1.1.0.31
 - 优化：CelSqlCon数据库相关函数接口。
@@ -64,7 +68,7 @@
 * Mon Oct 29 2018 Hu Jinya <hjy@gzsunrun.cn> 1.0.10.20
 - 优化：多线程下CelEventLoop定时器事件阻塞导致网络事件无法响应。
 - 修复：windows平台AcceptEx无法获取客户端地址BUG。
-- 新增：CelHttpWebClient代理地址解析，可通过代理头部获取客户端实际地址。
+- 新增：CelHttpWebRequest代理地址解析，可通过代理头部获取客户端实际地址。
 
 * Tue Aug 21 2018 Hu Jinya <hjy@gzsunrun.cn> 1.0.9.19
 - 新增：CelSqlCon, CelSqlConPool。
@@ -78,11 +82,11 @@
 - 修复：CelHttpClient函数cel_httpclient_reading_respons死循环问题。
 - 修复：cel_httpurl_reading中?解析问题。
 - 修复：Linux下cel_usergroupforeach，cel_groupuserforeach对用户和组进行更新：、删除问题。
-- 修复：cel_httpweblistener_post_accept没有清除args->client变量数据问题。
+- 修复：cel_httpserve_post_accept没有清除args->client变量数据问题。
 - 删除无用的调试打印信息。
 
 * Wed Jul 11 2018 Hu Jinya <hjy@gzsunrun.cn> 1.0.8.9
-- 新增：CelHttpWebClient, CelHttpWebListener, CelHttpRoute。
+- 新增：CelHttpWebRequest, CelHttpServe, CelHttpRoute。
 - 新增：pattrie,httproute采用pattrie存储。
 - 更新：httpreuqest,httpresponse支持自定义头部。
 - 更新：cel_realse()改为cel_lib_realse()。
@@ -114,7 +118,7 @@
 - 修复：user_unix下用户ID和组ID的生成算法，centos 7兼容。
 
 * Mon Oct 10 2016 Hu Jinya <hu_jinya@163.com> 1.0.3
-- 修复：cel_datetime_init_strtime_a把sscanf写成scanf时导致http在解析Date头部时卡死；
+- 修复：cel_time_init_strtime_a把sscanf写成scanf时导致http在解析Date头部时卡死；
 - 修复：cel_socket_async_accept设置buffer_size大于ACCEPTEX_RECEIVEDATA_OFFSET时，
   如果客户端一直不发数据，会导致卡死；
 - 新增：taskscheduler库。

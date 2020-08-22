@@ -16,13 +16,24 @@
 #define __CEL_NET_HTTPROUTE_H__
 
 #include "cel/convert.h"
-#include "cel/net/httpcontext.h"
+#include "cel/pattrie.h"
+#include "cel/net/httprequest.h"
 #include "cel/net/httpfilter.h"
 
 typedef int (* CelHttpRouteHandleFunc)(CelHttpContext *http_ctx);
 
 typedef struct _CelHttpRouteData CelHttpRouteData;
 typedef int (* CelHttpRouteEachFunc)(CelHttpRouteData *rt_data, void *user_data);
+
+typedef enum _CelHttpRouteState
+{
+	CEL_HTTPROUTEST_RECEVIE_REQUEST,
+    CEL_HTTPROUTEST_BEFORE_ROUTER,
+    CEL_HTTPROUTEST_BEFORE_EXEC,
+    CEL_HTTPROUTEST_AFTER_EXEC,
+    CEL_HTTPROUTEST_FINISH_ROUTER,
+	CEL_HTTPROUTEST_END
+}CelHttpRouteState;
 
 struct _CelHttpRouteData
 {

@@ -120,7 +120,6 @@ typedef int (* CelHttpResponseBodyReadCallBack)(
 struct _CelHttpResponse
 {
     CelHttpStream hs;
-    //void *_req;
     void *_async_callback;
 
     CelHttpBodySaveType body_save_in;
@@ -161,10 +160,10 @@ struct _CelHttpResponse
     CelVStringA content_md5;
     CelHttpContentRange content_range;
     CelVStringA content_type;
-    CelDateTime date;
+    CelTime date;
     CelVStringA etag;
-    CelDateTime expires;
-    CelDateTime last_modified;
+    CelTime expires;
+    CelTime last_modified;
     CelVStringA location;
     CelVStringA pragma;
     CelVStringA proxy_authenticate;
@@ -215,7 +214,11 @@ int cel_httpresponse_writing(CelHttpResponse *rsp);
 #define cel_httpresponse_get_version(rsp) (rsp)->ver
 #define cel_httpresponse_set_version(rsp, ver) (rsp)->ver = ver
 #define cel_httpresponse_get_statuscode(rsp) (rsp)->status
-#define cel_httpresponse_set_statuscode(rsp, _status) (rsp)->status = _status
+static __inline void cel_httpresponse_set_statuscode(CelHttpResponse *rsp, 
+													 CelHttpStatusCode _status) 
+{
+	rsp->status = _status;
+}
 
 void *cel_httpresponse_get_header(CelHttpResponse *rsp, 
                                   CelHttpHeader hdr_index);
@@ -290,12 +293,12 @@ int cel_httpresponse_send_redirect(CelHttpResponse *rsp, const char *url);
 int cel_httpresponse_send_tryfile(CelHttpResponse *rsp, 
                                const char *file_path, const char *uri_file_path,
                                long long first, long long last,
-                               CelDateTime *if_modified_since, 
+                               CelTime *if_modified_since, 
                                char *if_none_match);
 static __inline int cel_httpresponse_send_file(CelHttpResponse *rsp, 
 											   const char *file_path, 
 											   long long first, long long last,
-											   CelDateTime *if_modified_since, 
+											   CelTime *if_modified_since, 
 											   char *if_none_match)
 {
 	return cel_httpresponse_send_tryfile(rsp, 

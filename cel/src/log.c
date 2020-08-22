@@ -336,7 +336,7 @@ static CelLogSpecific *_cel_logger_specific_get()
 #define CEL_LOGMSG_WRITE() do { \
     log_msg->facility = facility; \
     log_msg->level = level; \
-    cel_datetime_init_now(&msg_time); \
+    cel_time_init_now(&msg_time); \
     log_msg->timestamp = msg_time; \
     log_msg->hostname = logger->hostname; \
     log_msg->processname = logger->processname; \
@@ -358,7 +358,7 @@ int cel_logger_puts(CelLogger *logger,
 {
     CelLogSpecific *log_specific;
     CelLogMsg *log_msg;
-    CelDateTime msg_time;
+    CelTime msg_time;
 
     if (logger->level[facility] < level)
         return -1;
@@ -388,7 +388,7 @@ int cel_logger_write(CelLogger *logger,
 {
     CelLogSpecific *log_specific;
     CelLogMsg *log_msg;
-    CelDateTime msg_time;
+    CelTime msg_time;
 
     if (g_logger.level[facility] < level)
         return -1;
@@ -422,7 +422,7 @@ int cel_logger_hexdump(CelLogger *logger,
 {
     CelLogSpecific *log_specific;
     CelLogMsg *log_msg;
-    CelDateTime msg_time;
+    CelTime msg_time;
 
     if (g_logger.level[facility] < level)
         return -1;
@@ -452,7 +452,7 @@ int cel_logger_vprintf(CelLogger *logger,
 {
     CelLogSpecific *log_specific;
     CelLogMsg *log_msg;
-    CelDateTime msg_time;
+    CelTime msg_time;
 
     //_tprintf(_T("%d %d\r\n"), logger->level[CEL_DEFAULT_FACILITY],  level);
     if (logger->level[facility] < level)
@@ -595,7 +595,7 @@ static int cel_log_fremove_callback(const TCHAR *dir, const TCHAR *file_name,
 int cel_logmsg_fwrite(CelLogMsg **msgs, size_t n, void *path)
 {
     static int file_day = -1;
-    static CelDateTime timestamp_cached = 0;
+	static CelTime timestamp_cached = { 0, 0 };
     static TCHAR strtime[26];
     CelLogMsg *msg;
     size_t i = 0;
@@ -606,7 +606,7 @@ int cel_logmsg_fwrite(CelLogMsg **msgs, size_t n, void *path)
     while (i < n)
     {
         msg = msgs[i++];
-        cel_datetime_get_date(&(msg->timestamp), NULL, NULL, &msg_day, NULL);
+        cel_time_get_date(&(msg->timestamp), NULL, NULL, &msg_day, NULL);
         //_tprintf("msg_day %d, file_day %d\r\n", msg_day, file_day);
         if (msg_day != file_day)
         {
@@ -616,17 +616,17 @@ int cel_logmsg_fwrite(CelLogMsg **msgs, size_t n, void *path)
                 cel_fclose(s_fp);
                 s_fp = NULL;
             }
-            cel_datetime_add_days(&(msg->timestamp), -30);
-            cel_datetime_strfltime(&(msg->timestamp), filename, 13, 
+            cel_time_add_days(&(msg->timestamp), -30);
+            cel_time_strfltime(&(msg->timestamp), filename, 13, 
                 _T("%Y%m%d.log"));
             lfile = _ttol(filename);
             cel_foreachdir((TCHAR *)path, cel_log_fremove_callback, &lfile);
-            cel_datetime_add_days(&(msg->timestamp), 30);
+            cel_time_add_days(&(msg->timestamp), 30);
         }
         /* Open log file, uninstall log hook if open failed. */
         if (s_fp == NULL)
         {
-            cel_datetime_strfltime(&(msg->timestamp), filename, 15, 
+            cel_time_strfltime(&(msg->timestamp), filename, 15, 
                 _T("%Y%m%d.log"));
             _sntprintf(file_path, CEL_PATHLEN, _T("%s%s"), 
                 (TCHAR *)path, filename);
@@ -642,10 +642,10 @@ int cel_logmsg_fwrite(CelLogMsg **msgs, size_t n, void *path)
             _fputts(CEL_CRLF, s_fp);
         }
         /* Write log line*/
-        if (timestamp_cached != msg->timestamp)
+		if (timestamp_cached.tv_sec != msg->timestamp.tv_sec)
         {
-            timestamp_cached = msg->timestamp;
-            cel_datetime_strfltime(&(msg->timestamp), strtime, 26, _T("%b %d %X"));
+			memcpy(&timestamp_cached, &(msg->timestamp), sizeof(CelTime));
+            cel_time_strfltime(&(msg->timestamp), strtime, 26, _T("%b %d %X"));
         }
         if (_ftprintf(s_fp, _T("%s [%ld]: <%s>%s.")CEL_CRLF, 
             /*((msg->facility << 3) | msg->level), */
@@ -666,7 +666,7 @@ int cel_logmsg_fflush(void *path)
 
 int cel_logmsg_puts(CelLogMsg **msgs, size_t n, void *user_data)
 {
-    static CelDateTime timestamp_cached = 0;
+	static CelTime timestamp_cached = { 0, 0 };
     static TCHAR strtime[26];
     CelLogMsg *msg;
     size_t i = 0;
@@ -674,10 +674,10 @@ int cel_logmsg_puts(CelLogMsg **msgs, size_t n, void *user_data)
     while (i < n)
     {
         msg = msgs[i++];
-        if (timestamp_cached != msg->timestamp)
+		if (timestamp_cached.tv_sec != msg->timestamp.tv_sec)
         {
-            timestamp_cached = msg->timestamp;
-            cel_datetime_strfltime(&(msg->timestamp), strtime, 26, _T("%b %d %X"));
+            memcpy(&timestamp_cached, &(msg->timestamp), sizeof(CelTime));
+            cel_time_strfltime(&(msg->timestamp), strtime, 26, _T("%b %d %X"));
         }
         _tprintf(_T("%s [%ld]: <%s>%s.")CEL_CRLF, 
             /*((msg->facility << 3) | msg->level), */

@@ -330,10 +330,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\datetime.c"
-				>
-			</File>
-			<File
 				RelativePath=".\error.c"
 				>
 			</File>
@@ -439,6 +435,10 @@
 			</File>
 			<File
 				RelativePath=".\threadpool.c"
+				>
+			</File>
+			<File
+				RelativePath=".\time.c"
 				>
 			</File>
 			<File
@@ -565,15 +565,15 @@
 					>
 				</File>
 				<File
+					RelativePath=".\net\httpserve.c"
+					>
+				</File>
+				<File
 					RelativePath=".\net\httpstream.c"
 					>
 				</File>
 				<File
-					RelativePath=".\net\httpwebclient.c"
-					>
-				</File>
-				<File
-					RelativePath=".\net\httpweblistener.c"
+					RelativePath=".\net\httpwebrequest.c"
 					>
 				</File>
 				<File
@@ -1037,10 +1037,6 @@
 					>
 				</File>
 				<File
-					RelativePath=".\_win\_datetime.c"
-					>
-				</File>
-				<File
 					RelativePath=".\_win\_error.c"
 					>
 				</File>
@@ -1082,6 +1078,10 @@
 				</File>
 				<File
 					RelativePath=".\_win\_thread.c"
+					>
+				</File>
+				<File
+					RelativePath=".\_win\_time.c"
 					>
 				</File>
 				<File
@@ -1226,10 +1226,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\include\cel\datetime.h"
-				>
-			</File>
-			<File
 				RelativePath="..\include\cel\error.h"
 				>
 			</File>
@@ -1343,6 +1339,10 @@
 			</File>
 			<File
 				RelativePath="..\include\cel\threadpool.h"
+				>
+			</File>
+			<File
+				RelativePath="..\include\cel\time.h"
 				>
 			</File>
 			<File
@@ -1477,15 +1477,15 @@
 					>
 				</File>
 				<File
+					RelativePath="..\include\cel\net\httpserve.h"
+					>
+				</File>
+				<File
 					RelativePath="..\include\cel\net\httpstream.h"
 					>
 				</File>
 				<File
-					RelativePath="..\include\cel\net\httpwebclient.h"
-					>
-				</File>
-				<File
-					RelativePath="..\include\cel\net\httpweblistener.h"
+					RelativePath="..\include\cel\net\httpwebrequest.h"
 					>
 				</File>
 				<File
@@ -1657,10 +1657,6 @@
 					>
 				</File>
 				<File
-					RelativePath="..\include\cel\_win\_datetime.h"
-					>
-				</File>
-				<File
 					RelativePath="..\include\cel\_win\_error.h"
 					>
 				</File>
@@ -1706,6 +1702,10 @@
 				</File>
 				<File
 					RelativePath="..\include\cel\_win\_thread.h"
+					>
+				</File>
+				<File
+					RelativePath="..\include\cel\_win\_time.h"
 					>
 				</File>
 				<File
@@ -1826,26 +1826,6 @@
 				</File>
 				<File
 					RelativePath="..\include\cel\_unix\_coroutine_ucontext.h"
-					>
-					<FileConfiguration
-						Name="Debug|Win32"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug|x64"
-						ExcludedFromBuild="true"
-						>
-						<Tool
-							Name="VCCustomBuildTool"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\include\cel\_unix\_datetime.h"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"
@@ -2106,6 +2086,26 @@
 				</File>
 				<File
 					RelativePath="..\include\cel\_unix\_thread_posix.h"
+					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|x64"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCustomBuildTool"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\include\cel\_unix\_time.h"
 					>
 					<FileConfiguration
 						Name="Debug|Win32"

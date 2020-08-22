@@ -97,8 +97,7 @@ CelHttpMultipartEntity *cel_httpmultipart_get_first_entity(
     CelHttpMultipart *multipart)
 {
     return cel_list_is_empty(&(multipart->entity_list)) ? NULL :
-        (CelHttpMultipartEntity *)
-        cel_list_get_front(&(multipart->entity_list));
+        (CelHttpMultipartEntity *)cel_list_get_front(&(multipart->entity_list));
 }
 
 #ifdef __cplusplus

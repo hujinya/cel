@@ -15,7 +15,7 @@
 #include "cel/net/httprequest.h"
 #include "cel/error.h"
 #include "cel/log.h"
-#include "cel/datetime.h"
+#include "cel/time.h"
 #include "cel/keyword.h"
 #include "cel/file.h"
 #include <stdarg.h>
@@ -1157,7 +1157,7 @@ int cel_httprequest_post_file(CelHttpRequest *req,
                               long long first, long long last)
 {
     struct stat file_stat;
-    CelDateTime dt;
+    CelTime dt;
     CelHttpContentRange content_range;
     long long content_length;
     char file_ext[CEL_EXTLEN];
@@ -1200,11 +1200,11 @@ int cel_httprequest_post_file(CelHttpRequest *req,
 
     cel_httprequest_set_header(req,
         CEL_HTTPHDR_CONTENT_LENGTH, &content_length, sizeof(content_length));
-    cel_datetime_init_now(&dt);
-    cel_httprequest_set_header(req, CEL_HTTPHDR_DATE, &dt, sizeof(CelDateTime));
-    cel_datetime_destroy(&dt);
+    cel_time_init_now(&dt);
+    cel_httprequest_set_header(req, CEL_HTTPHDR_DATE, &dt, sizeof(CelTime));
+    cel_time_destroy(&dt);
     cel_httprequest_set_header(req, 
-        CEL_HTTPHDR_LAST_MODIFIED, &(file_stat.st_mtime), sizeof(CelDateTime));
+        CEL_HTTPHDR_LAST_MODIFIED, &(file_stat.st_mtime), sizeof(CelTime));
 
     if (cel_fileext_r_a(file_path, file_ext, CEL_EXTLEN) != NULL)
     {

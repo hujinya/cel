@@ -46,9 +46,9 @@ int cel_httpclient_init_family(CelHttpClient *client,
                                int family, CelSslContext *ssl_ctx)
 {
     if (cel_tcpclient_init_family(&(client->tcp_client), family, ssl_ctx) == 0)
-    {
-        return cel_httpclient_init(client);
-    }
+	{
+		return cel_httpclient_init(client);
+	}
     return -1;
 }
 
@@ -65,8 +65,7 @@ CelHttpClient *cel_httpclient_new_tcpclient(CelTcpClient *tcp_client)
     {
         if (cel_httpclient_init_tcpclient(client, tcp_client) != -1)
         {
-            cel_refcounted_init(
-                &(client->ref_counted), 
+            cel_refcounted_init(&(client->ref_counted), 
                 (CelFreeFunc)_cel_httpclient_free_derefed);
             return client;
         }
@@ -136,6 +135,7 @@ int cel_httpclient_recv_request(CelHttpClient *client, CelHttpRequest *req)
             || (ret = cel_httpclient_reading_recv_request(client, req)) == -1)
             return ret;
     }while (ret != 1);
+
     return 0;
 }
 
@@ -175,6 +175,7 @@ int cel_httpclient_async_recv_request(CelHttpClient *client,
     CelStream *s = cel_httprequest_get_stream(req);
 
     req->_async_callback = callback;
+
     return cel_tcpclient_async_recv(&(client->tcp_client), s, 
         (CelTcpSendCallbackFunc)cel_httpclient_do_recv_request, NULL);
 }
@@ -210,6 +211,7 @@ int cel_httpclient_send_request(CelHttpClient *client, CelHttpRequest *req)
         if (ret == 1)
             break;
     }while(cel_tcpclient_send(&(client->tcp_client), &(req->hs.s)) > 0);
+
     return 0;
 }
 

@@ -19,7 +19,7 @@
 #include "cel/allocator.h"
 #include "cel/vstring.h"
 #include "cel/stream.h"
-#include "cel/datetime.h"
+#include "cel/time.h"
 #include "cel/keyword.h"
 #include "cel/convert.h"
 #include "cel/arraylist.h"
@@ -172,7 +172,7 @@ typedef enum _CelHttpContentType
 typedef struct _CelHttpCookie
 {
     CelVStringA values;
-    CelDateTime expires;
+    CelTime expires;
     long max_age;
     CelVStringA domain;
     CelVStringA path;
@@ -183,14 +183,6 @@ typedef struct _CelHttpSetCookieArray
 {
 	CelArrayList list;
 }CelHttpSetCookieArray;
-
-//#define cel_httpsetcookie_init cel_httpcookie_init
-//#define cel_httpsetcookie_destroy cel_httpcookie_destroy
-//#define cel_httpsetcookie_new cel_httpcookie_new
-//#define cel_httpsetcookie_free cel_httpcookie_free
-//#define cel_httpsetcookie_set_value cel_httpcookie_set_value
-//#define cel_httpsetcookie_set_attribute cel_httpcookie_set_attribute
-//#define cel_httpsetcookie_set cel_httpcookie_set
 
 /* 
  * bytes=1000-2000  first = 1000, last = 2000
@@ -291,9 +283,9 @@ int cel_httpvstring_reading(CelVString *vstr, const char *value, size_t size);
 int cel_httpvstring_writing(const char *hdr_name, 
                             CelVString *vstr, CelStream *s);
 
-int cel_httpdatetime_reading(CelDateTime *dt, const char *value, size_t size);
+int cel_httpdatetime_reading(CelTime *dt, const char *value, size_t size);
 int cel_httpdatetime_writing(const char *hdr_name, 
-                             CelDateTime *dt, CelStream *sr);
+                             CelTime *dt, CelStream *sr);
 
 int cel_httpint_reading(int *i, const char *value, size_t size);
 int cel_httpint_writing(const char *hdr_name, int *i, CelStream *s);
@@ -338,7 +330,7 @@ int cel_httpcookie_set_value(CelHttpCookie *set_cookie, const char *key,
         &(set_cookie->values), ';', '=', key, value, value_size);
 }
 int cel_httpcookie_set_attribute(CelHttpCookie *set_cookie, 
-                                 CelDateTime *expires, long max_age,
+                                 CelTime *expires, long max_age,
                                  const char *domain, const char *path, 
                                  BOOL secure, BOOL httponly);
 void *cel_httpcookie_set(CelHttpCookie *set_cookie1,
@@ -354,7 +346,7 @@ void cel_httpsetcookiearray_destroy(CelHttpSetCookieArray *set_cookies);
 int cel_httpsetcookiearray_add(CelHttpSetCookieArray *set_cookies,
 							   const char *key,
 							   const char *value, size_t value_size,
-							   CelDateTime *expires, long max_age,
+							   CelTime *expires, long max_age,
 							   const char *domain, const char *path, 
 							   BOOL secure, BOOL httponly);
 

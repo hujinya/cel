@@ -132,8 +132,8 @@ typedef struct _CelVrrpRouter
     int buf_size, receive_size;
     void *buf;
     /* RFC2336.6.2,Time interval for backup to declare master down */
-    struct timeval down_timer; 
-    struct timeval adver_timer;
+    CelTime down_timer; 
+    CelTime adver_timer;
 }CelVrrpRouter;
 
 extern const char *c_vrrpauthtype[];
@@ -164,7 +164,7 @@ int cel_vrrprouter_set_unicast_peer(CelVrrpRouter *router);
     (router)->recv_event = CEL_VRRP_EVENT_SHUTDOWN;
 
 int cel_vrrprouter_check_state(CelVrrpRouter *router, 
-                               CelVrrpState *state, struct timeval *now);
+                               CelVrrpState *state, CelTime *now);
 
 #ifdef __cplusplus
 }

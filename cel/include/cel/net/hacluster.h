@@ -99,7 +99,7 @@ typedef struct _CelHaDevice
     int n_unicast_addrs;
     CelIpAddr *unicast_addrs[CEL_HA_UNICAST_ADDR_NUM];
     unsigned short port;
-    //struct timeval down_timer;
+    //CelTime down_timer;
     CelRefCounted ref_counted;
 }CelHaDevice;
 
@@ -111,8 +111,8 @@ typedef struct _CelHaMember
     CelHaDevice *dev;
     CelIpAddr ip;
     union {
-        struct timeval coup_timer;
-        struct timeval down_timer;
+        CelTime coup_timer;
+        CelTime down_timer;
     };
 }CelHaMember;
 
@@ -148,7 +148,7 @@ typedef struct _CelHaGroup
     CelHaMember *self, *active, *next;
     BOOL is_update;
     CelHaEvent evt;
-    struct timeval adver_timer;
+    CelTime adver_timer;
 }CelHaGroup;
 
 typedef struct _CelHaCluster
@@ -210,7 +210,7 @@ void cel_hacluster_multicast_src_set(CelIpAddr *src);
 //int cel_hacluster_group_shutdown(CelHaCluster *hac, BYTE id);
 //int cel_hacluster_group_force_to_standyby(CelHaCluster *hac, BYTE id);
 //int cel_hacluster_group_check_state(CelHaCluster *hac,BYTE id, 
-//                                    CelHaState *state, struct timeval *now);
+//                                    CelHaState *state, CelTime *now);
 
 int cel_hagroup_init(CelHaGroup *ha_grp, int id, int preempt,
                      TCHAR *if_name,
@@ -239,7 +239,7 @@ int cel_hagroup_reload(CelHaGroup *ha_grp, int preempt, TCHAR *if_name,
     CEL_SETFLAG((ha_grp)->evt, CEL_HA_EVENT_FORCE_TO_STANDYBY)
 
 int cel_hagroup_check_state(CelHaGroup *ha_grp, 
-                            CelHaState *state, struct timeval *now);
+                            CelHaState *state, CelTime *now);
 
 #ifdef __cplusplus
 }

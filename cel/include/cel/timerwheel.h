@@ -36,7 +36,7 @@ typedef struct _CelTimerWheel
     int size;
     long now_expires, base_expires;
     CelTimer *earliest;
-    struct timeval base_timeval;
+    CelTime base_timeval;
     CelQueue *tv1[CEL_TIMEWHEEL_BASE_SPOKE_SIZE];
     CelQueue *tv2[CEL_TIMEWHEEL_SPOKE_SIZE];
     CelQueue *tv3[CEL_TIMEWHEEL_SPOKE_SIZE]; 
@@ -64,11 +64,11 @@ CelTimer *cel_timerwheel_get_earliest(CelTimerWheel *timer_wheel);
 int cel_timerwheel_cancel(CelTimerWheel *timer_wheel, CelTimerId timer_id);
 
 long cel_timerwheel_pop_timeout(CelTimerWheel *timer_wheel, 
-                                const struct timeval *now);
+                                const CelTime *now);
 int cel_timerwheel_pop_expired(CelTimerWheel *timer_wheel, CelTimer **timers,
-                               int max_timers, const struct timeval *now);
+                               int max_timers, const CelTime *now);
 int cel_timerwheel_remove_expired(CelTimerWheel *timer_wheel, 
-                                  const struct timeval *now);
+                                  const CelTime *now);
 
 void cel_timerwheel_clear(CelTimerWheel *timer_wheel);
 

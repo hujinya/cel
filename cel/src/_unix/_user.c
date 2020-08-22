@@ -34,7 +34,7 @@
 #include "cel/error.h"
 #include "cel/log.h"
 #include "cel/file.h"
-#include "cel/datetime.h"
+#include "cel/time.h"
 
 /* Group file */
 #define GROUP           "/etc/group"
@@ -58,7 +58,7 @@
 
 static char *cel_makecryptsalt(void)
 {
-    struct timeval tv;
+    CelTime tv;
     static char result[40];
 
     result[0] = '\0';
@@ -387,12 +387,12 @@ OsGroupInfo *cel_getgroupinfo(TCHAR *groupname)
 
 static int os_useradd_time(void)
 {
-    CelDateTime dt1, dt2;
+    CelTime dt1, dt2;
 
-    cel_datetime_init_value(&dt1, 1970, 0, 0, 0, 0, 0);
-    cel_datetime_init_now(&dt2);
+    cel_time_init_datatime(&dt1, 1970, 0, 0, 0, 0, 0);
+    cel_time_init_now(&dt2);
 
-    return (int)(cel_datetime_diffseconds(&dt2, &dt1) / (60 * 60 * 24));
+    return (int)(cel_time_diffseconds(&dt2, &dt1) / (60 * 60 * 24));
 }
 
 BOOL os_userexists(TCHAR *username)
@@ -491,7 +491,7 @@ int os_useradd(OsUserInfo *user)
         cel_fsync(PASSWD, PASSWD_SWAP);
         return -1;
     }
-    //cel_datetime_init_now(&dt);
+    //cel_time_init_now(&dt);
     if (fprintf(fp, "%s:%s:%d:0:99999:7:::\n", 
         user->name, crypt(user->passwd, cel_makecryptsalt()), 
         os_useradd_time()) == -1)

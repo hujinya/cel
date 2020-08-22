@@ -33,12 +33,12 @@ typedef CelTimer * (* CelTimerQueueGetEarliestFunc) (void *timer_queue);
 typedef int (* CelTimerQueueCancelFunc) (void *timer_queue, 
                                          CelTimerId timer_id);
 typedef long (* CelTimerQueuePopTimeoutlFunc) (void *timer_queue,
-                                               const struct timeval *now);
+                                               const CelTime *now);
 typedef int (* CelTimerQueuePopExpiredFunc) (void *timer_queue, 
                                              CelTimer **timers, int max_timers,
-                                             const struct timeval *now);
+                                             const CelTime *now);
 typedef int (* CelTimerQueueRemoveExpiredFunc) (void *timer_queue,
-                                                const struct timeval *now);
+                                                const CelTime *now);
 typedef void (* CelTimerQueueClearFunc) (void *timer_queue);
 
 typedef enum _CelTimerQueueType
@@ -143,7 +143,7 @@ static __inline BOOL cel_timerqueue_push(CelTimerQueue *timer_queue,
 #define cel_timerqueue_pop_timeout_unlocked(timer_queue, now) \
     (timer_queue)->kclass->pop_timeout(timer_queue, now)
 static __inline long cel_timerqueue_pop_timeout(CelTimerQueue *timer_queue,
-                                                const struct timeval *now)
+                                                const CelTime *now)
 {
     long timeout;
     cel_timerqueue_lock(timer_queue); 
@@ -155,7 +155,7 @@ static __inline long cel_timerqueue_pop_timeout(CelTimerQueue *timer_queue,
 /* 
  * int cel_timerqueue_pop_expired_unlocked(CelTimerQueue *timer_queue, 
  *                                         CelTimer **timers, int max_timers,
- *                                         const struct timeval *now) 
+ *                                         const CelTime *now) 
  */
 #define cel_timerqueue_pop_expired_unlocked(\
     timer_queue, timers, max_timers, now) \
@@ -163,7 +163,7 @@ static __inline long cel_timerqueue_pop_timeout(CelTimerQueue *timer_queue,
 static __inline int cel_timerqueue_pop_expired(CelTimerQueue *timer_queue, 
                                                CelTimer **timers, 
                                                int max_timers,
-                                               const struct timeval *now) 
+                                               const CelTime *now) 
 {
     int ret;
     cel_timerqueue_lock(timer_queue); 
@@ -174,12 +174,12 @@ static __inline int cel_timerqueue_pop_expired(CelTimerQueue *timer_queue,
 }
 /* 
  * int cel_timerqueue_remove_expired_unlocked(CelTimerQueue *timer_queue, 
- *                                            const struct timeval *now) 
+ *                                            const CelTime *now) 
  */
 #define cel_timerqueue_remove_expired_unlocked(timer_queue, now) \
     (timer_queue)->kclass->remove_expired(timer_queue, now)
 static __inline int cel_timerqueue_remove_expired(CelTimerQueue *timer_queue, 
-                                                  const struct timeval *now) 
+                                                  const CelTime *now) 
 {
     int ret;
     cel_timerqueue_lock(timer_queue); 

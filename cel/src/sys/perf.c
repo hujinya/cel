@@ -21,17 +21,17 @@
 #include "cel/convert.h"
 
 
-CelPerf *cel_getperf(const struct timeval *now, int reset)
+CelPerf *cel_getperf(const CelTime *now, int reset)
 {
-    static struct timeval flush_timeval= { 0, 0 };
-    static struct timeval reset_timeval= { 0, 0 };
+    static CelTime flush_timeval= { 0, 0 };
+    static CelTime reset_timeval= { 0, 0 };
     int i;
 
-    CEL_TIMEVAL_NOW(now);
-    if (cel_timeval_is_expired(&reset_timeval, now))
+    CEL_TIME_NOW(now);
+    if (cel_time_is_expired(&reset_timeval, now))
     {
         cel_multithread_mutex_lock(CEL_MT_MUTEX_PERFOINFO);
-        cel_timeval_set(&reset_timeval, now, CEL_PF_RESET_INTERVAL);
+        cel_time_set_milliseconds(&reset_timeval, now, CEL_PF_RESET_INTERVAL);
         s_perf.cpu.maxusage = 0;
         for (i = 0; i < s_perf.cpu.num && s_perf.cpu.cpus[i] != NULL; i++)
             s_perf.cpu.cpus[i]->maxusage = 0;
@@ -49,10 +49,10 @@ CelPerf *cel_getperf(const struct timeval *now, int reset)
         cel_multithread_mutex_unlock(CEL_MT_MUTEX_PERFOINFO);
     }
     if (reset == 1
-        || cel_timeval_is_expired(&flush_timeval, now))
+        || cel_time_is_expired(&flush_timeval, now))
     {
         cel_multithread_mutex_lock(CEL_MT_MUTEX_PERFOINFO);
-        cel_timeval_set(&flush_timeval, now, CEL_PF_FLUSH_INTERVAL);
+        cel_time_set_milliseconds(&flush_timeval, now, CEL_PF_FLUSH_INTERVAL);
         cel_getcpuperf();
         cel_getmemperf();
         cel_getfsperf();
@@ -208,11 +208,11 @@ int cel_perfserialize(CelPerf *pi, char *buf, size_t size, int indent)
 int cel_perfmaxserialize(CelPerf *pi, char *buf, size_t size, int indent)
 {
     int len, i;
-    CelDateTime dt;
+    CelTime dt;
     TCHAR dtstr[32];
 
-    cel_datetime_init_now(&dt);
-    cel_datetime_strfltime(&dt, dtstr, 32, _T("%Y-%m-%d %X"));
+    cel_time_init_now(&dt);
+    cel_time_strfltime(&dt, dtstr, 32, _T("%Y-%m-%d %X"));
     len = snprintf(buf, size, 
         "{\"datetime\":\"%s\",\"cpu\":{\"maxusage\":%d,\"details\":[", 
         dtstr, pi->cpu.maxusage);

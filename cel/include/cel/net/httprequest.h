@@ -97,7 +97,6 @@ typedef int (* CelHttpRequestBodyReadCallBack)(
 struct _CelHttpRequest
 {
 	CelHttpStream hs;
-	//void *_rsp;
 	void *_async_callback;
 
 	CelHttpContentType body_content_type;
@@ -139,18 +138,18 @@ struct _CelHttpRequest
     CelHttpContentRange content_range;
     CelVStringA content_type;
     CelVStringA cookie;
-    CelDateTime date;
+    CelTime date;
     int dnt;
     CelVStringA expect;
-    CelDateTime expires;
+    CelTime expires;
     CelVStringA from;
     CelVStringA host;
     CelVStringA if_match;
-    CelDateTime if_modified_since;
+    CelTime if_modified_since;
     CelVStringA if_none_match;
     CelVStringA if_range;
-    CelDateTime if_unmodified_since;
-    CelDateTime last_modified;
+    CelTime if_unmodified_since;
+    CelTime last_modified;
     int max_forwards;
     CelVStringA origin;
     CelVStringA pragma;
@@ -253,7 +252,7 @@ int cel_httprequest_set_query(CelHttpRequest *req,
 /* Get and set httprequest form */
 static __inline 
 char *cel_httprequest_get_form(CelHttpRequest *req, const char *key, 
-                               char *value, size_t *size)
+							   char *value, size_t *size)
 {
     return cel_strgetkeyvalue_a((char *)cel_stream_get_buffer(&(req->body_cache.buf)),
         '&', '=', key, value, size);
@@ -317,16 +316,14 @@ long long cel_httprequest_get_body_data(CelHttpRequest *req,
                                         long long first, long long last,
                                         void *buf, size_t buf_size)
 {
-    return cel_httpbodycache_read(
-        &(req->body_cache), first, last, buf, buf_size);
+    return cel_httpbodycache_read(&(req->body_cache), first, last, buf, buf_size);
 }
 static __inline 
 long long cel_httprequest_save_body_data(CelHttpRequest *req,
                                          long long first, long long last,
                                          const char *file_path) 
 {
-    return cel_httpbodycache_save_file(
-        &(req->body_cache), first, last, file_path);
+    return cel_httpbodycache_save_file(&(req->body_cache), first, last, file_path);
 }
 static __inline int cel_httprequest_move_body_data(CelHttpRequest *req,
                                                    const char *file_path)

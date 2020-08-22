@@ -16,9 +16,10 @@
 #define __CEL_NET_HTTPFILTER_H__
 
 #include "cel/list.h"
-#include "cel/net/httpcontext.h"
+#include "cel/vstring.h"
 
 typedef struct _CelHttpFilter CelHttpFilter;
+typedef struct _CelHttpContext CelHttpContext;
 
 /* return 0 = continue;-1 = error;1 = break; */
 typedef int (* CelHttpFilterHandlerFunc)(CelHttpContext *http_ctx);

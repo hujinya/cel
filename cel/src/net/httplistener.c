@@ -38,8 +38,7 @@ int cel_httplistener_start(CelHttpListener *listener, CelSockAddr *addr)
 
 int cel_httplistener_accept(CelHttpListener *listener, CelHttpClient *client)
 {
-    return cel_tcplistener_accept(
-        &(listener->tcp_listener), &(client->tcp_client));
+    return cel_tcplistener_accept(&(listener->tcp_listener), &(client->tcp_client));
 }
 
 void cel_httplistener_do_accept(CelHttpListener *listener, 

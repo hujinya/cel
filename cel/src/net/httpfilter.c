@@ -13,6 +13,7 @@
  * GNU General Public License for more details.
  */
 #include "cel/net/httpfilter.h"
+#include "cel/net/httpcontext.h"
 
 int cel_httpfilter_init(CelHttpFilter *filter,
 						CelHttpFilterHandlerFunc handler)
@@ -33,8 +34,8 @@ void cel_httpfilter_destroy(CelHttpFilter *filter)
 int cel_httpfilter_allowcors_handler(CelHttpContext *http_ctx)
 {
 	CelHttpFilterAllowCors *cors = (CelHttpFilterAllowCors *)(http_ctx->current_filter);
-	CelHttpRequest *req = http_ctx->req;
-	CelHttpResponse *rsp = http_ctx->rsp;
+	CelHttpRequest *req = &(http_ctx->req);
+	CelHttpResponse *rsp = &(http_ctx->rsp);
 	char *orign;
 
 	if (cel_vstring_size_a(&(cors->allow_origins)) != 0)

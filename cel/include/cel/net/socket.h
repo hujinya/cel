@@ -17,6 +17,7 @@
 
 #include "cel/types.h"
 #include "cel/poll.h"
+#include "cel/time.h"
 #include "cel/net/sockaddr.h"
 
 #define CEL_SOCKET_INIT       0
@@ -255,7 +256,7 @@ int cel_socket_set_sndbuffer(CelSocket *sock, int size)
 static __inline 
 int cel_socket_set_rcvtimeout(CelSocket *sock, int milliseconds)
 {
-    struct timeval tmo;
+    CelTime tmo;
     tmo.tv_sec = milliseconds / 1000;
     tmo.tv_usec = milliseconds % 1000 * 1000;
     return setsockopt(sock->fd, SOL_SOCKET, SO_RCVTIMEO, 
@@ -263,7 +264,7 @@ int cel_socket_set_rcvtimeout(CelSocket *sock, int milliseconds)
 }
 static __inline int cel_socket_set_sndtimeout(CelSocket *sock, int milliseconds)
 {
-    struct timeval tmo;
+    CelTime tmo;
     tmo.tv_sec = milliseconds / 1000;
     tmo.tv_usec = milliseconds % 1000 * 1000;
     return setsockopt(sock->fd, SOL_SOCKET, SO_SNDTIMEO, 

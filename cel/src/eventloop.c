@@ -99,8 +99,7 @@ CelTimerId cel_eventloop_schedule_timer(CelEventLoop *evt_loop,
 {
     CelTimer *timer;
     
-    if ((timer = 
-        cel_timer_new(milliseconds, repeat, call_back, user_data)) == NULL)
+    if ((timer = cel_timer_new(milliseconds, repeat, call_back, user_data)) == NULL)
         return 0;
     cel_timer_start(timer, NULL);
     if (cel_timerqueue_push(&(evt_loop->timer_queue), timer))

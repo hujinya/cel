@@ -115,8 +115,8 @@ int cel_httpclient_shutdown(CelHttpClient *client, int how)
     return cel_tcpclient_shutdown(&(client->tcp_client), how);
 }
 
-int cel_httpclient_execute(CelHttpClient *client,
-                           CelHttpRequest *req, CelHttpResponse *rsp);
+int cel_httpclient_execute(CelHttpClient *client, 
+						   CelHttpRequest *req, CelHttpResponse *rsp);
 
 static __inline 
 int cel_httpclient_async_connect(CelHttpClient *client, 

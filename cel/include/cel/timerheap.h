@@ -54,11 +54,11 @@ CelTimer *cel_timerheap_get_earliest(CelTimerHeap *timer_heap);
 int cel_timerheap_cancel(CelTimerHeap *timer_heap, CelTimerId timer_id);
 
 long cel_timerheap_pop_timeout(CelTimerHeap *timer_heap, 
-                               const struct timeval *now);
+                               const CelTime *now);
 int cel_timerheap_pop_expired(CelTimerHeap *timer_heap, CelTimer **timers,
-                              int max_timers, const struct timeval *now);
+                              int max_timers, const CelTime *now);
 int cel_timerheap_remove_expired(CelTimerHeap *timer_heap,
-                                 const struct timeval *now);
+                                 const CelTime *now);
 
 static __inline void cel_timerheap_clear(CelTimerHeap *timer_heap)
 {
