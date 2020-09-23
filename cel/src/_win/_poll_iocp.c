@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -40,7 +40,9 @@ int cel_poll_wait(CelPoll *poll, CelOverLapped **ol, int milliseconds)
     if (!GetQueuedCompletionStatus(
         poll->CompletionPort, &nbytes, &key, (LPOVERLAPPED *)ol, milliseconds)
         && WSAGetLastError() == WAIT_TIMEOUT)
+	{
         return 0;
+	}
     /*
     _tprintf(_T("bytes = %ld, %p, erro %d, pid %d\r\n"), 
         nbytes, ol, WSAGetLastError(), (int)cel_thread_getid());

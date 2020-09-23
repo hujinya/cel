@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -92,8 +92,7 @@ CelTimerId cel_eventloop_schedule_timer(CelEventLoop *evt_loop,
                                         CelTimerCallbackFunc call_back, 
                                         void *user_data);
 /* 
- * int cel_eventloop_xx_channel(CelEventLoop *evt_loop, 
- *                              CelChannel *channel, void *key)
+ * int cel_eventloop_xx_channel(CelEventLoop *evt_loop, CelChannel *channel, void *key)
  */
 #define cel_eventloop_add_channel(evt_loop, channel, key) \
     cel_poll_add(&((evt_loop)->poll), channel, key)

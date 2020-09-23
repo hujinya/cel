@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -80,8 +80,7 @@ void cel_httpwebrequest_free(CelHttpWebRequest *web_req)
 	cel_refcounted_destroy(&(web_req->ref_counted), web_req);
 }
 
-void cel_httpwebrequest_do_shutdown(CelHttpWebRequest *web_req, 
-									CelAsyncResult *result)
+void cel_httpwebrequest_do_shutdown(CelHttpWebRequest *web_req, CelAsyncResult *result)
 {
 	cel_httpwebrequest_free(web_req);
 }

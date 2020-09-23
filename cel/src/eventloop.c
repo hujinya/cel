@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -180,7 +180,7 @@ int cel_eventloop_do_work(CelEventLoop *evt_loop)
         evt_loop->wakeup_cnt = evt_loop->timer_wakeup;
         timer_wakeup = evt_loop->timer_wakeup;
         if ((timeout = 
-            cel_timerqueue_pop_timeout(&(evt_loop->timer_queue), NULL)) != 0)
+			cel_timerqueue_pop_timeout(&(evt_loop->timer_queue), NULL)) != 0)
         {
            /*_tprintf(_T("wait_timeout start %ld, pid %d, ticks %ld\r\n"), 
                 timeout, (int)cel_thread_getid(), cel_getticks());*/

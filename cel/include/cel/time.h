@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -48,8 +48,7 @@ typedef struct timeval CelTime;
     ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0)
 
 #define CEL_TIME_SLOTS 64
-
-void cel_time_update(BOOL is_sigsafe);
+void cel_cached_time_update(void);
 
 
 static __inline int cel_time_init(CelTime *dt)

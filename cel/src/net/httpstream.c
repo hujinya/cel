@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -150,7 +150,6 @@ int cel_httpstream_write(CelHttpStream *hs, CelHttpStreamBuf *buf)
 		hs->chunked.size += buf->size;
     return buf->size;
 }
-
 
 int cel_httpstream_printf(CelHttpStream *hs, CelHttpStreamFmtArgs *fmt_args)
 {

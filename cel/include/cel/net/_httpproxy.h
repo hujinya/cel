@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -32,12 +32,11 @@ typedef struct _CelHttpBackend
     CelHttpClient client;
 }CelHttpBackend;
 
-typedef struct _HttpMsg
+typedef struct _CelHttpMsg
 {
-    CelStream s;
     CelHttpRequest req;
     CelHttpResponse rsp;
-}HttpMsg;
+}CelHttpMsg;
 
 #ifdef __cplusplus
 extern "C" {

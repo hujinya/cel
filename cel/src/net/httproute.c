@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -168,8 +168,8 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 				&& (ret = cel_httproute_filter_list_foreach(filter_list, http_ctx)) != CEL_RET_OK)
 			{
 				CEL_SETERR((CEL_ERR_LIB,  
-					_T("Http route '[%d]%s' filter handler[%d] failed."), 
-					cel_httprequest_get_method(&(http_ctx->req)), 
+					_T("Http route '[%s]%s' filter handler[%d] failed."), 
+					cel_httprequest_get_method_str(&(http_ctx->req)), 
 					cel_httprequest_get_url_path(&(http_ctx->req)), http_ctx->state));
 				break;
 			}
@@ -180,8 +180,8 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 				&& (ret = cel_httproute_filter_list_foreach(filter_list, http_ctx)) != CEL_RET_OK)
 			{
 				CEL_SETERR((CEL_ERR_LIB,  
-					_T("Http route '[%d]%s' filter handler[%d] failed."), 
-					cel_httprequest_get_method(&(http_ctx->req)), 
+					_T("Http route '[%s]%s' filter handler[%d] failed."), 
+					cel_httprequest_get_method_str(&(http_ctx->req)), 
 					cel_httprequest_get_url_path(&(http_ctx->req)), http_ctx->state));
 				break;
 			}
@@ -192,8 +192,8 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 				//puts(cel_vstring_str_a(&(route->prefix)));
 				ret = CEL_RET_ERROR;
 				cel_httpresponse_set_statuscode(&(http_ctx->rsp), CEL_HTTPSC_NOT_FOUND);
-				CEL_SETERR((CEL_ERR_LIB, _T("Http route prefix '[%d]%s' not supported"), 
-					cel_httprequest_get_method(&(http_ctx->req)), url));
+				CEL_SETERR((CEL_ERR_LIB, _T("Http route prefix '[%s]%s' not supported"), 
+					cel_httprequest_get_method_str(&(http_ctx->req)), url));
 				break;
 			}
 			prefix = url + cel_vstring_size_a(&(route->prefix));
@@ -203,8 +203,8 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 			{
 				ret = CEL_RET_ERROR;
 				cel_httpresponse_set_statuscode(&(http_ctx->rsp), CEL_HTTPSC_NOT_FOUND);
-				CEL_SETERR((CEL_ERR_LIB, _T("Http route path '[%d]%s' not supported."), 
-					cel_httprequest_get_method(&(http_ctx->req)), prefix));
+				CEL_SETERR((CEL_ERR_LIB, _T("Http route path '[%s]%s' not supported."), 
+					cel_httprequest_get_method_str(&(http_ctx->req)), prefix));
 				break;
 			}
 			http_ctx->state = CEL_HTTPROUTEST_AFTER_EXEC;
@@ -213,8 +213,8 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 				//printf("Http route handler ret = %d\r\n", ret);
 				/*if (ret == CEL_RET_ERROR)
 				{
-					CEL_SETERR((CEL_ERR_LIB, _T("Http route '[%d]%s' handler failed."), 
-						cel_httprequest_get_method(&(http_ctx->req)), prefix));
+					CEL_SETERR((CEL_ERR_LIB, _T("Http route '[%s]%s' handler failed."), 
+						cel_httprequest_get_method_str(&(http_ctx->req)), prefix));
 				}*/
 				break;
 			}
@@ -225,8 +225,8 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 				&& (ret = cel_httproute_filter_list_foreach(filter_list, http_ctx)) != CEL_RET_OK)
 			{
 				CEL_SETERR((CEL_ERR_LIB,  
-					_T("Http route '[%d]%s' filter handler[%d] failed."), 
-					cel_httprequest_get_method(&(http_ctx->req)), 
+					_T("Http route '[%s]%s' filter handler[%d] failed."), 
+					cel_httprequest_get_method_str(&(http_ctx->req)), 
 					cel_httprequest_get_url_path(&(http_ctx->req)), http_ctx->state));
 				break;
 			}
@@ -237,8 +237,8 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 				&& (ret = cel_httproute_filter_list_foreach(filter_list, http_ctx)) != CEL_RET_OK)
 			{
 				CEL_SETERR((CEL_ERR_LIB,  
-					_T("Http route '[%d]%s' filter handler[%d] failed."), 
-					cel_httprequest_get_method(&(http_ctx->req)), 
+					_T("Http route '[%s]%s' filter handler[%d] failed."), 
+					cel_httprequest_get_method_str(&(http_ctx->req)), 
 					cel_httprequest_get_url_path(&(http_ctx->req)), http_ctx->state));
 				break;
 			}
@@ -246,8 +246,8 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 		default:
 			ret = CEL_RET_ERROR;
 			cel_httpresponse_set_statuscode(&(http_ctx->rsp), CEL_HTTPSC_ERROR);
-			CEL_SETERR((CEL_ERR_LIB, _T("Http route '[%d]%s' state %d unfinded."), 
-				cel_httprequest_get_method(&(http_ctx->req)), 
+			CEL_SETERR((CEL_ERR_LIB, _T("Http route '[%s]%s' state %d unfinded."), 
+				cel_httprequest_get_method_str(&(http_ctx->req)), 
 				cel_httprequest_get_url_path(&(http_ctx->req)), http_ctx->state));
 			http_ctx->state = CEL_HTTPROUTEST_END;
 			return ret;
@@ -258,8 +258,8 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 			return ret;
 		else
 		{
-			CEL_SETERR((CEL_ERR_LIB, _T("Http route '[%d]%s' return value %d invaild."), 
-				cel_httprequest_get_method(&(http_ctx->req)), 
+			CEL_SETERR((CEL_ERR_LIB, _T("Http route '[%s]%s' return value %d invaild."), 
+				cel_httprequest_get_method_str(&(http_ctx->req)), 
 				cel_httprequest_get_url_path(&(http_ctx->req)), ret));
 			http_ctx->state = CEL_HTTPROUTEST_END;
 			return -1;

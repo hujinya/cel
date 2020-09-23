@@ -228,11 +228,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\cel_httpwebclient.c"
+				RelativePath=".\cel_httpserve.c"
 				>
 			</File>
 			<File
-				RelativePath=".\cel_httpweblistener.c"
+				RelativePath=".\cel_httpwebrequest.c"
 				>
 			</File>
 			<File

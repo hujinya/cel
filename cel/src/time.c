@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -16,6 +16,7 @@
 #include "cel/allocator.h"
 #include "cel/log.h"
 #include "cel/error.h"
+#include "cel/thread.h"
 
 static long timezone_diff_secs = -1;
 
@@ -34,18 +35,53 @@ long cel_timezone_diff_secs()
 }
 
 static unsigned int slot = 0;
-static CelAtomic time_lock;
-static volatile CelTime *cached_time = NULL;
+static CelSpinLock *time_lock = NULL;
 static CelTime cached_times[CEL_TIME_SLOTS];
+static volatile CelTime *cached_time = NULL;
 
-void cel_time_update(BOOL is_sigsafe)
+void cel_cached_time_update(void)
 {
-	;
+	CelTime *tp;
+	struct timeval tv;
+
+	if (time_lock == NULL)
+		time_lock = cel_spinlock_new(0);
+	if (cel_spinlock_trylock(time_lock) == -1)
+		return ;
+	gettimeofday(&tv, NULL);
+
+	tp = &cached_times[slot];
+	if (tp->tv_sec == tv.tv_sec) 
+	{
+		tp->tv_usec = tv.tv_usec;
+		cel_spinlock_unlock(time_lock);
+		return;
+	}
+
+	if (slot == CEL_TIME_SLOTS - 1)
+		slot = 0;
+	else 
+		slot++;
+	tp = &cached_times[slot];
+	tp->tv_sec = tv.tv_sec;
+	tp->tv_usec = tv.tv_usec;
+
+	cel_compiler_barrier();
+	cached_time = tp;
+
+	//cel_timezone_diff_secs();
+
+	cel_spinlock_unlock(time_lock);
+
 }
 
 int cel_time_init_now(CelTime *dt)
 {
-	return gettimeofday(dt, NULL);
+	if (cached_time == NULL)
+		return gettimeofday(dt, NULL);
+	dt->tv_sec = cached_time->tv_sec;
+	dt->tv_usec = cached_time->tv_usec;
+	return 0;
 }
 
 int cel_time_init_datatime(CelTime *dt, int year, int mon, int mday, 

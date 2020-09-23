@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -16,7 +16,6 @@
 #include "cel/allocator.h"
 #include "cel/error.h"
 #include "cel/log.h"
-
 
 int cel_hrdaddr_pton(const TCHAR *hrdstr, CelHrdAddr *hrdaddr)
 {

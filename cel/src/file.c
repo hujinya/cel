@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -364,10 +364,9 @@ FILE *cel_fopen(const TCHAR *file_name, const TCHAR *mode)
     if ((fp = _tfopen(file_name, mode)) == NULL)
     {
         CEL_SETERR((CEL_ERR_LIB, _T("Open file '%s' failed(%s)."), 
-            file_name, cel_geterrstr()));
+            file_name, cel_sys_strerror(cel_sys_geterrno())));
         return NULL;
     }
-
     return fp;
 }
 
@@ -391,7 +390,7 @@ int cel_fsync(const TCHAR *dest_file,const TCHAR *src_file)
 		if (fwrite(buf, 1, sizeof(buf), fp_) != len)
 		{
 			CEL_SETERR((CEL_ERR_LIB, _T("fwrite():%s."), 
-				cel_geterrstr()));
+				cel_sys_strerror(cel_sys_geterrno())));
 			break;
 		}
 	}

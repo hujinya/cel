@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -50,8 +50,7 @@ CelTimer *cel_timer_new(long microseconds, int repeat,
 
     if ((timer = (CelTimer *)cel_malloc(sizeof(CelTimer))) != NULL)
     {
-        if (cel_timer_init(
-            timer, microseconds, repeat, call_back, user_data) == 0)
+        if (cel_timer_init(timer, microseconds, repeat, call_back, user_data) == 0)
             return timer;
         cel_free(timer);
     }

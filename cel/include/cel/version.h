@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -27,8 +27,8 @@ extern "C" {
 
 #define CEL_LIB_MAJOR 1
 #define CEL_LIB_MINOR 3
-#define CEL_LIB_REVISION 0
-#define CEL_LIB_BUILD 58
+#define CEL_LIB_REVISION 1
+#define CEL_LIB_BUILD 60
 #define CEL_LIB_EXTRA ""
 
 #define CEL_UTS _T(__DATE__) _T(" ") _T(__TIME__)

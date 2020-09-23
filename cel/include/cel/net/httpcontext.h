@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -90,8 +90,8 @@ char *cel_httpcontext_get_param(CelHttpContext *http_ctx,
 
 static __inline long cel_httpcontext_request_time(CelHttpContext *http_ctx)
 {
-	return cel_time_diffmilliseconds(&(http_ctx->rsp_finish_dt),
-		&(http_ctx->req_start_dt));
+	return cel_time_diffmilliseconds(
+		&(http_ctx->rsp_finish_dt), &(http_ctx->req_start_dt));
 }
 
 static __inline TCHAR *cel_httpcontxt_get_errstr(CelHttpContext *http_ctx)

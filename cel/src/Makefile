@@ -1,5 +1,5 @@
 # CEL(C Extension Library) Makefile
-# Copyright (c) 2008 - 2019 Hu Jinya <hu_jinya@163.com>
+# Copyright (c) 2008 Hu Jinya <hu_jinya@163.com>
 #
 # This program is free software; you can redistribute it and/or 
 # modify it under the terms of the GNU General Public License 
@@ -25,8 +25,8 @@ BIN_TARGET =
 
 MAJOR = 1
 MINOR = 3
-REVISION = 0
-BUILD = 58
+REVISION = 1
+BUILD = 60
 EXTRA = ""
 VERSION_FILE= "../include/cel/_version.h"
 

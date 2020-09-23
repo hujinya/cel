@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -117,18 +117,18 @@ CelSqlCon *cel_sqlconpool_get(CelSqlConPool *pool)
 
 void cel_sqlconpool_return(CelSqlConPool *pool, CelSqlCon *con)
 {
-    /*
-    printf(" cel_sqlconpool_return count %d min %d total %d\r\n", 
-    cel_ringlist_get_count(&(pool->frees)), pool->min, pool->n_conns);
-    */
-    CEL_DEBUG((_T("cel_sqlconpool_return %p"), con));
-    if (cel_ringlist_get_count(&(pool->frees)) > pool->min)
-    {
-        cel_sqlcon_free(con);
-        cel_atomic_increment(&(pool->n_conns), -1);
-        return ;
-    }
-    cel_ringlist_push_do_mp(&(pool->frees), con, 1);
+	/*
+	printf(" cel_sqlconpool_return count %d min %d total %d\r\n", 
+	cel_ringlist_get_count(&(pool->frees)), pool->min, pool->n_conns);
+	*/
+	CEL_DEBUG((_T("cel_sqlconpool_return %p"), con));
+	if (cel_ringlist_get_count(&(pool->frees)) < pool->min)
+	{
+		cel_ringlist_push_do_mp(&(pool->frees), con, 1);
+		return ;
+	}
+	cel_sqlcon_free(con);
+	cel_atomic_increment(&(pool->n_conns), -1);   
 }
  
 long cel_sqlconpool_execute_nonequery(CelSqlConPool *pool, const char *fmt, ...)

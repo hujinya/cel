@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -44,8 +44,7 @@ int cel_httpserve_start(CelHttpServe *listener, CelSockAddr *addr)
 }
 
 static void cel_httpserve_do_accept(CelHttpServe *listener, 
-									CelHttpClient *http_client,
-									CelAsyncResult *result)
+									CelHttpClient *http_client, CelAsyncResult *result)
 {
 	CelHttpContext *new_ctx;
 
@@ -125,8 +124,7 @@ int cel_httpserve_run(CelHttpServe *listener, CelEventLoop *evt_loop)
 	return -1;
 }
 
-int cel_httpserve_run_group(CelHttpServe *listener, 
-							CelEventLoopGroup *evt_loop_grp)
+int cel_httpserve_run_group(CelHttpServe *listener, CelEventLoopGroup *evt_loop_grp)
 {
 	if (cel_httplistener_set_nonblock(listener, 1) != -1
 		&& cel_eventloopgroup_add_channel(evt_loop_grp, -1,

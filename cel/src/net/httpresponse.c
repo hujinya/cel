@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -969,13 +969,12 @@ int cel_httpresponse_send_tryfile(CelHttpResponse *rsp,
 		|| (file_stat.st_mode & S_IFREG) != S_IFREG)
 	{
 		//printf("%d\r\n", file_stat.st_mode);
-		if (uri_file_path != NULL)
-		{
-			file_path = uri_file_path;
-			if (stat(file_path, &file_stat) != 0
-				|| (file_stat.st_mode & S_IFREG) != S_IFREG)
-				return cel_httpresponse_send(rsp, CEL_HTTPSC_NOT_FOUND, NULL, 0);
-		}
+		if (uri_file_path == NULL)
+			return cel_httpresponse_send(rsp, CEL_HTTPSC_NOT_FOUND, NULL, 0);
+		file_path = uri_file_path;
+		if (stat(file_path, &file_stat) != 0
+			|| (file_stat.st_mode & S_IFREG) != S_IFREG)
+			return cel_httpresponse_send(rsp, CEL_HTTPSC_NOT_FOUND, NULL, 0);
 	}
     if (if_modified_since != NULL)
     {

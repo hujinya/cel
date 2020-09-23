@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -94,7 +94,7 @@ TCHAR *_cel_version_release(CelVersion *ver, const TCHAR *uts)
     size = _sntprintf(release, 256, _T("%d.%d.%d"), 
         ver->major, ver->minor, ver->revision);
     if (ver->build != 0)
-        size += _sntprintf(release + size, 256 - size, _T(".%d"), ver->build);
+        size += _sntprintf(release + size, 256 - size, _T("-%d"), ver->build);
     if (ver->extra != NULL)
         size += _sntprintf(release + size, 256 - size, _T(" %s"), ver->extra);
     if (uts != NULL)

@@ -1,6 +1,6 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 - 2019 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
  *
  * This program is free software; you can redistribute it and/or 
  * modify it under the terms of the GNU General Public License 
@@ -129,7 +129,7 @@ static void cel_httpcontext_do_recv_request(CelHttpContext *http_ctx,
 		cel_httpcontext_routing_again(http_ctx);
 		break;
 	default:
-		CEL_SETERR((CEL_ERR_LIB, _T("Http web request state '%d' invaild"), 
+		CEL_SETERR((CEL_ERR_LIB, _T("cel_httpcontext_do_recv_request state '%d' invaild"), 
 			req->reading_state));
 		cel_httpcontext_free(http_ctx);
     }
@@ -139,7 +139,7 @@ static void cel_httpcontext_do_handshake(CelHttpContext *http_ctx, CelAsyncResul
 {
 	if (result->ret != 1)
 	{
-		CEL_SETERR((CEL_ERR_LIB, _T("httpserve_do_handshake failed, client %s"),
+		CEL_SETERR((CEL_ERR_LIB, _T("cel_httpcontext_do_handshake failed, client %s"),
 			cel_httpclient_get_remoteaddr_str(&(http_ctx->http_client))));
 		cel_httpcontext_free(http_ctx);
 		return ;
@@ -200,7 +200,7 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx)
 	{
 		if ((ret = cel_httproute_routing(&(http_ctx->serve_ctx->route), http_ctx)) == CEL_RET_AGAIN)
 		{
-			CEL_DEBUG((_T("Httpwebclient routing wait...")));
+			CEL_DEBUG((_T("Http context routing wait...")));
 			return CEL_RET_AGAIN;
 		}
 		else if (ret == CEL_RET_ERROR)
