@@ -226,26 +226,22 @@ int cel_socket_accept(CelSocket *sock,
 void cel_socket_do_accept(CelSocketAsyncAcceptArgs *args)
 {
 #ifdef _CEL_WIN
-    if (args->_ol.result.ret == 0)
-    {
-        cel_socket_update_acceptcontext(
-            args->new_socket, args->socket);
-        cel_socket_get_remoteaddr(args->new_socket, args->addr);
-        /*memcpy(args->addr, 
-            args->addr_buf + ACCEPTEX_LOCALADDRESS_LEN, sizeof(CelSockAddr));*/
-    }
+	if (args->_ol.result.ret == 0)
+	{
+		cel_socket_update_acceptcontext(
+			args->new_socket, args->socket);
+		cel_socket_get_remoteaddr(args->new_socket, args->addr);
+		/*memcpy(args->addr, 
+		args->addr_buf + ACCEPTEX_LOCALADDRESS_LEN, sizeof(CelSockAddr));*/
+	}
 #endif
-    if (args->async_callback != NULL)
-        args->async_callback(
-        args->socket, args->new_socket, &(args->_ol.result));
-    else
-        cel_coroutine_resume(args->co);
+	args->async_callback(
+		args->socket, args->new_socket, &(args->_ol.result));
 }
 
 int cel_socket_async_accept(CelSocket *sock,
                             CelSocket *new_sock, CelSockAddr *addr,
-                            CelSocketAcceptCallbackFunc callback,
-                            CelCoroutine *co)
+                            CelSocketAcceptCallbackFunc callback)
 {
     int ret;
     CelSocketAsyncArgs *args;
@@ -261,7 +257,6 @@ int cel_socket_async_accept(CelSocket *sock,
     args->_ol.async_callback = (void (*)(void *))cel_socket_do_accept;
 
     args->accept_args.async_callback = callback;
-    args->accept_args.co = co;
     args->accept_args.socket = sock;
     args->accept_args.new_socket = new_sock;
     args->accept_args.addr = addr;
@@ -271,11 +266,6 @@ int cel_socket_async_accept(CelSocket *sock,
     {
         CEL_SETERR((CEL_ERR_LIB, _T("cel_socket_async_accept poll post failed")));
         return -1;
-    }
-    if (co != NULL)
-    {
-        args->accept_args.result.ret = ret;
-        cel_coroutine_yield(co);
     }
     return 0;
 }
@@ -326,19 +316,15 @@ int cel_socket_connect_host(CelSocket *sock,
 void cel_socket_do_connect(CelSocketAsyncConnectArgs *args)
 {
 #ifdef _CEL_WIN
-    if (args->_ol.result.ret == 0)
-        cel_socket_update_connectcontext(args->socket);
+	if (args->_ol.result.ret == 0)
+		cel_socket_update_connectcontext(args->socket);
 #endif
-    memcpy(&(args->result), &(args->_ol.result), sizeof(CelAsyncResult));
-    if (args->async_callback != NULL)
-        args->async_callback(args->socket, &(args->_ol.result));
-    else
-        cel_coroutine_resume(args->co);
+	memcpy(&(args->result), &(args->_ol.result), sizeof(CelAsyncResult));
+	args->async_callback(args->socket, &(args->_ol.result));
 }
 
 int cel_socket_async_connect(CelSocket *sock, CelSockAddr *addr, 
-                             CelSocketConnectCallbackFunc callback,
-                             CelCoroutine *co)
+                             CelSocketConnectCallbackFunc callback)
 {
     int ret;
     CelSocketAsyncArgs *args;
@@ -357,7 +343,6 @@ int cel_socket_async_connect(CelSocket *sock, CelSockAddr *addr,
     args->_ol.async_callback = (void (*)(void *))cel_socket_do_connect;
 
     args->connect_args.async_callback = callback;
-    args->connect_args.co = co;
     args->connect_args.socket = sock;
     memcpy(&(args->connect_args.remote_addr), addr, sizeof(CelSockAddr));
     if ((ret = cel_poll_post(
@@ -366,18 +351,12 @@ int cel_socket_async_connect(CelSocket *sock, CelSockAddr *addr,
         CEL_SETERR((CEL_ERR_LIB, _T("cel_socket_async_connect poll post failed")));
         return -1;
     }
-    if (co != NULL)
-    {
-        args->connect_args.result.ret = ret;
-        cel_coroutine_yield(co);
-    }
     return 0;
 }
 
 int cel_socket_async_connect_host(CelSocket *sock, 
                                   const TCHAR *host, unsigned short port,
-                                  CelSocketConnectCallbackFunc callback,
-                                  CelCoroutine *co)
+                                  CelSocketConnectCallbackFunc callback)
 {
     int ret;
     ADDRINFOT *res, *result, hints;
@@ -395,7 +374,6 @@ int cel_socket_async_connect_host(CelSocket *sock,
     args->_ol.async_callback = (void (*)(void *))cel_socket_do_connect;
 
     args->connect_args.async_callback = callback;
-    args->connect_args.co = co;
     args->connect_args.socket = sock;
 
     memset(&hints, 0, sizeof(hints));
@@ -418,11 +396,6 @@ int cel_socket_async_connect_host(CelSocket *sock,
             sock->channel.poll, sock->channel.handle, (CelOverLapped *)args)) == 0)
         {
             FreeAddrInfo(result);
-            if (co != NULL)
-            {
-                args->connect_args.result.ret = ret;
-                cel_coroutine_yield(co);
-            }
             return ret;
         }
         res = res->ai_next;
@@ -439,17 +412,13 @@ int cel_socket_send(CelSocket *sock, CelAsyncBuf *buffers, int buffer_count)
 void cel_socket_do_send(CelSocketAsyncSendArgs *args)
 {
     memcpy(&(args->result), &(args->_ol.result), sizeof(CelAsyncResult));
-    if (args->async_callback != NULL)
-        args->async_callback(args->socket, 
+    args->async_callback(args->socket, 
         args->buffers, args->buffer_count, &(args->_ol.result));
-    else
-        cel_coroutine_resume(args->co);
 }
 
 int cel_socket_async_send(CelSocket *sock, 
                           CelAsyncBuf *buffers, int buffer_count, 
-                          CelSocketSendCallbackFunc callback,
-                          CelCoroutine *co)
+                          CelSocketSendCallbackFunc callback)
 {
     int ret;
     CelSocketAsyncArgs *args;
@@ -468,7 +437,6 @@ int cel_socket_async_send(CelSocket *sock,
     args->_ol.async_callback = (void (*)(void *))cel_socket_do_send;
 
     args->send_args.async_callback = callback;
-    args->send_args.co = co;
     args->send_args.socket = sock;
     args->send_args.buffers = buffers;
     args->send_args.buffer_count = buffer_count;
@@ -479,11 +447,7 @@ int cel_socket_async_send(CelSocket *sock,
         CEL_SETERR((CEL_ERR_LIB, _T("cel_socket_async_send poll post failed")));
         return -1;
     }
-    if (co != NULL)
-    {
-        args->send_args.result.ret = ret;
-        cel_coroutine_yield(co);
-    }
+
     return 0;
 }
 
@@ -494,18 +458,14 @@ int cel_socket_recv(CelSocket *sock, CelAsyncBuf *buffers, int buffer_count)
 
 void cel_socket_do_recv(CelSocketAsyncRecvArgs *args)
 {
-    memcpy(&(args->result), &(args->_ol.result), sizeof(CelAsyncResult));
-    if (args->async_callback != NULL)
-        args->async_callback(args->socket, args->buffers, args->buffer_count, 
-        &(args->_ol.result));
-    else
-        cel_coroutine_resume(args->co);
+	memcpy(&(args->result), &(args->_ol.result), sizeof(CelAsyncResult));
+	args->async_callback(args->socket, args->buffers, args->buffer_count, 
+		&(args->_ol.result));
 }
 
 int cel_socket_async_recv(CelSocket *sock, 
                           CelAsyncBuf *buffers, int buffer_count, 
-                          CelSocketRecvCallbackFunc callback,
-                          CelCoroutine *co)
+                          CelSocketRecvCallbackFunc callback)
 {
     int ret;
     CelSocketAsyncArgs *args;
@@ -524,7 +484,6 @@ int cel_socket_async_recv(CelSocket *sock,
     args->_ol.async_callback = (void (*)(void *))cel_socket_do_recv;
 
     args->recv_args.async_callback = callback;
-    args->recv_args.co = co;
     args->recv_args.socket = sock;
     args->recv_args.buffers = buffers;
     args->recv_args.buffer_count = buffer_count;
@@ -535,11 +494,7 @@ int cel_socket_async_recv(CelSocket *sock,
         CEL_SETERR((CEL_ERR_LIB, _T("cel_socket_async_recv poll post failed")));
         return -1;
     }
-    if (co != NULL)
-    {
-        args->recv_args.result.ret = ret;
-        cel_coroutine_yield(co);
-    }
+
     return 0;
 }
 
@@ -554,19 +509,15 @@ int cel_socket_sendto(CelSocket *sock,
 
 void cel_socket_do_sendto(CelSocketAsyncSendToArgs *args)
 {
-    memcpy(&(args->result), &(args->_ol.result), sizeof(CelAsyncResult));
-    if (args->async_callback != NULL)
-        args->async_callback(args->socket, args->buffers, args->buffer_count, 
-        args->addr, &(args->_ol.result));
-    else
-        cel_coroutine_resume(args->co);
+	memcpy(&(args->result), &(args->_ol.result), sizeof(CelAsyncResult));
+	args->async_callback(args->socket, args->buffers, args->buffer_count, 
+		args->addr, &(args->_ol.result));
 }
 
 int cel_socket_async_sendto(CelSocket *sock, 
                             CelAsyncBuf *buffers, int buffer_count, 
                             CelSockAddr *to, 
-                            CelSocketSendToCallbackFunc callback,
-                            CelCoroutine *co)
+                            CelSocketSendToCallbackFunc callback)
 {
     int ret;
     CelSocketAsyncArgs *args;
@@ -585,7 +536,6 @@ int cel_socket_async_sendto(CelSocket *sock,
     args->_ol.async_callback = (void (*)(void *))cel_socket_do_sendto;
 
     args->sendto_args.async_callback = callback;
-    args->sendto_args.co = co;
     args->sendto_args.socket = sock;
     args->sendto_args.buffers = buffers;
     args->sendto_args.buffer_count = buffer_count;
@@ -596,11 +546,7 @@ int cel_socket_async_sendto(CelSocket *sock,
         CEL_SETERR((CEL_ERR_LIB, _T("cel_socket_async_sendto poll post failed")));
         return -1;
     }
-    if (co != NULL)
-    {
-        args->send_args.result.ret = ret;
-        cel_coroutine_yield(co);
-    }
+
     return 0;
 }
 
@@ -615,19 +561,16 @@ int cel_socket_recvfrom(CelSocket *sock, CelAsyncBuf *buffers, int buffer_count,
 
 void cel_socket_do_recvfrom(CelSocketAsyncRecvFromArgs *args)
 {
-    memcpy(&(args->result), &(args->_ol.result), sizeof(CelAsyncResult));
-    if (args->async_callback != NULL)
-        args->async_callback(args->socket, args->buffers, args->buffer_count, 
-        args->addr, &(args->_ol.result));
-    else
-        cel_coroutine_resume(args->co);
+	memcpy(&(args->result), &(args->_ol.result), sizeof(CelAsyncResult));
+	args->async_callback(args->socket, args->buffers, args->buffer_count, 
+		args->addr, &(args->_ol.result));
+
 }
 
 int cel_socket_async_recvfrom(CelSocket *sock, 
                               CelAsyncBuf *buffers, int buffer_count, 
                               CelSockAddr *from, 
-                              CelSocketRecvFromCallbackFunc callback,
-                              CelCoroutine *co)
+                              CelSocketRecvFromCallbackFunc callback)
 {
     int ret;
     CelSocketAsyncArgs *args;
@@ -646,7 +589,6 @@ int cel_socket_async_recvfrom(CelSocket *sock,
     args->_ol.async_callback = (void (*)(void *))cel_socket_do_recvfrom;
 
     args->recvfrom_args.async_callback = callback;
-    args->recvfrom_args.co = co;
     args->recvfrom_args.socket = sock;
     args->recvfrom_args.buffers = buffers;
     args->recvfrom_args.buffer_count = buffer_count;
@@ -657,28 +599,19 @@ int cel_socket_async_recvfrom(CelSocket *sock,
         CEL_SETERR((CEL_ERR_LIB, _T("cel_socket_async_recvfrom poll post failed")));
         return -1;
     }
-    if (co != NULL)
-    {
-        args->recvfrom_args.result.ret = ret;
-        cel_coroutine_yield(co);
-    }
     return 0;
 }
 
 void cel_socket_do_sendfile(CelSocketAsyncSendFileArgs *args)
 {
     memcpy(&(args->result), &(args->_ol.result), sizeof(CelAsyncResult));
-    if (args->async_callback != NULL)
-        args->async_callback(args->socket, &(args->_ol.result));
-    else
-        cel_coroutine_resume(args->co);
+    args->async_callback(args->socket, &(args->_ol.result));
 }
 
 int cel_socket_async_sendfile(CelSocket *sock, 
                               const TCHAR *path, 
                               long long first, long long last, 
-                              CelSocketSendFileCallbackFunc callback,
-                              CelCoroutine *co)
+                              CelSocketSendFileCallbackFunc callback)
 {
     int ret;
     CelSocketAsyncArgs *args;
@@ -697,7 +630,6 @@ int cel_socket_async_sendfile(CelSocket *sock,
     args->_ol.async_callback = (void (*)(void *))cel_socket_do_sendfile;
 
     args->sendfile_args.async_callback = callback;
-    args->sendfile_args.co = co;
     args->sendfile_args.socket = sock;
     //args->sendfile_args. = NULL;
     //args->sendfile_args. = 0;
@@ -707,11 +639,6 @@ int cel_socket_async_sendfile(CelSocket *sock,
     {
         CEL_SETERR((CEL_ERR_LIB, _T("cel_socket_async_sendfile poll post failed")));
         return -1;
-    }
-    if (co != NULL)
-    {
-        args->sendfile_args.result.ret = ret;
-        cel_coroutine_yield(co);
     }
     return 0;
 }

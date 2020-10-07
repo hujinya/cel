@@ -124,7 +124,7 @@ int cel_httpclient_async_connect(CelHttpClient *client,
                                  CelHttpConnectCallbackFunc async_callback)
 {
     return cel_tcpclient_async_connect(&(client->tcp_client), remote_addr,
-        (CelTcpConnectCallbackFunc)async_callback, NULL);
+        (CelTcpConnectCallbackFunc)async_callback);
 }
 static __inline 
 int cel_httpclient_async_connect_host(CelHttpClient *client, 
@@ -132,14 +132,14 @@ int cel_httpclient_async_connect_host(CelHttpClient *client,
                                       CelHttpConnectCallbackFunc callback)
 {
     return cel_tcpclient_async_connect_host(&(client->tcp_client), host, port,
-        (CelTcpConnectCallbackFunc)callback, NULL);
+        (CelTcpConnectCallbackFunc)callback);
 }
 static __inline 
 int cel_httpclient_async_handshake(CelHttpClient *client,
                                    CelHttpHandshakeCallbackFunc async_callback)
 {
     return cel_tcpclient_async_handshake(
-        &(client->tcp_client), (CelTcpHandshakeCallbackFunc)async_callback, NULL);
+        &(client->tcp_client), (CelTcpHandshakeCallbackFunc)async_callback);
 }
 int cel_httpclient_async_recv_request(CelHttpClient *client, 
                                       CelHttpRequest *req, 
@@ -163,7 +163,7 @@ int cel_httpclient_async_shutdown(CelHttpClient *client,
                                   CelHttpShutdownCallbackFunc async_callback)
 {
     return cel_tcpclient_async_shutdown(
-        &(client->tcp_client), (CelTcpShutdownCallbackFunc)async_callback, NULL);
+        &(client->tcp_client), (CelTcpShutdownCallbackFunc)async_callback);
 }
 
 #ifdef __cplusplus

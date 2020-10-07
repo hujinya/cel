@@ -58,7 +58,6 @@ typedef struct _CelSocketAsyncAcceptArgs
     char addr_buf[ACCEPTEX_RECEIVEDATA_OFFSET];
     CelAsyncResult result;
     CelSocketAcceptCallbackFunc async_callback;
-    CelCoroutine *co;
 }CelSocketAsyncAcceptArgs;
 
 typedef struct _CelSocketAsyncConnectArgs
@@ -74,7 +73,6 @@ typedef struct _CelSocketAsyncConnectArgs
     };
     CelAsyncResult result;
     CelSocketConnectCallbackFunc async_callback;
-    CelCoroutine *co;
 }CelSocketAsyncConnectArgs;
 
 typedef struct _CelSocketAsyncSendArgs
@@ -85,7 +83,6 @@ typedef struct _CelSocketAsyncSendArgs
     int buffer_count;
     CelAsyncResult result;
     CelSocketRecvCallbackFunc async_callback;
-    CelCoroutine *co;
 }CelSocketAsyncSendArgs, CelSocketAsyncRecvArgs;
 
 typedef struct _CelSocketAsyncSendToArgs
@@ -97,7 +94,6 @@ typedef struct _CelSocketAsyncSendToArgs
     CelSockAddr *addr;
     CelAsyncResult result;
     CelSocketRecvFromCallbackFunc async_callback;
-    CelCoroutine *co;
 }CelSocketAsyncSendToArgs, CelSocketAsyncRecvFromArgs;
 
 typedef struct _CelSocketAsyncSendFileArgs
@@ -113,7 +109,6 @@ typedef struct _CelSocketAsyncSendFileArgs
     unsigned long count;
     CelAsyncResult result;
     CelSocketSendFileCallbackFunc async_callback;
-    CelCoroutine *co;
 }CelSocketAsyncSendFileArgs;
 
 typedef union _CelSocketAsyncArgs
@@ -296,77 +291,37 @@ static __inline int cel_socket_set_sndtimeout(CelSocket *sock, int milliseconds)
 
 int cel_socket_async_accept(CelSocket *sock,
                             CelSocket *new_sock, CelSockAddr *addr,
-                            CelSocketAcceptCallbackFunc callback,
-                            CelCoroutine *co);
-#define cel_socket_async_cb_accept(sock, addr, callback) \
-    cel_socket_async_accept(sock, addr, callback, NULL)
-#define cel_socket_async_co_accept(sock, co) \
-    cel_socket_async_accept(sock, addr, NULL, co)
+                            CelSocketAcceptCallbackFunc callback);
 
 int cel_socket_async_connect(CelSocket *sock, CelSockAddr *addr, 
-                             CelSocketConnectCallbackFunc callback,
-                             CelCoroutine *co);
-#define cel_socket_async_cb_connect(sock, addr, callback) \
-    cel_socket_async_connect(sock, addr, callback, NULL)
-#define cel_socket_async_co_connect(sock, addr, co) \
-    cel_socket_async_connect(sock, addr, NULL, co)
+                             CelSocketConnectCallbackFunc callback);
 
 int cel_socket_async_connect_host(CelSocket *sock, 
                                   const TCHAR *host, unsigned short port, 
-                                  CelSocketConnectCallbackFunc callback,
-                                  CelCoroutine *co);
-#define cel_socket_async_cb_connect_host(sock, host, port, callback) \
-    cel_socket_async_connect_host(sock, host, port, callback, NULL)
-#define cel_socket_async_co_connect_host(sock, host, port, co) \
-    cel_socket_async_connect_host(sock, host, port, NULL, co)
+                                  CelSocketConnectCallbackFunc callback);
 
 int cel_socket_async_send(CelSocket *sock, 
                           CelAsyncBuf *buffers, int buffer_count, 
-                          CelSocketSendCallbackFunc callback,
-                          CelCoroutine *co);
-#define cel_socket_async_cb_send(sock, buffers, buffer_count, callback) \
-    cel_socket_async_send(sock, buffers, buffer_count, callback, NULL)
-#define cel_socket_async_co_send(sock, buffers, buffer_count, co) \
-    cel_socket_async_send(sock, buffers, buffer_count, NULL, co)
+                          CelSocketSendCallbackFunc callback);
 
 int cel_socket_async_recv(CelSocket *sock, 
                           CelAsyncBuf *buffers, int buffer_count, 
-                          CelSocketRecvCallbackFunc callback,
-                          CelCoroutine *co);
-#define cel_socket_async_cb_recv(sock, buffers, buffer_count, callback) \
-    cel_socket_async_recv(sock, buffers, buffer_count, callback, NULL)
-#define cel_socket_async_co_recv(sock, buffers, buffer_count, co) \
-    cel_socket_async_recv(sock, buffers, buffer_count, NULL, co)
+                          CelSocketRecvCallbackFunc callback);
 
 int cel_socket_async_sendto(CelSocket *sock, 
                             CelAsyncBuf *buffers, int buffer_count, 
                             CelSockAddr *to, 
-                            CelSocketSendToCallbackFunc callback,
-                            CelCoroutine *co);
-#define cel_socket_async_cb_sendto(sock, buffers, buffer_count, to, callback) \
-    cel_socket_async_sendto(sock, buffers, buffer_count, to, callback, NULL)
-#define cel_socket_async_co_sendto(sock, buffers, buffer_count, to, co) \
-    cel_socket_async_sendto(sock, buffers, buffer_count, to, NULL, co)
+                            CelSocketSendToCallbackFunc callback);
 
 int cel_socket_async_recvfrom(CelSocket *sock, 
                               CelAsyncBuf *buffers, int buffer_count, 
                               CelSockAddr *from, 
-                              CelSocketRecvFromCallbackFunc callback,
-                              CelCoroutine *co);
-#define cel_socket_async_cb_recvfrom(sock, buffers, buffer_count, from, callback) \
-    cel_socket_async_recvfrom(sock, buffers, buffer_count, from, callback, NULL)
-#define cel_socket_async_co_recvfrom(sock, buffers, buffer_count, from, co) \
-    cel_socket_async_recvfrom(sock, buffers, buffer_count, from, NULL, co)
+                              CelSocketRecvFromCallbackFunc callback);
 
 int cel_socket_async_sendfile(CelSocket *sock, 
                               const TCHAR *path, 
                               long long first, long long last, 
-                              CelSocketSendFileCallbackFunc callback,
-                              CelCoroutine *co);
-#define cel_socket_async_cb_sendfile(sock, path, first, last, callback) \
-    cel_socket_async_sendfile(sock, path, first, last, callback, NULL)
-#define cel_socket_async_co_sendfile(sock, path, first, last, co) \
-    cel_socket_async_sendfile(sock, path, first, last, NULL, co)
+                              CelSocketSendFileCallbackFunc callback);
 
 #ifdef __cplusplus
 }

@@ -196,18 +196,13 @@ static void cel_tcplistener_do_accept(CelTcpListener *listener,
         args->result.error = cel_sys_geterrno();
         cel_socket_destroy(&(client->sock));
     }
-    if (args->async_callback != NULL)
-        args->async_callback(listener, client, &(args->result));
-    else
-        cel_coroutine_resume(args->co);
+    args->async_callback(listener, client, &(args->result));
 }
 
 int cel_tcplistener_async_accept(CelTcpListener *listener, 
                                  CelTcpClient *new_client,
-                                 CelTcpAcceptCallbackFunc async_callback,
-                                 CelCoroutine *co)
+                                 CelTcpAcceptCallbackFunc async_callback)
 {
-    int ret;
     CelTcpListenerAsyncArgs *args;
 
     if (listener->async_args == NULL
@@ -216,14 +211,7 @@ int cel_tcplistener_async_accept(CelTcpListener *listener,
         return -1;
     args = listener->async_args;
     args->async_callback = async_callback;
-    args->co = co;
-    if ((ret = cel_socket_async_accept(
+    return cel_socket_async_accept(
         &(listener->sock), &(new_client->sock), &(new_client->remote_addr),
-        (CelSocketAcceptCallbackFunc)cel_tcplistener_do_accept, NULL)) != -1
-        && co != NULL)
-    {
-        args->result.ret = ret;
-        cel_coroutine_yield(co);
-    }
-    return args->result.ret;
+        (CelSocketAcceptCallbackFunc)cel_tcplistener_do_accept);
 }

@@ -299,7 +299,7 @@ int cel_sslsocket_post_send(CelSslSocket *ssl_sock,
     ssl_sock->out.sock_buf.buf = cel_bio_mem_get_read_pointer(ssl_sock->w_bio);
     ssl_sock->out.sock_buf.len = cel_bio_mem_get_length(ssl_sock->w_bio);
     return cel_socket_async_send(&(ssl_sock->sock),
-        &(ssl_sock->out.sock_buf), 1, async_callback, NULL);
+        &(ssl_sock->out.sock_buf), 1, async_callback);
 }
 
 int cel_sslsocket_post_recv(CelSslSocket *ssl_sock, 
@@ -308,7 +308,7 @@ int cel_sslsocket_post_recv(CelSslSocket *ssl_sock,
     ssl_sock->in.sock_buf.buf = cel_bio_mem_get_write_pointer(ssl_sock->r_bio);
     ssl_sock->in.sock_buf.len = cel_bio_mem_get_remaining(ssl_sock->r_bio);
     return cel_socket_async_recv(&(ssl_sock->sock),
-        &(ssl_sock->in.sock_buf), 1, async_callback, NULL);
+        &(ssl_sock->in.sock_buf), 1, async_callback);
 }
 
 void cel_sslsocket_do_handshake(CelSocket *sock, 
@@ -390,14 +390,11 @@ void cel_sslsocket_do_handshake(CelSocket *sock,
 }
 
 int cel_sslsocket_async_handshake(CelSslSocket *ssl_sock,
-                                  CelSslSocketHandshakeCallbackFunc callback,
-                                  CelCoroutine *co)
+                                  CelSslSocketHandshakeCallbackFunc callback)
 {
     CelSslAsyncArgs *args = &(ssl_sock->out);
 
-    CEL_ASSERT(callback != NULL || co != NULL);
     args->handshake_callback = callback;
-    args->co = co;
     cel_ssl_clear_error();
     if ((args->result.ret = cel_ssl_handshake(ssl_sock->ssl)) != 1)
     {
@@ -465,15 +462,13 @@ void cel_sslsocket_do_send(CelSocket *sock,
 
 int cel_sslsocket_async_send(CelSslSocket *ssl_sock, 
                              CelAsyncBuf *buffers, int count,
-                             CelSslSocketSendCallbackFunc callback,
-                             CelCoroutine *co)
+                             CelSslSocketSendCallbackFunc callback)
 {
     CelSslAsyncArgs *args = &(ssl_sock->out);
 
     CEL_ASSERT(callback != NULL || co != NULL);
     args->ssl_buf = buffers;
     args->send_callback = callback;
-    args->co = co;
     //printf("args->ssl_buf->len = %d\r\n", args->ssl_buf->len);
     cel_ssl_clear_error();
     if ((args->result.ret = cel_ssl_write(
@@ -541,15 +536,13 @@ void cel_sslsocket_do_recv(CelSocket *sock,
 
 int cel_sslsocket_async_recv(CelSslSocket *ssl_sock, 
                              CelAsyncBuf *buffers, int count,
-                             CelSslSocketSendCallbackFunc callback,
-                             CelCoroutine *co)
+                             CelSslSocketSendCallbackFunc callback)
 {
     CelSslAsyncArgs *args = &(ssl_sock->in);
 
     CEL_ASSERT(callback != NULL || co != NULL);
     args->ssl_buf = buffers;
     args->recv_callback = callback;
-    args->co = co;
     cel_ssl_clear_error();
     if ((args->result.ret = cel_ssl_read(
         ssl_sock->ssl, args->ssl_buf->buf, args->ssl_buf->len)) <= 0)
@@ -602,14 +595,12 @@ void cel_sslsocket_do_shutdown(CelSocket *sock,
 }
 
 int cel_sslsocket_async_shutdown(CelSslSocket *ssl_sock, 
-                                 CelSslSocketShutdownCallbackFunc callback,
-                                 CelCoroutine *co)
+                                 CelSslSocketShutdownCallbackFunc callback)
 {
     CelSslAsyncArgs *args = &(ssl_sock->out);
 
     CEL_ASSERT(callback != NULL || co != NULL);
     args->shutdown_callback = callback;
-    args->co = co;
     //printf("args->ssl_buf->len = %d\r\n", args->ssl_buf->len);
     cel_ssl_clear_error();
     if ((args->result.ret = cel_ssl_shutdown(ssl_sock->ssl)) >= 0)

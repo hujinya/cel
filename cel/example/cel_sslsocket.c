@@ -38,7 +38,7 @@ void send_completion(CelSslSocket *ssl_sock, CelAsyncBuf *buffers, int count,
     puts("send ok");
     cel_sslsocket_destroy(ssl_sock);
     cel_socket_async_accept(&ssl_listener, &(ssl_sock->sock), &addr,
-        (CelSocketAcceptCallbackFunc)accept_completion, NULL);
+        (CelSocketAcceptCallbackFunc)accept_completion);
 }
 
 void recv_completion(CelSslSocket *ssl_sock, CelAsyncBuf *buffers, int count,
@@ -51,7 +51,7 @@ void recv_completion(CelSslSocket *ssl_sock, CelAsyncBuf *buffers, int count,
     snprintf(buf, 1024, "HTTP/1.1 200 OK\r\nContent-Length: 10000\r\n\r\n");
     async_buf.len = 1024 * 60;
     cel_sslsocket_async_send(ssl_sock, &async_buf, 1, 
-        (CelSslSocketSendCallbackFunc)send_completion, NULL);
+        (CelSslSocketSendCallbackFunc)send_completion);
 }
 
 void handshake_completion(CelSslSocket *ssl_sock, CelAsyncResult *result)
@@ -60,7 +60,7 @@ void handshake_completion(CelSslSocket *ssl_sock, CelAsyncResult *result)
     async_buf.buf = buf;
     async_buf.len = 1024 * 60;
     cel_sslsocket_async_recv(ssl_sock, &async_buf, 1, 
-        (CelSslSocketRecvCallbackFunc)recv_completion, NULL);
+        (CelSslSocketRecvCallbackFunc)recv_completion);
 }
 
 void accept_completion(CelSslSocket *ssl_listener,
@@ -75,7 +75,7 @@ void accept_completion(CelSslSocket *ssl_listener,
         return ;
     }
     cel_sslsocket_async_accept(ssl_sock, 
-        (CelSslSocketHandshakeCallbackFunc)handshake_completion, NULL);
+        (CelSslSocketHandshakeCallbackFunc)handshake_completion);
 }
 
 int sslsocket_test(int argc, TCHAR *argv[])
@@ -127,7 +127,7 @@ int sslsocket_test(int argc, TCHAR *argv[])
     _tprintf(_T("%s listen.\r\n"), cel_sockaddr_ntop(&addr));
     
     cel_socket_async_accept(&(ssl_listener), &(ssl_socket.sock), &addr,
-        (CelSocketAcceptCallbackFunc)accept_completion, NULL);
+        (CelSocketAcceptCallbackFunc)accept_completion);
 
     for (i = 0; i < (4 - 1); i++)
     {

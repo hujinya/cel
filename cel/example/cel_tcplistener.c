@@ -36,7 +36,7 @@ void tcpclient_send_completion(CelTcpClient *client,
     {
         if (cel_stream_get_remaining_length(s) > 0)
         {
-            cel_tcpclient_async_send(client, s, &tcpclient_send_completion, NULL);
+            cel_tcpclient_async_send(client, s, &tcpclient_send_completion);
         }
         /*_tprintf("Client %s %d closed.(%s)\r\n", 
             cel_sockaddr_ntop(&(client->remote_addr)), client->sock.fd, 
@@ -65,7 +65,7 @@ void tcpclient_recv_completion(CelTcpClient *client,
         cel_stream_zero(s, 4096);
         cel_stream_seal_length(s);
         cel_stream_set_position(s, 0);
-        cel_tcpclient_async_send(client, s, &tcpclient_send_completion, NULL);
+        cel_tcpclient_async_send(client, s, &tcpclient_send_completion);
         return;
     }
     _tprintf("Client %s %d recv failed.(%s)\r\n", 
@@ -88,7 +88,7 @@ void tcpclient_handshake_completion(CelTcpClient *client,
             SSL_get_cipher(client->ssl_sock.ssl));
         cel_stream_init(s);
         cel_stream_resize(s, 81920); 
-        cel_tcpclient_async_recv(client, s, &tcpclient_recv_completion, NULL);
+        cel_tcpclient_async_recv(client, s, &tcpclient_recv_completion);
     }
     else
     {
@@ -111,11 +111,11 @@ void tcpclient_accept_completion(CelTcpListener *listener,
     memcpy(new_client, client, sizeof(CelTcpClient));
     _tprintf(_T("Accept %s fd %d\r\n"), 
         cel_tcpclient_get_remoteaddr_str(new_client), new_client->sock.fd);
-    cel_tcplistener_async_accept(&s_listener, client, &tcpclient_accept_completion, NULL);
+    cel_tcplistener_async_accept(&s_listener, client, &tcpclient_accept_completion);
     cel_tcpclient_set_nonblock(&new_client, 1);
     cel_eventloop_add_channel(&evt_loop, &(new_client->sock.channel), NULL);
     if (cel_tcpclient_async_handshake(
-        new_client, &tcpclient_handshake_completion, NULL) == -1)
+        new_client, &tcpclient_handshake_completion) == -1)
     {
         _tprintf("Client %s %d post handshake failed\r\n", 
             cel_sockaddr_ntop(&(new_client->remote_addr)), new_client->sock.fd);
@@ -123,47 +123,47 @@ void tcpclient_accept_completion(CelTcpListener *listener,
     }
 }
 
-void tcpclient_co_func(CelTcpClient *client)
-{
-    CelCoroutine co = cel_coroutine_self();
-    CelStream *s = &(s_stream[client->sock.fd]);
-
-    cel_stream_init(s);
-    cel_stream_resize(s, 81920); 
-    cel_tcpclient_async_handshake(client, NULL, &co);
-    printf("cel_tcpclient_co_handshake %d %d\r\n", 
-        (int)cel_coroutine_getid(), (int)cel_thread_getid());
-    cel_tcpclient_async_recv(client, s, NULL, &co);
-    printf("cel_tcpclient_co_recv %d %d\r\n",
-        (int)cel_coroutine_getid(), (int)cel_thread_getid());
-    cel_stream_set_position(s, 0);
-    cel_stream_write(s, rsp, strlen(rsp));
-    cel_stream_zero(s, 4096);
-    cel_stream_seal_length(s);
-    cel_stream_set_position(s, 0);
-    cel_tcpclient_async_send(client, s, NULL, &co);
-    printf("cel_tcpclient_co_send %d %d\r\n",
-        (int)cel_coroutine_getid(), (int)cel_thread_getid());
-    cel_tcpclient_destroy(client);
-}
-
-void tcpclient_accept_co(CelTcpListener *listener, 
-                         CelTcpClient *client, CelAsyncResult *async_result)
-{
-    CelCoroutine co;
-    CelTcpClient *new_client;
-
-    new_client = &s_client[client->sock.fd];
-    memcpy(new_client, client, sizeof(CelTcpClient));
-    _tprintf(_T("Accept %s fd %d\r\n"), 
-        cel_tcpclient_get_remoteaddr_str(new_client), new_client->sock.fd);
-    cel_tcplistener_async_accept(&s_listener, client, &tcpclient_accept_co, NULL);
-    cel_tcpclient_set_nonblock(&new_client, 1);
-    cel_eventloop_add_channel(&evt_loop, &(new_client->sock.channel), NULL);
-
-    cel_coroutine_create(&co, NULL, (CelCoroutineFunc)tcpclient_co_func, new_client);
-    cel_coroutine_resume(&co);
-}
+//void tcpclient_co_func(CelTcpClient *client)
+//{
+//    CelCoroutine co = cel_coroutine_self();
+//    CelStream *s = &(s_stream[client->sock.fd]);
+//
+//    cel_stream_init(s);
+//    cel_stream_resize(s, 81920); 
+//    cel_tcpclient_async_handshake(client, NULL, &co);
+//    printf("cel_tcpclient_co_handshake %d %d\r\n", 
+//        (int)cel_coroutine_getid(), (int)cel_thread_getid());
+//    cel_tcpclient_async_recv(client, s, NULL, &co);
+//    printf("cel_tcpclient_co_recv %d %d\r\n",
+//        (int)cel_coroutine_getid(), (int)cel_thread_getid());
+//    cel_stream_set_position(s, 0);
+//    cel_stream_write(s, rsp, strlen(rsp));
+//    cel_stream_zero(s, 4096);
+//    cel_stream_seal_length(s);
+//    cel_stream_set_position(s, 0);
+//    cel_tcpclient_async_send(client, s, NULL, &co);
+//    printf("cel_tcpclient_co_send %d %d\r\n",
+//        (int)cel_coroutine_getid(), (int)cel_thread_getid());
+//    cel_tcpclient_destroy(client);
+//}
+//
+//void tcpclient_accept_co(CelTcpListener *listener, 
+//                         CelTcpClient *client, CelAsyncResult *async_result)
+//{
+//    CelCoroutine co;
+//    CelTcpClient *new_client;
+//
+//    new_client = &s_client[client->sock.fd];
+//    memcpy(new_client, client, sizeof(CelTcpClient));
+//    _tprintf(_T("Accept %s fd %d\r\n"), 
+//        cel_tcpclient_get_remoteaddr_str(new_client), new_client->sock.fd);
+//    cel_tcplistener_async_accept(&s_listener, client, &tcpclient_accept_co);
+//    cel_tcpclient_set_nonblock(&new_client, 1);
+//    cel_eventloop_add_channel(&evt_loop, &(new_client->sock.channel), NULL);
+//
+//    cel_coroutine_create(&co, NULL, (CelCoroutineFunc)tcpclient_co_func, new_client);
+//    cel_coroutine_resume(&co);
+//}
 
 static int tcplistener_working(void *data)
 {
@@ -229,7 +229,7 @@ int tcplistener_test(int argc, TCHAR *argv[])
     cel_socket_set_nonblock(&(s_listener.sock), 1);
     cel_eventloop_add_channel(&evt_loop, &(s_listener.sock.channel), NULL);
     puts("listen...");
-    cel_tcplistener_async_accept(&s_listener, &s_client[0], &tcpclient_accept_co, NULL);
+    //cel_tcplistener_async_accept(&s_listener, &s_client[0], &tcpclient_accept_co);
     for (i = 0; i < work_num; i++)
     {
         //_tprintf(_T("i %d \r\n"), i);

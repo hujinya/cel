@@ -48,7 +48,6 @@ typedef struct _CelTcpClientAsyncArgs
         CelTcpSendCallbackFunc send_callback;
         CelTcpShutdownCallbackFunc shutdown_callback;
     };
-    CelCoroutine *co;
 }CelTcpClientAsyncArgs;
 
 struct _CelTcpClient
@@ -166,52 +165,24 @@ int cel_tcpclient_shutdown(CelTcpClient *client, int how)
 }
 
 int cel_tcpclient_async_connect(CelTcpClient *client, CelSockAddr *remote_addr,
-                                CelTcpConnectCallbackFunc callback, 
-                                CelCoroutine *co);
-#define cel_tcpclient_async_cb_connect(client, remote_addr, callback) \
-    cel_tcpclient_async_connect(client, remote_addr, callback, NULL)
-#define cel_tcpclient_async_co_connect(client, remote_addr, co) \
-    cel_tcpclient_async_connect(client, remote_addr, NULL, co)
+                                CelTcpConnectCallbackFunc callback);
 
 int cel_tcpclient_async_connect_host(CelTcpClient *client, 
                                      const TCHAR *host, unsigned short port,
-                                     CelTcpConnectCallbackFunc callback,
-                                     CelCoroutine *co);
-#define cel_tcpclient_async_cb_connect_host(client, host, port, callback) \
-    cel_tcpclient_async_connect_host(client, host, port, callback, NULL)
-#define cel_tcpclient_async_co_connect_host(client, host, port, co) \
-    cel_tcpclient_async_connect_host(client, host, port, NULL, co)
+                                     CelTcpConnectCallbackFunc callback); 
 
 int cel_tcpclient_async_handshake(CelTcpClient *client, 
-                                  CelTcpHandshakeCallbackFunc callback, 
-                                  CelCoroutine *co);
-#define cel_tcpclient_async_cb_handshake(client, callback) \
-    cel_tcpclient_async_handshake(client, callback, NULL)
-#define cel_tcpclient_async_co_handshake(client, co) \
-    cel_tcpclient_async_handshake(client, NULL, co)
+                                  CelTcpHandshakeCallbackFunc callback);
 
 int cel_tcpclient_async_send(CelTcpClient *client, CelStream *s, 
-                             CelTcpSendCallbackFunc callback, CelCoroutine *co);
-#define cel_tcpclient_async_cb_send(client, s, callback) \
-    cel_tcpclient_async_send(client, s, callback, NULL)
-#define cel_tcpclient_async_co_send(client, s, co) \
-    cel_tcpclient_async_send(client, s, NULL, co)
+                             CelTcpSendCallbackFunc callback);
 
 int cel_tcpclient_async_recv(CelTcpClient *client, CelStream *s,
-                             CelTcpRecvCallbackFunc callback, CelCoroutine *co);
-#define cel_tcpclient_cb_async_recv(client, s, callback) \
-    cel_tcpclient_async_recv(client, s, callback, NULL)
-#define cel_tcpclient_co_async_recv(client, s, co) \
-    cel_tcpclient_async_recv(client, s, NULL, co)
+                             CelTcpRecvCallbackFunc callback);
+
 
 int cel_tcpclient_async_shutdown(CelTcpClient *client, 
-                                 CelTcpShutdownCallbackFunc callback, 
-                                 CelCoroutine *co);
-#define cel_tcpclient_async_cb_shutdown(client, callback) \
-    cel_tcpclient_async_shutdown(client, callback, NULL)
-#define cel_tcpclient_async_co_shutdown(client, co) \
-    cel_tcpclient_async_shutdown(client, NULL, co)
-
+                                 CelTcpShutdownCallbackFunc callback);
 
 #ifdef __cplusplus
 }
