@@ -129,7 +129,7 @@ int cel_httproute_filter_insert(CelHttpRoute *route,
     return 0;
 }
 
-int cel_httproute_filter_list_foreach(CelList *list, CelHttpContext *http_ctx)
+int cel_httproute_filters_foreach(CelList *list, CelHttpContext *http_ctx)
 {
 	int ret;
 	CelListItem *tail, *next;
@@ -165,7 +165,7 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 		case CEL_HTTPROUTEST_BEFORE_ROUTER:
 			filter_list = &(route->filters[http_ctx->state]);
 			if (cel_list_get_size(filter_list) > 0
-				&& (ret = cel_httproute_filter_list_foreach(filter_list, http_ctx)) != CEL_RET_OK)
+				&& (ret = cel_httproute_filters_foreach(filter_list, http_ctx)) != CEL_RET_OK)
 			{
 				CEL_SETERR((CEL_ERR_LIB,  
 					_T("Http route '[%s]%s' filter handler[%d] failed."), 
@@ -177,7 +177,7 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 		case CEL_HTTPROUTEST_BEFORE_EXEC:
 			filter_list = &(route->filters[http_ctx->state]);
 			if (cel_list_get_size(filter_list) > 0
-				&& (ret = cel_httproute_filter_list_foreach(filter_list, http_ctx)) != CEL_RET_OK)
+				&& (ret = cel_httproute_filters_foreach(filter_list, http_ctx)) != CEL_RET_OK)
 			{
 				CEL_SETERR((CEL_ERR_LIB,  
 					_T("Http route '[%s]%s' filter handler[%d] failed."), 
@@ -207,10 +207,10 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 					cel_httprequest_get_method_str(&(http_ctx->req)), prefix));
 				break;
 			}
-			http_ctx->state = CEL_HTTPROUTEST_AFTER_EXEC;
+			http_ctx->state = CEL_HTTPROUTEST_EXEC;
+		case CEL_HTTPROUTEST_EXEC:
 			if ((ret = route_handler(http_ctx)) != CEL_RET_OK)
 			{
-				//printf("Http route handler ret = %d\r\n", ret);
 				/*if (ret == CEL_RET_ERROR)
 				{
 					CEL_SETERR((CEL_ERR_LIB, _T("Http route '[%s]%s' handler failed."), 
@@ -218,11 +218,11 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 				}*/
 				break;
 			}
-			//puts("Http route_handler ret = 0");
+			http_ctx->state = CEL_HTTPROUTEST_AFTER_EXEC;
 		case CEL_HTTPROUTEST_AFTER_EXEC:
 			filter_list = &(route->filters[http_ctx->state]);
 			if (cel_list_get_size(filter_list) > 0
-				&& (ret = cel_httproute_filter_list_foreach(filter_list, http_ctx)) != CEL_RET_OK)
+				&& (ret = cel_httproute_filters_foreach(filter_list, http_ctx)) != CEL_RET_OK)
 			{
 				CEL_SETERR((CEL_ERR_LIB,  
 					_T("Http route '[%s]%s' filter handler[%d] failed."), 
@@ -234,7 +234,7 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 		case CEL_HTTPROUTEST_FINISH_ROUTER:
 			filter_list = &(route->filters[http_ctx->state]);
 			if (cel_list_get_size(filter_list) > 0
-				&& (ret = cel_httproute_filter_list_foreach(filter_list, http_ctx)) != CEL_RET_OK)
+				&& (ret = cel_httproute_filters_foreach(filter_list, http_ctx)) != CEL_RET_OK)
 			{
 				CEL_SETERR((CEL_ERR_LIB,  
 					_T("Http route '[%s]%s' filter handler[%d] failed."), 
@@ -242,27 +242,32 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 					cel_httprequest_get_url_path(&(http_ctx->req)), http_ctx->state));
 				break;
 			}
-			return ret;
+			http_ctx->state = CEL_HTTPROUTEST_SEND_RESPONSE;
+			return CEL_RET_DONE;
 		default:
 			ret = CEL_RET_ERROR;
 			cel_httpresponse_set_statuscode(&(http_ctx->rsp), CEL_HTTPSC_ERROR);
 			CEL_SETERR((CEL_ERR_LIB, _T("Http route '[%s]%s' state %d unfinded."), 
 				cel_httprequest_get_method_str(&(http_ctx->req)), 
 				cel_httprequest_get_url_path(&(http_ctx->req)), http_ctx->state));
-			http_ctx->state = CEL_HTTPROUTEST_END;
+			http_ctx->state = CEL_HTTPROUTEST_SEND_RESPONSE;
 			return ret;
 		}
-		if (ret == CEL_RET_ERROR || ret == CEL_RET_DONE)
-			http_ctx->state = CEL_HTTPROUTEST_END;
-		else if (ret == CEL_RET_AGAIN)
+		if (ret == CEL_RET_AGAIN)
 			return ret;
+		else if (ret == CEL_RET_ERROR || ret == CEL_RET_DONE)
+		{
+			http_ctx->state = CEL_HTTPROUTEST_SEND_RESPONSE;
+			return ret;
+		}
 		else
 		{
-			CEL_SETERR((CEL_ERR_LIB, _T("Http route '[%s]%s' return value %d invaild."), 
+			CEL_SETERR((CEL_ERR_LIB, _T("Http route '[%s-%d]%s' return value %d invaild."), 
 				cel_httprequest_get_method_str(&(http_ctx->req)), 
+				http_ctx->state,
 				cel_httprequest_get_url_path(&(http_ctx->req)), ret));
-			http_ctx->state = CEL_HTTPROUTEST_END;
-			return -1;
+			http_ctx->state = CEL_HTTPROUTEST_SEND_RESPONSE;
+			return CEL_RET_ERROR;
 		}
 	}
 }

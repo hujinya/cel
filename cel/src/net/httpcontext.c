@@ -210,10 +210,9 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx)
 			cel_httpresponse_printf(&(http_ctx->rsp), "{\"error\":%d,\"message\":\"%s\"}", 
 				cel_geterrno(), cel_geterrstr());
 			cel_httpresponse_end(&(http_ctx->rsp));
-			//puts(cel_geterrstr());
 		}
 		//printf("rsp %s\r\n", http_ctx->rsp.s.buffer);
-		http_ctx->state = CEL_HTTPROUTEST_FINISH_ROUTER;
+		http_ctx->state = CEL_HTTPROUTEST_SEND_RESPONSE;
 		if (cel_httpresponse_get_statuscode(&(http_ctx->rsp))/400 >= 1)
 		{
 			if ((err_str = cel_geterrstr()) != NULL)
@@ -221,8 +220,7 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx)
 		}
 		if (cel_httpclient_async_send_response(&(http_ctx->http_client), 
 			&(http_ctx->rsp),
-			(CelHttpSendResponseCallbackFunc)
-			cel_httpcontext_do_send_response) == -1)
+			(CelHttpSendResponseCallbackFunc)cel_httpcontext_do_send_response) == -1)
 		{
 			CEL_SETERR((CEL_ERR_LIB,  
 				_T("cel_httpcontext_async_send_response %s error"),
@@ -237,7 +235,6 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx)
 	{
 		if (http_ctx->serve_ctx->route.logger_on)
 			http_ctx->serve_ctx->route.logger_filter(http_ctx);
-
 		if ((connection = (CelHttpConnection *)cel_httprequest_get_header(
 			&(http_ctx->req), CEL_HTTPHDR_CONNECTION)) != NULL
 			&& *connection == CEL_HTTPCON_KEEPALIVE)

@@ -1,7 +1,8 @@
-* Thu Aug 20 2020 Hu Jinya <hjy@gzsunrun.cn> 1.3.1.60
+* Thu Aug 20 2020 Hu Jinya <hjy@gzsunrun.cn> 1.3.1.61
 - 优化：调整CelHttpWebClient为CelHttpWebRequest,调整CelHttpWebListener为CelHttpServe。
 - 修复：修复cel_sqlconpool_return判断出错，导致连接池最小数比实际大1。
 - 修复：修复cel_httpresponse_send_tryfile传入文件不存在时造成死循环。
+- 修复：修复cel_httproute_routing出错时ret判断错误。
 
 * Tue Apr 14 2020 Hu Jinya <hjy@gzsunrun.cn> 1.2.4.56
 - 新增：CelHttpSetCookieArray支持设置多个cookie。
