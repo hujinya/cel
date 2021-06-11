@@ -50,7 +50,6 @@ typedef struct timeval CelTime;
 #define CEL_TIME_SLOTS 64
 void cel_cached_time_update(void);
 
-
 static __inline int cel_time_init(CelTime *dt)
 {
 	dt->tv_sec = 0;

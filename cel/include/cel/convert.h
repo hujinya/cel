@@ -68,14 +68,14 @@ static __inline int cel_power2min(int cap)
  * \brief  Integer converted to dotted decimal chars,
  *         example 9,223,372,036,854,775,807.
  */
-TCHAR *cel_lltodda_r(long long ll, TCHAR *dda, size_t size);
-#define cel_lltodda(ll) cel_lltodda_r(ll, NULL, 0)
-int cel_hextobin(const BYTE *input, size_t ilen, 
-                 BYTE *output, size_t *olen);
-int cel_bintohex(const BYTE *input, size_t ilen, 
-                 BYTE *output, size_t *olen, int is_caps);
+TCHAR *cel_ll2dda_r(long long ll, TCHAR *dda, size_t size);
+#define cel_ll2dda(ll) cel_ll2dda_r(ll, NULL, 0)
+int cel_hex2bin(const BYTE *input, size_t ilen, 
+				BYTE *output, size_t *olen);
+int cel_bin2hex(const BYTE *input, size_t ilen, 
+				BYTE *output, size_t *olen, int is_caps);
 int cel_hexdump(void *dest, size_t dest_size, 
-                const BYTE *src, size_t src_size);
+				const BYTE *src, size_t src_size);
 /*  
  * \brief  Replace password characters.
  */
@@ -141,6 +141,10 @@ static __inline int cel_keydouble(CelKeyGetFunc func, void *user_data,
 int cel_strindexof(const TCHAR *str, const TCHAR *sub_str);
 /* lastindexof */
 int cel_strlindexof(const TCHAR *str, const TCHAR *sub_str);
+
+//int cel_getsubstr(const TCHAR *str, TCHAR *sub_str, size_t size, 
+//				  TCHAR start, TCHAR end);
+//int cel_getarraystr(const TCHAR *str, TCHAR delimiter, CelArrayList array_str);
 
 /* lefttrim, righttrim */
 CHAR *_cel_strltrim_a(CHAR *str, size_t *len);

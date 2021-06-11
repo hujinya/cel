@@ -67,15 +67,23 @@ void cel_jwt_free(CelJwt *jwt)
 
 static int cel_jwt_base64url_decode_json(CelJson *json, const char *src, int n)
 {
-    size_t len;
-    BYTE *buf;
+	size_t len;
+	BYTE *buf;
 
-    len = cel_base64url_decode_size(n);
-    buf = (BYTE *)alloca(len);
-    if (cel_base64url_decode(buf, &len, (BYTE *)src, n) == 0
-        && cel_json_init_buffer(json, (char *)buf, len) == 0)
-        return 0;
-    return -1;
+	len = cel_base64url_decode_size(n);
+	buf = (BYTE *)alloca(len);
+	if (cel_base64url_decode(buf, &len, (BYTE *)src, n) == 0)
+	{
+		cel_json_deserialize_starts(json);
+		if (cel_json_deserialize_update(json, (char *)buf, len) != -1
+			|| json->state != CEL_JSONDS_ERROR)
+		{
+			cel_json_deserialize_finish(json);
+			return 0;
+		}
+		cel_json_deserialize_finish(json);
+	}
+	return -1;
 }
 
 static int cel_jwt_sign_sha_hmac(BYTE *out, size_t *out_len,

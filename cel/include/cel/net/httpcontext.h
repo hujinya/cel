@@ -21,7 +21,7 @@
 
 #define CEL_HTTPCONTEXT_CONTENT_TYPE         "application/json; charset=utf-8"
 #define CEL_HTTPCONTEXT_CONTENT_TYPE_LEN     (sizeof(CEL_HTTPCONTEXT_CONTENT_TYPE) - 1)
-#define CEL_HTTPCONTEXT_SUCCESSED_MSG        "{\"error\":0, \"message\":\"Successed\"}"
+#define CEL_HTTPCONTEXT_SUCCESSED_MSG        "{\"error\":0, \"message\":\"Success\"}"
 #define CEL_HTTPCONTEXT_SUCCESSED_MSG_LEN    (sizeof(CEL_HTTPCONTEXT_SUCCESSED_MSG) - 1)
 
 typedef CelHttpContext *(* CelHttpContextNewFunc)(size_t size, int fd);

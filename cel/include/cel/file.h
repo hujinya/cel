@@ -95,6 +95,9 @@ static __inline BOOL cel_fexists_a(const CHAR *file_name)
     return (_stat(file_name, &my_stat) == 0);
 }
 BOOL cel_fexists_w(const WCHAR *file_name);
+
+TCHAR *cel_frandname(TCHAR *file_name, size_t size);
+
 FILE *cel_fopen(const TCHAR *file_name, const TCHAR *mode);
 #define cel_fclose(fp) fclose(fp)
 #define cel_fflush(fp) fflush(fp)

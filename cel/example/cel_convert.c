@@ -7,20 +7,20 @@ int convert_test(int argc, TCHAR *argv[])
 
     while (j++ < 20)
     {
-        _tprintf(_T("%lld -> %s\r\n"), i, cel_lltodda(i));
+        _tprintf(_T("%lld -> %s\r\n"), i, cel_ll2dda(i));
         i = i * 12;
     }
     _tprintf(_T("9223372036854775807 -> %s\r\n"), 
-        cel_lltodda(LL(9223372036854775807)));
+        cel_ll2dda(LL(9223372036854775807)));
     i = -1;
     j = 0;
     while (j++ < 20)
     {
-        _tprintf(_T("%lld -> %s\r\n"), i, cel_lltodda(i));
+        _tprintf(_T("%lld -> %s\r\n"), i, cel_ll2dda(i));
         i = i * 12;
     }
     _tprintf(_T("-9223372036854775807 -> %s\r\n"), 
-        cel_lltodda(LL(-9223372036854775807)));
+        cel_ll2dda(LL(-9223372036854775807)));
 
     return 0;
 }

@@ -234,7 +234,7 @@ void cel_httprequest_clear(CelHttpRequest *req)
 
     //puts("cel_httprequest_clear");
     req->ver = CEL_HTTPVER_11;
-    req->method =CEL_HTTPM_GET;
+    req->method = CEL_HTTPM_GET;
     cel_httpurl_destroy(&(req->url));
     while (i < CEL_HTTPHDR_COUNT)
     {
@@ -654,28 +654,28 @@ int cel_httprequest_reading(CelHttpRequest *req)
 			if ((size1 = cel_vstring_len(&(req->url.path))) > 0)
             {
                 size2 = size1;
-				cel_http_url_decode(cel_vstring_str_a(&(req->url.path)), &size2,
+				cel_http_uri_decode(cel_vstring_str_a(&(req->url.path)), &size2,
 					cel_vstring_str_a(&(req->url.path)), size1);
 				req->url.path.size = size2;
             }
             if ((size1 = cel_vstring_len(&(req->url.query))) > 0)
             {
                 size2 = size1;
-                cel_http_url_decode(cel_vstring_str_a(&(req->url.query)), &size2,
+                cel_http_uri_decode(cel_vstring_str_a(&(req->url.query)), &size2,
                     cel_vstring_str_a(&(req->url.query)), size1);
                 req->url.query.size = size2;
             }
 			if ((size1 = cel_vstring_len(&(req->url.fragment))) > 0)
             {
                 size2 = size1;
-                cel_http_url_decode(cel_vstring_str_a(&(req->url.fragment)), &size2,
+                cel_http_uri_decode(cel_vstring_str_a(&(req->url.fragment)), &size2,
                     cel_vstring_str_a(&(req->url.fragment)), size1);
                 req->url.fragment.size = size2;
             }
             if ((size1 = cel_stream_get_length(&(req->body_cache.buf))) > 0)
             {
                 size2 = _cel_stream_get_capacity(&(req->body_cache.buf));
-                cel_http_url_decode(
+                cel_http_uri_decode(
                     (char *)cel_stream_get_buffer(&(req->body_cache.buf)), &size2,
                     (char *)cel_stream_get_buffer(&(req->body_cache.buf)), size1);
                 cel_stream_set_length(&(req->body_cache.buf), size2);

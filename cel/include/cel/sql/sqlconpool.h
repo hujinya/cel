@@ -24,6 +24,7 @@ typedef struct _CelSqlConPool
     char *host, *user, *passwd, *db;
     unsigned int port;
     CelAtomic n_conns;
+	BOOL _debug;
     int max, min;
     CelRingList frees;
 }CelSqlConPool;

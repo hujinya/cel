@@ -261,11 +261,16 @@ extern "C" {
 char *cel_http_file_etag();
 
 /* Max(dest_size) = src_size * 3 + 1 */
-char *cel_http_url_encode(char *_dst, size_t *dest_size,
+char *cel_http_uri_encode(char *_dst, size_t *dest_size,
                           const char *_src, size_t src_size);
 /* Max(dest_size) = src_size + 1 */
-char *cel_http_url_decode(char *_dst, size_t *dest_size,
+char *cel_http_uri_decode(char *_dst, size_t *dest_size,
                           const char *_src, size_t src_size);
+
+char *cel_http_uri_component_encode(char *_dst, size_t *dest_size,
+                                    const char *_src, size_t src_size);
+char *cel_http_uri_component_decode(char *_dst, size_t *dest_size,
+                                    const char *_src, size_t src_size);
 
 static __inline 
 char *cel_httpvstring_get_value(CelVString *vstr, 

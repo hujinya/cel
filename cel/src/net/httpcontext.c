@@ -24,6 +24,7 @@ CelHttpContext *cel_httpcontext_new(CelHttpClient *client,
 {
 	CelHttpContext *http_ctx;
 
+	//puts("cel_httpcontext_new start");
     if ((http_ctx = (serve_ctx->new_func != NULL ? 
         serve_ctx->new_func(sizeof(CelHttpContext), client->tcp_client.sock.fd)
         : (CelHttpContext *)cel_malloc(sizeof(CelHttpContext)))) == NULL)
@@ -43,11 +44,13 @@ CelHttpContext *cel_httpcontext_new(CelHttpClient *client,
 	http_ctx->current_filter = NULL;
 	cel_vstring_init(&(http_ctx->err_msg));
 	cel_rbtree_init(&(http_ctx->params), (CelCompareFunc)strcmp, NULL, cel_free);
+	//puts("cel_httpcontext_new end");
 	return http_ctx;
 }
 
 void cel_httpcontext_free(CelHttpContext *http_ctx)
 {
+	//puts("cel_httpcontext_free start");
 	cel_httpclient_destroy(&(http_ctx->http_client));
 	cel_httprequest_destroy(&(http_ctx->req));
     cel_httpresponse_destroy(&(http_ctx->rsp));
@@ -65,6 +68,7 @@ void cel_httpcontext_free(CelHttpContext *http_ctx)
         http_ctx->serve_ctx->free_func(http_ctx);
     else
         cel_free(http_ctx);
+	 //puts("cel_httpcontext_free end");
 }
 
 void cel_httpcontext_clear(CelHttpContext *http_ctx)
@@ -181,6 +185,7 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx)
 	CelHttpConnection *connection;
 
 	//Receive client request
+	//puts("cel_httpcontext_routing£ºReceive client request");
 	if (http_ctx->state == CEL_HTTPROUTEST_RECEVIE_REQUEST)
 	{
 		if (cel_httpclient_async_handshake(&(http_ctx->http_client),
@@ -195,6 +200,7 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx)
 		return CEL_RET_AGAIN;
 	}
 	// Http route
+	//puts("cel_httpcontext_routing£ºHttp route");
 	if (http_ctx->state <= CEL_HTTPROUTEST_FINISH_ROUTER 
 		&& http_ctx->state >= CEL_HTTPROUTEST_BEFORE_ROUTER)
 	{
@@ -207,11 +213,14 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx)
 		{
 			if (cel_httpresponse_get_statuscode(&(http_ctx->rsp)) == CEL_HTTPSC_REQUEST_OK)
 				cel_httpresponse_set_statuscode(&(http_ctx->rsp), CEL_HTTPSC_ERROR);
+			cel_httpresponse_set_header(&(http_ctx->rsp), 
+				CEL_HTTPHDR_CONTENT_TYPE,
+				CEL_HTTPCONTEXT_CONTENT_TYPE, CEL_HTTPCONTEXT_CONTENT_TYPE_LEN);
 			cel_httpresponse_printf(&(http_ctx->rsp), "{\"error\":%d,\"message\":\"%s\"}", 
 				cel_geterrno(), cel_geterrstr());
 			cel_httpresponse_end(&(http_ctx->rsp));
 		}
-		//printf("rsp %s\r\n", http_ctx->rsp.s.buffer);
+		//printf("rsp %s\r\n", http_ctx->rsp.hs.s.buffer);
 		http_ctx->state = CEL_HTTPROUTEST_SEND_RESPONSE;
 		if (cel_httpresponse_get_statuscode(&(http_ctx->rsp))/400 >= 1)
 		{
@@ -222,8 +231,7 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx)
 			&(http_ctx->rsp),
 			(CelHttpSendResponseCallbackFunc)cel_httpcontext_do_send_response) == -1)
 		{
-			CEL_SETERR((CEL_ERR_LIB,  
-				_T("cel_httpcontext_async_send_response %s error"),
+			CEL_SETERR((CEL_ERR_LIB, _T("cel_httpcontext_async_send_response %s error"),
 				cel_httpclient_get_remoteaddr_str(&(http_ctx->http_client))));
 			cel_httpcontext_free(http_ctx);
 			return CEL_RET_ERROR;
@@ -231,6 +239,7 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx)
 		return CEL_RET_AGAIN;
 	}
 	// Send respons to client
+	//puts("cel_httpcontext_routing£ºSend respons to client");
 	if (http_ctx->state == CEL_HTTPROUTEST_END)
 	{
 		if (http_ctx->serve_ctx->route.logger_on)
@@ -276,9 +285,9 @@ int cel_httpcontext_response_write(CelHttpContext *http_ctx,
 	switch (status)
 	{
 	case CEL_HTTPSC_REQUEST_OK:
-		//cel_httpresponse_set_statuscode(&(client->rsp), status);
-		if (&(http_ctx->rsp).writing_body_offset == 0)
+		if (http_ctx->rsp.writing_body_offset == 0)
 		{
+			cel_httpresponse_set_statuscode(&(http_ctx->rsp), status);
 			cel_httpresponse_set_header(&(http_ctx->rsp), 
 				CEL_HTTPHDR_CONTENT_TYPE,
 				CEL_HTTPCONTEXT_CONTENT_TYPE, CEL_HTTPCONTEXT_CONTENT_TYPE_LEN);
@@ -309,17 +318,17 @@ int cel_httpcontext_response_write(CelHttpContext *http_ctx,
     case CEL_HTTPSC_UNAUTHORIZED:
     case CEL_HTTPSC_FORBIDDEN:
     case CEL_HTTPSC_NOT_FOUND:
-    case CEL_HTTPSC_ERROR:
-        cel_httpresponse_set_statuscode(&(http_ctx->rsp), status);
-        if (&(http_ctx->rsp).writing_body_offset == 0)
-        {
-            cel_httpresponse_set_header(&(http_ctx->rsp), 
-                CEL_HTTPHDR_CONTENT_TYPE,
-                CEL_HTTPCONTEXT_CONTENT_TYPE, CEL_HTTPCONTEXT_CONTENT_TYPE_LEN);
-        }
-        cel_httpresponse_printf(&(http_ctx->rsp), 
-            "{\"error\":%d,\"message\":\"%s\"}", err_no, msg);
-        cel_httpresponse_end(&(http_ctx->rsp));
+	case CEL_HTTPSC_ERROR:
+		if (http_ctx->rsp.writing_body_offset == 0)
+		{
+			cel_httpresponse_set_statuscode(&(http_ctx->rsp), status);
+			cel_httpresponse_set_header(&(http_ctx->rsp), 
+				CEL_HTTPHDR_CONTENT_TYPE,
+				CEL_HTTPCONTEXT_CONTENT_TYPE, CEL_HTTPCONTEXT_CONTENT_TYPE_LEN);
+		}
+		cel_httpresponse_printf(&(http_ctx->rsp), 
+			"{\"error\":%d,\"message\":\"%s\"}", err_no, msg);
+		cel_httpresponse_end(&(http_ctx->rsp));
         break;
     default:
         CEL_SETERR((CEL_ERR_LIB, _T("cel_httpcontext_result error")));

@@ -15,6 +15,8 @@
 #include "cel/rand.h"
 #include "cel/convert.h"
 
+static char s_rand_str[63] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
 // Copyright (c) 2012 The Chromium Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.[proto-quic-master\src\base\rand_util.c]
@@ -65,17 +67,14 @@ double cel_rand_double_interval(U64 bits)
 
 char *cel_rand_str(char *out, size_t out_len)
 {
-    size_t olen1 = 0, olen2;
+    size_t olen1 = 0;
     U64 rand_bytes;
 
     while (olen1 < out_len)
     {
         os_rand_bytes(&rand_bytes, sizeof(rand_bytes));
-        olen2 = out_len - olen1;
-        cel_bintohex((BYTE *)&rand_bytes, sizeof(rand_bytes),
-            (BYTE *)out + olen1, &olen2, 0);
-        olen1 += olen2;
-        //printf("cel_bintohex %d %d\r\n", olen1, olen2);
+		out[olen1] = s_rand_str[rand_bytes%62];
+		olen1++;
     }
     out[out_len - 1] = '\0';
 

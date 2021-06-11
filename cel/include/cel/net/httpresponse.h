@@ -234,6 +234,7 @@ static __inline
 void cel_httpresponse_set_ext_header(CelHttpResponse *rsp,
 									 char *hdr_name, char *hdr_value)
 {
+	//puts("cel_httpresponse_set_ext_header");
     cel_rbtree_insert(&(rsp->ext_hdrs), cel_strdup(hdr_name), cel_strdup(hdr_value));
 }
 /* 

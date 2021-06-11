@@ -18,7 +18,7 @@
 
 #define LLSTRLEN      27 /* -9,223,372,036,854,775,807 */
 
-TCHAR *cel_lltodda_r(long long ll, TCHAR *dda, size_t size)
+TCHAR *cel_ll2dda_r(long long ll, TCHAR *dda, size_t size)
 {
     static volatile int i = 0;
     static TCHAR s_buf[CEL_BUFNUM][LLSTRLEN];
@@ -48,7 +48,8 @@ TCHAR *cel_lltodda_r(long long ll, TCHAR *dda, size_t size)
         }
         p[--n] = digval + _T('0');
     }while (ll > 0 && n > 0);
-    if (negative == 1 && n > 0) p[--n] = _T('-');
+    if (negative == 1 && n > 0) 
+		p[--n] = _T('-');
 
     //printf("size = %d\r\n",  size - n);
     return (dda == NULL ?  &(p[n]) : (TCHAR *)memmove(dda, &(p[n]), size - n));
@@ -89,7 +90,7 @@ int cel_power2bits(int n, int min_bits, int max_bits)
     else if (hex >= _T('a') && hex <= _T('f')){ bin = hex - _T('a')+ 10; }\
     else { bin = _T('0'); }
 
-int cel_hextobin(const BYTE *input, size_t ilen, BYTE *output, size_t *olen)
+int cel_hex2bin(const BYTE *input, size_t ilen, BYTE *output, size_t *olen)
 {
     size_t n1, n2;
     BYTE ch;
@@ -119,7 +120,7 @@ int cel_hextobin(const BYTE *input, size_t ilen, BYTE *output, size_t *olen)
     return 0;
 }
 
-int cel_bintohex(const BYTE *input, size_t ilen, 
+int cel_bin2hex(const BYTE *input, size_t ilen, 
                  BYTE *output, size_t *olen, int is_caps)
 {
     size_t n1, n2;

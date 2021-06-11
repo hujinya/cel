@@ -38,6 +38,7 @@ int cel_sqlconpool_init(CelSqlConPool *pool, CelSqlConType type,
     if (cel_ringlist_init(&(pool->frees), 256, (CelFreeFunc)cel_sqlcon_free) == -1)
         return -1;
     pool->n_conns = 0;
+	pool->_debug = FALSE;
     do
     {
         if ((con = cel_sqlcon_new(pool->type, 
@@ -139,6 +140,8 @@ long cel_sqlconpool_execute_nonequery(CelSqlConPool *pool, const char *fmt, ...)
 		return -1;
 	CEL_SQLCON_SQLSTR_FMT();
 	affected_rows = _cel_sqlcon_execute_nonequery(con);
+	if (pool->_debug)
+		puts(con->sqlstr.str);
 	cel_sqlconpool_return(pool, con);
 	return affected_rows;
 }
@@ -151,6 +154,8 @@ CelSqlRes *cel_sqlconpool_execute_onequery(CelSqlConPool *pool, const char *fmt,
 		return NULL;
 	CEL_SQLCON_SQLSTR_FMT();
 	res = _cel_sqlcon_execute_onequery(con);
+	if (pool->_debug)
+		puts(con->sqlstr.str);
 	cel_sqlconpool_return(pool, con);
 	return res;
 }
@@ -164,6 +169,8 @@ CelSqlRes *cel_sqlconpool_execute_query(CelSqlConPool *pool, const char *fmt, ..
 	CEL_SQLCON_SQLSTR_FMT();
 	//puts(con->sqlstr.str);
 	res = _cel_sqlcon_execute_query(con);
+	if (pool->_debug)
+		puts(con->sqlstr.str);
 	cel_sqlconpool_return(pool, con);
 	return res;
 }
@@ -179,6 +186,8 @@ int cel_sqlconpool_execute_onequery_results(CelSqlConPool *pool,
 		return -1;
 	CEL_SQLCON_SQLSTR_FMT();
 	ret = _cel_sqlcon_execute_onequery_results(con, each_func, user_data);
+	if (pool->_debug)
+		puts(con->sqlstr.str);
 	cel_sqlconpool_return(pool, con);
 	return ret;
 }
@@ -194,6 +203,8 @@ int cel_sqlconpool_execute_query_results(CelSqlConPool *pool,
 		return -1;
 	CEL_SQLCON_SQLSTR_FMT();
 	ret = _cel_sqlcon_execute_query_results(con, each_func, user_data);
+	if (pool->_debug)
+		puts(con->sqlstr.str);
 	cel_sqlconpool_return(pool, con);
 	return ret;
 }

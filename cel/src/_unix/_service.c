@@ -73,13 +73,14 @@ int os_service_pidfile_exist(const TCHAR *name)
 
 BOOL os_service_is_running(const TCHAR *name)
 {
-    TCHAR file_name[CEL_PATHLEN];
+	TCHAR file[CEL_FNLEN];
+    TCHAR file_path[CEL_PATHLEN];
 
-     _sntprintf(file_name, CEL_PATHLEN,
-        _T("/var/run/%s.pid"), cel_filename(cel_modulefile()));
-    if(os_service_pidfile_exist(file_name) == -1)
-        return TRUE;
-    os_service_pidfile_create(file_name);
+	_sntprintf(file, CEL_FNLEN, _T("./%s.pid"), name);
+	if(os_service_pidfile_exist(
+		cel_fullpath_r(file, file_path, CEL_PATHLEN)) == -1)
+		return TRUE;
+    os_service_pidfile_create(file_path);
     return FALSE;
 }
 
@@ -87,12 +88,13 @@ BOOL os_service_stop(const TCHAR *name)
 {
     FILE *fp;
     pid_t ppid = 0, pid = 0;
-    TCHAR file_name[CEL_PATHLEN];
+    TCHAR file[CEL_FNLEN];
+    TCHAR file_path[CEL_PATHLEN];
 
-    _sntprintf(file_name, CEL_PATHLEN,
-        _T("/var/run/%s.pid"), cel_filename(cel_modulefile()));
+	_sntprintf(file, CEL_FNLEN, _T("./%s.pid"), name);
 
-    if ((fp = _tfopen(file_name, _T("r"))) == NULL)
+    if ((fp = _tfopen(
+		cel_fullpath_r(file, file_path, CEL_PATHLEN), _T("r"))) == NULL)
         return 0;
     fscanf(fp, "%d\n%d", &pid, &ppid);
     fclose(fp);
@@ -110,12 +112,13 @@ BOOL os_service_reload(const TCHAR *name)
 {
     FILE *fp;
     pid_t ppid = 0, pid = 0;
-    TCHAR file_name[CEL_PATHLEN];
+    TCHAR file[CEL_FNLEN];
+    TCHAR file_path[CEL_PATHLEN];
 
-    _sntprintf(file_name, CEL_PATHLEN,
-        _T("/var/run/%s.pid"), cel_filename(cel_modulefile()));
+	_sntprintf(file, CEL_FNLEN, _T("./%s.pid"), name);
 
-    if ((fp = _tfopen(file_name, _T("r"))) == NULL)
+    if ((fp = _tfopen(
+		cel_fullpath_r(file, file_path, CEL_PATHLEN), _T("r"))) == NULL)
         return 0;
     fscanf(fp, "%d\n%d", &pid, &ppid);
     fclose(fp);

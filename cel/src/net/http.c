@@ -317,7 +317,7 @@ static int cel_http_htoi(const char *s)
     return (value);
 }
 
-char *cel_http_url_encode(char *_dst, size_t *dest_size,
+char *cel_http_uri_encode(char *_dst, size_t *dest_size,
                           const char *_src, size_t src_size)
 {  
     register unsigned char c;
@@ -359,7 +359,7 @@ char *cel_http_url_encode(char *_dst, size_t *dest_size,
     return (char *) start;
 }
 
-char *cel_http_url_decode(char *_dst, size_t *dest_size,
+char *cel_http_uri_decode(char *_dst, size_t *dest_size,
                           const char *_src, size_t src_size)
 {
     char *dest = _dst;
@@ -390,6 +390,18 @@ char *cel_http_url_decode(char *_dst, size_t *dest_size,
     *dest = '\0';
     *dest_size = dest - _dst;
     return _dst;
+}
+
+char *cel_http_uri_component_encode(char *_dst, size_t *dest_size,
+                                    const char *_src, size_t src_size)
+{
+	return _dst;
+}
+
+char *cel_http_uri_component_decode(char *_dst, size_t *dest_size,
+                                    const char *_src, size_t src_size)
+{
+	return _dst;
 }
 
 int cel_httpvstring_set_value(CelVString *vstr, 
@@ -913,20 +925,17 @@ int cel_httpbodycache_reading(CelHttpBodyCache *cache,
                               const char *value, size_t size)
 {
     size_t _size, w_size;
-    CelTime dt;
-    char dt_filename[15];
+	char frandname[22];
 
     //_size = cel_stream_get_length(&(cache->buf));
     if (cache->size + size > cache->buf_max_size)
     {
         if (cache->fp == NULL)
         {
-            cel_time_init_now(&dt);
-            cel_time_strfltime(&dt, dt_filename, 15, _T("%Y%m%d%H%M%S"));
             cel_vstring_resize_a(&(cache->file_path), CEL_PATHLEN);
             cache->file_path.size = snprintf(cache->file_path.str, CEL_PATHLEN,
-                "%s%s_%ld.bdy", 
-				cel_fullpath_a(CEL_HTTPBODY_CACHE_PATH), dt_filename, cel_getticks());
+                "%s%s.bdy", 
+				cel_fullpath_a(CEL_HTTPBODY_CACHE_PATH), cel_frandname(frandname, 22));	
             //puts(cel_vstring_str_a(&(cache->file_path)));
             if ((cache->fp = fopen(
                 cel_vstring_str_a(&(cache->file_path)), "wb+")) == NULL
@@ -989,8 +998,7 @@ int cel_httpbodycache_read(CelHttpBodyCache *cache,
 		last = first + buf_size;
 	if ((_size = (size_t)(last + 1 - first)) <= 0)
 	{
-		CEL_SETERR((CEL_ERR_LIB,
-			_T("cel_httpbodycache_read:first %lld or last %lld offset %lld."), 
+		CEL_SETERR((CEL_ERR_LIB, _T("cel_httpbodycache_read:first %lld or last %lld offset %lld."), 
             first, last, cache->size));
 		return -1;
 	}
@@ -1004,6 +1012,8 @@ int cel_httpbodycache_read(CelHttpBodyCache *cache,
 		memcpy(buf, cel_stream_get_buffer(&(cache->buf)) + first, _size);
 		size = _size;
 	}
+	if (size < buf_size) 
+		*((char*)buf + size) = '\0';
 
     return size;
 }

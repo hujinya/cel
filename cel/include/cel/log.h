@@ -23,7 +23,7 @@
 #include "cel/ringlist.h"
 #include <stdarg.h>
 
-#define CEL_LOGMSG_CONTENT_SIZE        512  /* Bytes */
+#define CEL_LOGMSG_CONTENT_SIZE        1024  /* Bytes */
 #define CEL_LOGGER_BUF_NUM             10 * 1024
 #define CEL_LOGGER_FLUSH_NUM           1024
 #define CEL_LOGGER_CACHE_PATH          "./cache/log/"

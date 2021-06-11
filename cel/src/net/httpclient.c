@@ -99,6 +99,7 @@ void cel_httpclient_free(CelHttpClient *client)
 int cel_httpclient_reading_recv_request(CelHttpClient *client, CelHttpRequest *req)
 {
 	CelStream *s = &(req->hs.s);
+
     if (req->reading_state == CEL_HTTPREQUEST_READING_OK)
         return 1;
     if (cel_stream_get_remaining_length(s) != 0)

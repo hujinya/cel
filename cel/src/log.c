@@ -407,8 +407,7 @@ int cel_logger_write(CelLogger *logger,
     {
         log_msg = &(log_specific->msg);
         memcpy(log_msg->content, buf, 
-            (size > CEL_LOGMSG_CONTENT_SIZE  
-            ? CEL_LOGMSG_CONTENT_SIZE : size));
+            (size > CEL_LOGMSG_CONTENT_SIZE ? CEL_LOGMSG_CONTENT_SIZE : size));
         CEL_LOGMSG_WRITE();
         CEL_LOG_FLUSH();
     }
@@ -630,7 +629,7 @@ int cel_logmsg_fwrite(CelLogMsg **msgs, size_t n, void *path)
                 _T("%Y%m%d.log"));
             _sntprintf(file_path, CEL_PATHLEN, _T("%s%s"), 
                 (TCHAR *)path, filename);
-            //_putts(path);
+            //_putts(file_path);
             if ((s_fp = cel_fopen(file_path, _T("a"))) == NULL 
                 && (cel_mkdirs((TCHAR *)path, CEL_UMASK) == -1
                 || (s_fp = cel_fopen(file_path, _T("a"))) == NULL))

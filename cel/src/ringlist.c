@@ -23,8 +23,7 @@ int cel_ringlist_init(CelRingList *ring_list, size_t size,
 {
     size = cel_power2min((int)size);
     //printf("size = %d\r\n", size);
-    if ((ring_list->ring = 
-        (void **)cel_malloc(sizeof(void *) * size)) == NULL)
+    if ((ring_list->ring = (void **)cel_malloc(sizeof(void *) * size)) == NULL)
         return -1;
     ring_list->size = size;
     ring_list->value_free = value_free;
@@ -66,8 +65,7 @@ CelRingList *cel_ringlist_new(size_t size, CelFreeFunc value_free)
 {
     CelRingList *ring_list;
 
-    if ((ring_list = (CelRingList *)cel_malloc(
-        sizeof(CelRingList))) != NULL)
+    if ((ring_list = (CelRingList *)cel_malloc(sizeof(CelRingList))) != NULL)
     {
         if (cel_ringlist_init(ring_list, size, value_free) == 0)
             return ring_list;

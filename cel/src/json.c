@@ -33,7 +33,7 @@ int cel_json_init(CelJson *json)
     return 0;
 }
 
-int cel_json_init_buffer(CelJson *json, char *buf, size_t size)
+int cel_json_init_buffer(CelJson *json, const char *buf, size_t size)
 {
     if (cel_json_init(json) != -1)
     {
@@ -92,7 +92,7 @@ CelJson *cel_json_new(void)
     return NULL;
 }
 
-CelJson *cel_json_new_buffer(char *buf, size_t size)
+CelJson *cel_json_new_buffer(const char *buf, size_t size)
 {
     CelJson *json;
 
@@ -221,7 +221,7 @@ static int cel_json_string_decode(CelJson *json, char ch)
     return 0;
 }
 
-static int cel_json_deserialize_key(CelJson *json, char *buf, size_t size,
+static int cel_json_deserialize_key(CelJson *json, const char *buf, size_t size,
                                     size_t *cursor)
 {
     char ch;
@@ -240,13 +240,16 @@ static int cel_json_deserialize_key(CelJson *json, char *buf, size_t size,
     }
     do
     {
-        if (json->colon == 0)
-        {
-            if (cel_json_string_decode(json, ch) == -1)
-                return -1;
-        }
-        if ((++*cursor) >= size) return -1;
-    }while ((ch = buf[*cursor]) != ':');
+		if (json->colon == 0)
+		{
+			if (cel_json_string_decode(json, ch) == -1)
+				return -1;
+		}
+        if ((++*cursor) >= size)
+			return -1;
+		if ((ch = buf[*cursor]) == ':' && json->colon == 1)
+			break;
+    }while (TRUE);
     /* Remove spaces */
     cel_vstring_rtrim_a(&(json->vstr));
     /* Dup key string */
@@ -269,7 +272,7 @@ static int cel_json_deserialize_key(CelJson *json, char *buf, size_t size,
 }
 
 static int cel_json_deserialize_string(CelJson *json, 
-                                       char *buf, size_t size, size_t *cursor)
+                                       const char *buf, size_t size, size_t *cursor)
 {
     char ch;
     CelJsonNode *cur_node = json->cur_node;
@@ -313,7 +316,7 @@ static int cel_json_deserialize_string(CelJson *json,
 }
 
 static int cel_json_deserialize_number(CelJson *json,
-                                       char *buf, size_t size, size_t *cursor)
+                                       const char *buf, size_t size, size_t *cursor)
 {
     BOOL is_double = FALSE;
     char ch, *str;
@@ -350,7 +353,7 @@ static int cel_json_deserialize_number(CelJson *json,
 }
 
 static int cel_json_deserialize_value(CelJson *json,
-                                      char *buf, size_t size, size_t *cursor)
+                                      const char *buf, size_t size, size_t *cursor)
 {
     char ch;
 
@@ -426,7 +429,7 @@ static int cel_json_deserialize_value(CelJson *json,
     return 0;
 }
 
-static int cel_json_deserialize_next(CelJson *json, char *buf, size_t size,
+static int cel_json_deserialize_next(CelJson *json, const char *buf, size_t size,
                                      size_t *cursor)
 {
     char ch;
@@ -473,7 +476,7 @@ static int cel_json_deserialize_next(CelJson *json, char *buf, size_t size,
     return -1;
 }
 
-static int cel_json_deserialize_object(CelJson *json, char *buf, size_t size,
+static int cel_json_deserialize_object(CelJson *json, const char *buf, size_t size,
                                        size_t *cursor)
 {
     char ch;
@@ -507,7 +510,7 @@ static int cel_json_deserialize_object(CelJson *json, char *buf, size_t size,
     return -1;
 }
 
-static int cel_json_deserialize_root(CelJson *json, char *buf, size_t size,
+static int cel_json_deserialize_root(CelJson *json, const char *buf, size_t size,
                                      size_t *cursor)
 {
     char ch;
@@ -686,25 +689,26 @@ static int cel_json_serialize_root(CelJson *json, char *buf, size_t size,
 
 typedef struct _CelJsonMachine
 {
-    int state;
-    int (* callback) (CelJson *json, char *buf, size_t size, size_t *cursor);
+	int state;
+	int (* deserialize_callback) (CelJson *json, const char *buf, size_t size, size_t *cursor);
+	int (* serialize_callback) (CelJson *json, char *buf, size_t size, size_t *cursor);
 }CelJsonMachine;
 
 static CelJsonMachine s_jmtb[] = 
 {
-    { CEL_JSONDS_ROOT, cel_json_deserialize_root },
-    { CEL_JSONDS_OBJECT, cel_json_deserialize_object },
-    { CEL_JSONDS_NEXT, cel_json_deserialize_next },
-    { CEL_JSONDS_KEY, cel_json_deserialize_key },
-    { CEL_JSONDS_VALUE, cel_json_deserialize_value },
-    { CEL_JSONDS_OK, NULL },
-    { CEL_JSONDS_ERROR, NULL },
-    { CEL_JSONSS_ERROR, NULL },
-    { CEL_JSONSS_ROOT, cel_json_serialize_root },
-    { CEL_JSONSS_NEXT, cel_json_serialize_next },
-    { CEL_JSONSS_KEY, cel_json_serialize_key },
-    { CEL_JSONSS_VALUE, cel_json_serialize_value },
-    { CEL_JSONSS_OK, NULL }
+    { CEL_JSONDS_ROOT, cel_json_deserialize_root, NULL },
+    { CEL_JSONDS_OBJECT, cel_json_deserialize_object, NULL },
+    { CEL_JSONDS_NEXT, cel_json_deserialize_next, NULL },
+    { CEL_JSONDS_KEY, cel_json_deserialize_key, NULL },
+    { CEL_JSONDS_VALUE, cel_json_deserialize_value, NULL },
+    { CEL_JSONDS_OK, NULL, NULL },
+    { CEL_JSONDS_ERROR, NULL, NULL },
+    { CEL_JSONSS_ERROR, NULL, NULL },
+    { CEL_JSONSS_ROOT, NULL, cel_json_serialize_root },
+    { CEL_JSONSS_NEXT, NULL, cel_json_serialize_next },
+    { CEL_JSONSS_KEY, NULL, cel_json_serialize_key },
+    { CEL_JSONSS_VALUE, NULL, cel_json_serialize_value },
+    { CEL_JSONSS_OK, NULL, NULL }
 };
 
 int cel_json_deserialize_starts(CelJson *json)
@@ -718,7 +722,7 @@ int cel_json_deserialize_starts(CelJson *json)
     return 0;
 }
 
-int cel_json_deserialize_update(CelJson *json, char *buf, size_t size)
+int cel_json_deserialize_update(CelJson *json, const char *buf, size_t size)
 {
     size_t cursor = 0;
 
@@ -730,7 +734,7 @@ int cel_json_deserialize_update(CelJson *json, char *buf, size_t size)
     }
     while (json->state != CEL_JSONDS_OK)
     {
-        if (s_jmtb[json->state].callback(json, buf, size, &cursor) == -1)
+        if (s_jmtb[json->state].deserialize_callback(json, buf, size, &cursor) == -1)
         {
             if (json->state == CEL_JSONDS_ERROR)
                 return -1;
@@ -810,7 +814,7 @@ int cel_json_serialize_update(CelJson *json, char *buf, size_t *size)
     {
         while (json->state != CEL_JSONSS_OK)
         {
-            if (s_jmtb[json->state].callback(json, buf, *size, &cursor) == -1)
+            if (s_jmtb[json->state].serialize_callback(json, buf, *size, &cursor) == -1)
             {
                 if (json->state == CEL_JSONSS_ERROR)
                     return -1;

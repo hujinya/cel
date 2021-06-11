@@ -200,8 +200,7 @@ int cel_httpresponse_init(CelHttpResponse *rsp)
         i++;
     }
 
-    cel_rbtree_init(
-        &(rsp->ext_hdrs), (CelCompareFunc)strcmp, cel_free, cel_free);
+    cel_rbtree_init(&(rsp->ext_hdrs), (CelCompareFunc)strcmp, cel_free, cel_free);
     rsp->body_save_in = CEL_HTTPBODY_SAVE_IN_CACHE;
     cel_httpbodycache_init(&(rsp->body_cache), CEL_HTTPBODY_BUF_LEN_MAX);
 
@@ -228,18 +227,16 @@ void cel_httpresponse_clear(CelHttpResponse *rsp)
     rsp->ver = CEL_HTTPVER_11;
     rsp->status = CEL_HTTPSC_REQUEST_OK;
     cel_vstring_clear(&(rsp->reason));
-    rsp->hdr_flags = ULL(0);
+    
     while (i < CEL_HTTPHDR_COUNT)
     {
         if (s_httprsphdr_offset[i] != 0)
         {
             handler = (CelHttpHeaderHandler *)g_case_httphdr[i].value2;
             if (handler->destroy_func == NULL)
-                memset((char *)rsp + s_httprsphdr_offset[i],
-                0, handler->size);
+                memset((char *)rsp + s_httprsphdr_offset[i], 0, handler->size);
             else
-                handler->destroy_func(
-                (char *)rsp + s_httprsphdr_offset[i]);
+                handler->destroy_func((char *)rsp + s_httprsphdr_offset[i]);
         }
         i++;
     }
@@ -247,6 +244,7 @@ void cel_httpresponse_clear(CelHttpResponse *rsp)
     rsp->body_save_in = CEL_HTTPBODY_SAVE_IN_CACHE;
     cel_httpbodycache_clear(&(rsp->body_cache));
 
+	rsp->hdr_flags = ULL(0);
     rsp->reading_state = CEL_HTTPRESPONSE_READING_INIT;
     rsp->reading_hdr_offset = 0;
     rsp->reading_body_offset = 0;
@@ -268,25 +266,25 @@ void cel_httpresponse_destroy(CelHttpResponse *rsp)
     rsp->ver = CEL_HTTPVER_11;
     rsp->status = CEL_HTTPSC_REQUEST_OK;
     cel_vstring_destroy_a(&(rsp->reason));
-    rsp->hdr_flags = ULL(0);
+    
     while (i < CEL_HTTPHDR_COUNT)
     {
         if (s_httprsphdr_offset[i] != 0)
         {
             handler = (CelHttpHeaderHandler *)g_case_httphdr[i].value2;
             if (handler->destroy_func == NULL)
-                memset((char *)rsp + s_httprsphdr_offset[i],
-                0, handler->size);
+                memset((char *)rsp + s_httprsphdr_offset[i], 0, handler->size);
             else
-                handler->destroy_func(
-                (char *)rsp + s_httprsphdr_offset[i]);
+                handler->destroy_func((char *)rsp + s_httprsphdr_offset[i]);
         }
         i++;
     }
+	
     cel_rbtree_destroy(&(rsp->ext_hdrs));
     rsp->body_save_in = CEL_HTTPBODY_SAVE_IN_CACHE;
     cel_httpbodycache_destroy(&(rsp->body_cache));
 
+	rsp->hdr_flags = ULL(0);
     rsp->reading_state = CEL_HTTPRESPONSE_READING_INIT;
     rsp->reading_hdr_offset = 0;
     rsp->reading_body_offset = 0;
@@ -385,8 +383,7 @@ static int cel_httpresponse_reading_header(CelHttpResponse *rsp, CelStream *s)
                 }
                 else if (s_httprsphdr_offset[hdr_index] == 0)
                 {
-                    CEL_DEBUG(("Http response header '%.*s' "
-                        "call back is null",
+                    CEL_DEBUG(("Http response header '%.*s' call back is null",
                         (int)value_end - key_start,
                         (char *)(cel_stream_get_buffer(s) + key_start)));
                 }
@@ -783,9 +780,8 @@ int cel_httpresponse_set_header(CelHttpResponse *rsp,
         return CEL_HTTP_ERROR;
     }
     handler = (CelHttpHeaderHandler *)g_case_httphdr[hdr_index].value2;
-    handler->set_func(
-        (char *)rsp + s_httprsphdr_offset[hdr_index], value, value_len);
-    //printf("xxhdr flags 0x%x\r\n", rsp->hdr_flags);
+    handler->set_func((char *)rsp + s_httprsphdr_offset[hdr_index], value, value_len);
+    //printf("cel_httpresponse_set_header flags 0x%x\r\n", rsp->hdr_flags);
     CEL_SETFLAG(rsp->hdr_flags, (ULL(1) << hdr_index));
     //printf("yyhdr flags 0x%x\r\n", rsp->hdr_flags);
 
@@ -1031,7 +1027,8 @@ int cel_httpresponse_send_tryfile(CelHttpResponse *rsp,
 
     if (cel_fileext_r_a(file_path, file_ext, CEL_EXTLEN) != NULL)
     {
-        if (strcmp(file_ext, "html") == 0)
+        if (strcmp(file_ext, "html") == 0
+			|| strcmp(file_ext, "htm") == 0)
             cel_httpresponse_set_header(rsp, 
             CEL_HTTPHDR_CONTENT_TYPE, "text/html", sizeof("text/html"));
         else if (strcmp(file_ext, "css") == 0)

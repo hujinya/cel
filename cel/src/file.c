@@ -16,6 +16,8 @@
 #include "cel/error.h"
 #include "cel/log.h"
 #include "cel/convert.h"
+#include "cel/time.h"
+#include "cel/rand.h"
 
 CHAR *cel_filedir_r_a(const CHAR *path, CHAR *file_dir, size_t size)
 {
@@ -355,6 +357,17 @@ BOOL cel_fexists_w(const WCHAR *file_name)
     CelStat my_stat;
     return (_wstat(file_name, &my_stat) == 0);
 #endif
+}
+
+TCHAR *cel_frandname(TCHAR *file_name, size_t size)
+{
+	size_t _size;
+	CelTime dt;
+
+	cel_time_init_now(&dt);
+	if ((_size = cel_time_strfltime(&dt, file_name, size, _T("%Y%m%d%H%M%S"))) < size)
+		cel_rand_str(file_name + _size, size - _size);
+	return file_name;
 }
 
 FILE *cel_fopen(const TCHAR *file_name, const TCHAR *mode)

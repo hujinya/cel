@@ -1,9 +1,15 @@
-* Thu Aug 20 2020 Hu Jinya <hjy@gzsunrun.cn> 1.3.1.62
+* Sat Jann 27 2021 Hu Jinya <hjy@gzsunrun.cn> 1.4.0.65
+- 优化：单条日志缓存长度由512调整为1024。
+- 修复：修复cel_jwt_base64url_decode_json重复初始化json导致内存泄露。
+
+* Thu Nov 26 2020 Hu Jinya <hjy@gzsunrun.cn> 1.3.2.64
 - 优化：调整CelHttpWebClient为CelHttpWebRequest,调整CelHttpWebListener为CelHttpServe。
 - 修复：修复cel_sqlconpool_return判断出错，导致连接池最小数比实际大1。
 - 修复：修复cel_httpresponse_send_tryfile传入文件不存在时造成死循环。
 - 修复：修复cel_httproute_routing出错时ret判断错误。
 - 优化：去掉异步co函数。
+- 修复：cel_httpcontext_routing返回错误信息时增加编码头部。
+- 修复：cel_httproute_routing中route_handler不能重复执行。
 
 * Tue Apr 14 2020 Hu Jinya <hjy@gzsunrun.cn> 1.2.4.56
 - 新增：CelHttpSetCookieArray支持设置多个cookie。

@@ -163,6 +163,7 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 		switch (http_ctx->state)
 		{
 		case CEL_HTTPROUTEST_BEFORE_ROUTER:
+			//puts("CEL_HTTPROUTEST_BEFORE_ROUTER");
 			filter_list = &(route->filters[http_ctx->state]);
 			if (cel_list_get_size(filter_list) > 0
 				&& (ret = cel_httproute_filters_foreach(filter_list, http_ctx)) != CEL_RET_OK)
@@ -175,6 +176,7 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 			}
 			http_ctx->state = CEL_HTTPROUTEST_BEFORE_EXEC;
 		case CEL_HTTPROUTEST_BEFORE_EXEC:
+			//puts("CEL_HTTPROUTEST_BEFORE_EXEC");
 			filter_list = &(route->filters[http_ctx->state]);
 			if (cel_list_get_size(filter_list) > 0
 				&& (ret = cel_httproute_filters_foreach(filter_list, http_ctx)) != CEL_RET_OK)
@@ -209,6 +211,9 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 			}
 			http_ctx->state = CEL_HTTPROUTEST_EXEC;
 		case CEL_HTTPROUTEST_EXEC:
+			//puts("CEL_HTTPROUTEST_EXEC");
+			/* route_handler can only be executed once*/
+			http_ctx->state = CEL_HTTPROUTEST_AFTER_EXEC; 
 			if ((ret = route_handler(http_ctx)) != CEL_RET_OK)
 			{
 				/*if (ret == CEL_RET_ERROR)
@@ -217,9 +222,9 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 						cel_httprequest_get_method_str(&(http_ctx->req)), prefix));
 				}*/
 				break;
-			}
-			http_ctx->state = CEL_HTTPROUTEST_AFTER_EXEC;
+			}			
 		case CEL_HTTPROUTEST_AFTER_EXEC:
+			//puts("CEL_HTTPROUTEST_AFTER_EXEC");
 			filter_list = &(route->filters[http_ctx->state]);
 			if (cel_list_get_size(filter_list) > 0
 				&& (ret = cel_httproute_filters_foreach(filter_list, http_ctx)) != CEL_RET_OK)
@@ -232,6 +237,7 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 			}
 			http_ctx->state = CEL_HTTPROUTEST_FINISH_ROUTER;
 		case CEL_HTTPROUTEST_FINISH_ROUTER:
+			//puts("CEL_HTTPROUTEST_FINISH_ROUTER");
 			filter_list = &(route->filters[http_ctx->state]);
 			if (cel_list_get_size(filter_list) > 0
 				&& (ret = cel_httproute_filters_foreach(filter_list, http_ctx)) != CEL_RET_OK)

@@ -695,8 +695,8 @@ CelSpan *cel_pageheap_allocate(CelPageHeap *page_heap, int n_pages)
             page_heap, n_pages)) == NULL)
         {
             cel_spinlock_unlock(&(page_heap->lock));
-            CEL_SETERR((CEL_ERR_LIB, _T("Page heap search free[%d] and large list return null."),
-                n_pages));
+            CEL_SETERR((CEL_ERR_LIB, 
+				_T("Page heap search free[%d] and large list return null."), n_pages));
             return NULL;
         }
     }
@@ -732,8 +732,7 @@ int cel_pageheap_release_pages(CelPageHeap *page_heap, int n_pages)
                 if (cel_system_release((void *)(span->start << PAGE_SHIFT),
                     span->n_pages << PAGE_SHIFT))
                 {
-                    page_heap->committed_bytes -= 
-                        (span->n_pages << PAGE_SHIFT);
+                    page_heap->committed_bytes -= (span->n_pages << PAGE_SHIFT);
                     cel_pageheap_remove_span(page_heap, span);
                     released_length = span->n_pages;
                     span->location = SPAN_ON_RETURNED_FREELIST;
@@ -1389,6 +1388,8 @@ int cel_allocator_dump(char *buf, size_t size)
     int i;
     size_t cursor;
     size_t num1, num2;
+	long central_caches_total_size = 0;
+	long page_heaps_total_size = 0;
     CelThreadCache *thread_cache, *thread_cache_tail;
 
     if (cel_malloc != cel_allocate)
@@ -1408,6 +1409,7 @@ int cel_allocator_dump(char *buf, size_t size)
             (int)i, (int)cel_sizemap_block_to_size(i), 
             (int)s_centralcache[i].n_allocated_blocks, 
             (int)s_centralcache[i].n_free_blocks);
+		
         num1 = 0;
         thread_cache =  
             (CelThreadCache *)cel_list_get_head(&s_threadcache_list);
@@ -1423,10 +1425,14 @@ int cel_allocator_dump(char *buf, size_t size)
         cursor += snprintf(buf + cursor, size - cursor, "], \"used\":%d },", 
             (int)(s_centralcache[i].n_allocated_blocks 
             - s_centralcache[i].n_free_blocks - num1));
+		central_caches_total_size += 
+			cel_sizemap_block_to_size(i) * s_centralcache[i].n_allocated_blocks;
         cel_spinlock_unlock(&(s_centralcache[i].lock));
     }
     cursor -= 1;
     cursor += snprintf(buf + cursor, size - cursor, "],");
+	cursor += snprintf(buf + cursor, size - cursor, 
+		CEL_CRLF"\"central_caches_total_size\":%ld,", central_caches_total_size);
     /* page_heaps */
     cel_spinlock_lock(&(s_pageheap.lock));
     cursor += snprintf(buf + cursor, size - cursor, CEL_CRLF"{\"page_heaps\":[");
@@ -1439,13 +1445,20 @@ int cel_allocator_dump(char *buf, size_t size)
         cursor += snprintf(buf + cursor, size - cursor, 
             CEL_CRLF"{ \"id\":%d, \"size\":%d, \"normal\":%d, \"retunred\":%d },",
             (int)i, (int)((i + 1) * PAGE_SIZE), (int)num1, (int)num2);
+		page_heaps_total_size += ((i + 1) * PAGE_SIZE) * (num1 + num2);
     }
     cursor -= 1;
     cursor += snprintf(buf + cursor, size - cursor, "],");
+	cursor += snprintf(buf + cursor, size - cursor, CEL_CRLF"\"page_heaps_total_size\":%ld,", 
+		page_heaps_total_size);
     /* lagre_pages */
-    cursor += snprintf(buf + cursor, size - cursor, CEL_CRLF"{\"lagre_pages\":[");
-    cursor -= 1;
-    cursor += snprintf(buf + cursor, size - cursor, "]");
+	num1 = cel_list_get_size(&(s_pageheap.large.normal_spans));
+	num2 = cel_list_get_size(&(s_pageheap.large.returned_spans));
+	cursor += snprintf(buf + cursor, size - cursor, 
+		CEL_CRLF"\"lagre_pages\":{ \"normal\":%d, \"retunred\":%d }", (int)num1, (int)num2);
+	cursor += snprintf(buf + cursor, size - cursor, "},");
+	cursor += snprintf(buf + cursor, size - cursor, 
+		CEL_CRLF"\"system_bytes\":%ld, committed_bytes\":%ld", s_pageheap.system_bytes, s_pageheap.committed_bytes);
     cel_spinlock_unlock(&(s_pageheap.lock));
     cursor += snprintf(buf + cursor, size - cursor, "}");
     //puts(buf);

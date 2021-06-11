@@ -128,18 +128,18 @@ CelJsonNode *cel_json_object_get(CelJsonNode *object, const char *key);
 
 /* Json init and destroy */
 int cel_json_init(CelJson *json);
-int cel_json_init_buffer(CelJson *json, char *buf, size_t size);
+int cel_json_init_buffer(CelJson *json, const char *buf, size_t size);
 int cel_json_init_file(CelJson *json, const char *file);
 void cel_json_destroy(CelJson *json);
 /* Json new and free */
 CelJson *cel_json_new(void);
-CelJson *cel_json_new_buffer(char *buf, size_t size);
+CelJson *cel_json_new_buffer(const char *buf, size_t size);
 CelJson *cel_json_new_file(const char *file);
 void cel_json_free(CelJson *json);
 
 /* Json deserialize */
 int cel_json_deserialize_starts(CelJson *json);
-int cel_json_deserialize_update(CelJson *json, char *buf, size_t size);
+int cel_json_deserialize_update(CelJson *json, const char *buf, size_t size);
 int cel_json_deserialize_finish(CelJson *json);
 int cel_json_deserialize_file(CelJson *json, const char *file);
 /* Json serialize */

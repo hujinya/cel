@@ -72,8 +72,7 @@ CelCoroutineEntity *cel_coroutinescheduler_readies_try_pop(
     return (OsCoroutineEntity *)cel_asyncqueue_try_pop(&(schd->coe_readies));
 }
 static __inline 
-CelCoroutineEntity *cel_coroutinescheduler_readies_pop(
-	OsCoroutineScheduler *schd)
+CelCoroutineEntity *cel_coroutinescheduler_readies_pop(OsCoroutineScheduler *schd)
 {
     return (OsCoroutineEntity *)cel_asyncqueue_pop(&(schd->coe_readies));
 }
