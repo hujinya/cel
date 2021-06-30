@@ -189,6 +189,7 @@ int cel_eventloop_do_work(CelEventLoop *evt_loop)
                 cel_eventloop_exit(evt_loop);
                 return 0;
             }
+			cel_cached_time_update();
             /*
             _tprintf(_T("wait_timeout end %ld, pid %d, ol %p, ticks %ld\r\n"), 
                 timeout, (int)cel_thread_getid(), ol, cel_getticks());
@@ -208,6 +209,7 @@ int cel_eventloop_do_work(CelEventLoop *evt_loop)
         if (cel_timerqueue_pop_expired(
             &(evt_loop->timer_queue), &expireds, 1, NULL) > 0)
         {
+			cel_cached_time_update();
             if (timer_wakeup == evt_loop->timer_wakeup)
             {
                 cel_atomic_increment(&(evt_loop->timer_wakeup), 1);
@@ -228,6 +230,7 @@ int cel_eventloop_do_work(CelEventLoop *evt_loop)
             cel_eventloop_exit(evt_loop);
             return 0;
         }
+		cel_cached_time_update();
         cel_atomic_increment(&(evt_loop->wait_threads), -1);
         //_tprintf(_T("wait_timeout -1 end, pid %d\r\n"), 
         //    (int)cel_thread_getid());

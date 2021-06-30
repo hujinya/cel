@@ -48,6 +48,11 @@ typedef struct timeval CelTime;
     ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0)
 
 #define CEL_TIME_SLOTS 64
+extern volatile CelTime *cached_time;
+extern volatile const char *cached_strltime;
+#define cel_cached_time() (CelTime *)cached_time
+#define cel_cached_strltime() (const char*)cached_strltime
+
 void cel_cached_time_update(void);
 
 static __inline int cel_time_init(CelTime *dt)

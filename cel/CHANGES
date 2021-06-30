@@ -1,6 +1,7 @@
-* Sat Jann 27 2021 Hu Jinya <hjy@gzsunrun.cn> 1.4.0.65
+* Sat Jann 27 2021 Hu Jinya <hjy@gzsunrun.cn> 1.4.0.67
 - 优化：单条日志缓存长度由512调整为1024。
-- 修复：修复cel_jwt_base64url_decode_json重复初始化json导致内存泄露。
+- 修复：修复重复初始化json导致内存泄露。
+- 修复：修复cel_reallocate中old_size未初始化导致内存泄露。
 
 * Thu Nov 26 2020 Hu Jinya <hjy@gzsunrun.cn> 1.3.2.64
 - 优化：调整CelHttpWebClient为CelHttpWebRequest,调整CelHttpWebListener为CelHttpServe。

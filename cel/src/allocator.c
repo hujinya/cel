@@ -82,7 +82,7 @@ CelReallocFunc cel_realloc = realloc;
 
 #define PAGE_SIZE                           (1 << PAGE_SHIFT)
 #define MAX_PAGES                           (1 << (20 - PAGE_SHIFT))
-#define MAX_BLOCK_SIZE                      256 * 1024
+#define MAX_BLOCK_SIZE                      (256 * 1024)
 #define ALIGNMENT                           8
 #define BLOCK_ARRAY_NUM  \
     (((MAX_BLOCK_SIZE + 127 + (120 << 7)) >> 7) + 1)
@@ -1520,29 +1520,34 @@ void cel_deallocate(void *buf)
 
 void *cel_reallocate(void *memory, size_t new_size)
 {
-    CelSpan *span;
-    size_t index, old_size;
-    void *new_mem;
+	CelSpan *span;
+	size_t index, old_size;
+	void *new_mem;
 
-    if (memory == NULL)
-        return cel_allocate(new_size);
+	if (memory == NULL)
+		return cel_allocate(new_size);
 
-    span = (CelSpan *)cel_radixtree_get(
-        &(s_pageheap.page_map), ((uintptr_t)memory) >> PAGE_SHIFT);
-    CEL_ASSERT(span != NULL);
-    if (((index = span->index) != 0 
-        && (old_size = cel_sizemap_block_to_size(index)) < new_size)
-        || (size_t)(span->n_pages >> PAGE_SHIFT) < new_size)
-    {
-        if ((new_mem = cel_allocate(new_size)) != NULL)
-        {
-            memcpy(new_mem, memory, old_size);
-            cel_deallocate(memory);
-            return new_mem;
-        }
-    }
+	span = (CelSpan *)cel_radixtree_get(
+		&(s_pageheap.page_map), ((uintptr_t)memory) >> PAGE_SHIFT);
+	CEL_ASSERT(span != NULL);
+	if ((index = span->index) != 0)
+	{
+		if ((old_size = cel_sizemap_block_to_size(index)) >= new_size)
+			return memory;
+	}
+	else
+	{
+		if ((old_size = (size_t)(span->n_pages >> PAGE_SHIFT)) >= new_size)
+			return memory;
+	}
+	if ((new_mem = cel_allocate(new_size)) != NULL)
+	{
+		memcpy(new_mem, memory, old_size);
+		cel_deallocate(memory);
+		return new_mem;
+	}
 
-    return NULL;
+	return NULL;
 }
 
 int cel_allocator_init()

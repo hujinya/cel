@@ -37,11 +37,14 @@ long cel_timezone_diff_secs()
 static unsigned int slot = 0;
 static CelSpinLock *time_lock = NULL;
 static CelTime cached_times[CEL_TIME_SLOTS];
-static volatile CelTime *cached_time = NULL;
+static char cached_strltimes[CEL_TIME_SLOTS][32];
+volatile CelTime *cached_time = NULL;
+volatile const char *cached_strltime = NULL;
 
 void cel_cached_time_update(void)
 {
 	CelTime *tp;
+	char *strltp;
 	struct timeval tv;
 
 	if (time_lock == NULL)
@@ -66,9 +69,11 @@ void cel_cached_time_update(void)
 	tp->tv_sec = tv.tv_sec;
 	tp->tv_usec = tv.tv_usec;
 
+	strltp = &cached_strltimes[slot][0];
+	cel_time_strfltime(tp, strltp, 32, "%Y-%m-%d %H:%M:%S");
 	cel_compiler_barrier();
 	cached_time = tp;
-
+	cached_strltime = strltp;
 	//cel_timezone_diff_secs();
 
 	cel_spinlock_unlock(time_lock);
