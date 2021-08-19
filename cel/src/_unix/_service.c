@@ -27,45 +27,54 @@
 
 int os_service_pidfile_create(const TCHAR *name)
 {
-    static CelProcessStat ps1, ps2;
+    static CelProcessStat ps, pps;
+    TCHAR file[CEL_FNLEN];
+	TCHAR file_path[CEL_PATHLEN];
     FILE *fp;
     pid_t ppid, pid;
 
-    if((fp = _tfopen(name, _T("w"))) == NULL)
+	_sntprintf(file, CEL_FNLEN, _T("./%s.pid"), name);
+    if((fp = _tfopen(cel_fullpath_r(file, file_path, CEL_PATHLEN), _T("w"))) == NULL)
     {
         _ftprintf(stderr, _T("Can't open %s (errno %d %s)\n"), 
-            name, errno, strerror(errno));
+            file_path, errno, strerror(errno));
         return -1;
     }
     pid = getpid();
     ppid = getppid();
-    cel_process_getbypid(&ps2, pid);
-    cel_process_getbypid(&ps1, ppid);
-    if (_tcscmp(ps1.name, ps2.name) != 0)
+    cel_process_getbypid(&ps, pid);
+    cel_process_getbypid(&pps, ppid);
+    if (_tcscmp(ps.name, pps.name) != 0)
         _ftprintf(fp, _T("%d\n"), pid);
     else
         _ftprintf(fp, _T("%d\n%d\n"), pid, ppid);
     fclose(fp);
-    return(0);
+    return (0);
 }
 
 int os_service_pidfile_exist(const TCHAR *name)
 {
+	static CelProcessStat ps;
+	TCHAR file[CEL_FNLEN];
+	TCHAR file_path[CEL_PATHLEN];
     FILE *fp;
     pid_t ppid = 0, pid = 0;
 
-    if ((fp = _tfopen(name, _T("r"))) == NULL)
+	_sntprintf(file, CEL_FNLEN, _T("./%s.pid"), name);
+    if ((fp = _tfopen(cel_fullpath_r(file, file_path, CEL_PATHLEN), _T("r"))) == NULL)
         return 0;
     fscanf(fp, "%d\n%d", &pid, &ppid);
     fclose(fp);
     //_tprintf(_T("ppid %d, getppid() = %d, pid %d \r\n"),
     //    ppid, getppid(), pid);
-    if ((ppid <= 0 
-        || (ppid == getppid() || kill(ppid, 0) == -1)) 
-        && (pid <= 0 || kill(pid, 0) == -1))
+	cel_process_getbypid(&ps, pid);
+    //cel_process_getbypid(&pps, ppid);
+    if (_tcscmp(ps.name, name) != 0
+		 || ((ppid <= 0 || (ppid == getppid() || kill(ppid, 0) == -1)) 
+        && (pid <= 0 || kill(pid, 0) == -1)))
     {
-        fprintf(stderr, "Remove a stale pid file %s\n", name);
-        unlink(name);
+        fprintf(stderr, "Remove a stale pid file %s\n", file_path);
+        unlink(file_path);
         return 0;
     }
     return -1;
@@ -73,15 +82,10 @@ int os_service_pidfile_exist(const TCHAR *name)
 
 BOOL os_service_is_running(const TCHAR *name)
 {
-	TCHAR file[CEL_FNLEN];
-    TCHAR file_path[CEL_PATHLEN];
-
-	_sntprintf(file, CEL_FNLEN, _T("./%s.pid"), name);
-	if(os_service_pidfile_exist(
-		cel_fullpath_r(file, file_path, CEL_PATHLEN)) == -1)
+	if(os_service_pidfile_exist(name) == -1)
 		return TRUE;
-    os_service_pidfile_create(file_path);
-    return FALSE;
+	os_service_pidfile_create(name);
+	return FALSE;
 }
 
 BOOL os_service_stop(const TCHAR *name)
