@@ -111,6 +111,8 @@ void cel_cond_free(CelCond *cond);
 /* int cel_cond_broadcast(CelCond *cond); */
 #define cel_cond_broadcast os_cond_broadcast
 
+#define CEL_SPINLOCK_PRIVATE OS_SPINLOCK_PRIVATE
+#define CEL_SPINLOCK_SHARED OS_SPINLOCK_SHARED
 typedef OsSpinLock CelSpinLock;
 
 /* int cel_spinlock_init(CelSpinLock *spinlock, int pshared); */

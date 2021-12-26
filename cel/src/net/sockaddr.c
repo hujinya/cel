@@ -287,7 +287,7 @@ const TCHAR *cel_sockaddr_get_ipstr_r(CelSockAddr *addr,
 
     if (buf == NULL)
     {
-        buf = s_buf[((++i) % (int)CEL_BUFNUM)];
+        buf = s_buf[((++i) >= CEL_BUFNUM ? 0 : i)];
         size = CEL_IP6STRLEN;
     }
 
@@ -317,7 +317,7 @@ TCHAR *cel_sockaddr_get_str_r(CelSockAddr *addr, TCHAR *buf, size_t size)
 
     if (buf == NULL)
     {
-        buf = s_buf[((++i) % (int)CEL_BUFNUM)];
+        buf = s_buf[((++i) >= CEL_BUFNUM ? 0 : i)];
         size = CEL_ADDRLEN;
     }
     switch (addr->sa_family)

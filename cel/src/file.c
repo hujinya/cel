@@ -27,7 +27,7 @@ CHAR *cel_filedir_r_a(const CHAR *path, CHAR *file_dir, size_t size)
 
     if (file_dir == NULL)
     {
-        file_dir = s_buf[((++i) % (int)CEL_BUFNUM)];
+        file_dir = s_buf[((++i) >= CEL_BUFNUM ? 0 : i)];
         size = CEL_PATHLEN;
     }
     while (path[j] != '\0')
@@ -52,7 +52,7 @@ WCHAR *cel_filedir_r_w(const WCHAR *path, WCHAR *file_dir, size_t size)
 
     if (file_dir == NULL)
     {
-        file_dir = s_buf[((++i) % (int)CEL_BUFNUM)];
+        file_dir = s_buf[((++i) >= CEL_BUFNUM ? 0 : i)];
         size = CEL_PATHLEN;
     }
     while (path[j] != L'\0')
@@ -243,7 +243,7 @@ CHAR *cel_fullpath_r_a(const CHAR *rel_path, CHAR *full_path, size_t size)
 
     if (full_path == NULL)
     {
-        full_path = s_buf[((++i) % (int)CEL_BUFNUM)];
+        full_path = s_buf[((++i) >= CEL_BUFNUM ? 0 : i)];
         size = CEL_PATHLEN;
     }
     /* Path is full path */
@@ -299,7 +299,7 @@ WCHAR *cel_fullpath_r_w(const WCHAR *rel_path, WCHAR *full_path, size_t size)
 
     if (full_path == NULL)
     {
-        full_path = s_buf[((++i) % (int)CEL_BUFNUM)];
+        full_path = s_buf[((++i) >= CEL_BUFNUM ? 0 : i)];
         size = CEL_PATHLEN;
     }
     /* Path is full path */

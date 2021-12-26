@@ -387,7 +387,7 @@ static int cel_pageheap_init(CelPageHeap *page_heap)
 {
     int i;
 
-    cel_spinlock_init(&(page_heap->lock), 0);
+    cel_spinlock_init(&(page_heap->lock), OS_SPINLOCK_PRIVATE);
     page_heap->realeased_index = MAX_PAGES;
     page_heap->scavenge_counter = 0;
     page_heap->free_bytes = page_heap->system_bytes = 0;
@@ -791,7 +791,7 @@ static int cel_centralcache_init(CelCentralCache *central_cache, size_t index)
 {
     size_t bytes, grow, new_size;
 
-    cel_spinlock_init(&(central_cache->lock), 0);
+    cel_spinlock_init(&(central_cache->lock), OS_SPINLOCK_PRIVATE);
     central_cache->index = index;
     cel_list_init(&(central_cache->none_empty_spans), NULL);
     cel_list_init(&(central_cache->empty_spans), NULL);

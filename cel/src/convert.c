@@ -27,7 +27,7 @@ TCHAR *cel_ll2dda_r(long long ll, TCHAR *dda, size_t size)
 
     if ((p = dda) == NULL)
     {
-        p = s_buf[((++i) % (int)CEL_BUFNUM)];
+        p = s_buf[((++i) >= CEL_BUFNUM ? 0 : i)];
         size = LLSTRLEN;
     }
     n = size;

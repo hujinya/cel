@@ -131,6 +131,8 @@ int os_cond_timedwait(OsCond *cond, OsMutex *mutex, int milliseconds);
 int os_cond_signal(OsCond *cond);
 int os_cond_broadcast(OsCond *cond);
 
+#define OS_SPINLOCK_PRIVATE 0
+#define OS_SPINLOCK_SHARED 0
 typedef long OsSpinLock;
 
 int os_spinlock_init(OsSpinLock *spinlock, int pshared);

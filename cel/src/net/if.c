@@ -32,7 +32,7 @@ const TCHAR *cel_hrdaddr_get_addrs_r(CelHrdAddr *hrdaddr, TCHAR *buf, int size)
 
     if (buf == NULL)
     {
-        buf = s_buf[((++i) % (int)CEL_BUFNUM)];
+        buf = s_buf[((++i) >= CEL_BUFNUM ? 0 : i)];
         size = CEL_HRDSTRLEN;
     }
     _sntprintf(buf, size, _T("%02x:%02x:%02x:%02x:%02x:%02x"), 
@@ -49,7 +49,7 @@ const TCHAR *cel_ipaddr_get_addrs_r(CelIpAddr *ipaddr, TCHAR *buf, int size)
 
     if (buf == NULL)
     {
-        buf = s_buf[((++i) % (int)CEL_BUFNUM)];
+        buf = s_buf[((++i) >= CEL_BUFNUM ? 0 : i)];
         size = CEL_IPSTRLEN;
     }
     return InetNtop(AF_INET, ipaddr, buf, size);
@@ -62,7 +62,7 @@ const TCHAR *cel_ip6addr_get_addrs_r(CelIp6Addr *ip6addr, TCHAR *buf, int size)
 
     if (buf == NULL)
     {
-        buf = s_buf[((++i) % (int)CEL_BUFNUM)];
+        buf = s_buf[((++i) >= CEL_BUFNUM ? 0 : i)];
         size = CEL_IP6STRLEN;
     }
     return InetNtop(AF_INET6, ip6addr, buf, size);

@@ -84,6 +84,8 @@ int os_cond_timedwait(OsCond *cond, OsMutex *mutex, int milliseconds);
 #define os_cond_signal(cond) pthread_cond_signal(cond)
 #define os_cond_broadcast(cond) pthread_cond_broadcast(cond)
 
+#define OS_SPINLOCK_PRIVATE PTHREAD_PROCESS_PRIVATE
+#define OS_SPINLOCK_SHARED PTHREAD_PROCESS_SHARED
 typedef pthread_spinlock_t OsSpinLock;
 
 #define os_spinlock_init(spinlock, pshared) \

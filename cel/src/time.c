@@ -48,9 +48,11 @@ void cel_cached_time_update(void)
 	struct timeval tv;
 
 	if (time_lock == NULL)
-		time_lock = cel_spinlock_new(0);
-	if (cel_spinlock_trylock(time_lock) == -1)
+		time_lock = cel_spinlock_new(OS_SPINLOCK_PRIVATE);
+	if (cel_spinlock_trylock(time_lock) != 0)
+	{
 		return ;
+	}
 	gettimeofday(&tv, NULL);
 
 	tp = &cached_times[slot];
@@ -60,11 +62,9 @@ void cel_cached_time_update(void)
 		cel_spinlock_unlock(time_lock);
 		return;
 	}
-
-	if (slot == CEL_TIME_SLOTS - 1)
+	if ((++slot) >= CEL_TIME_SLOTS)
 		slot = 0;
-	else 
-		slot++;
+	//printf("cel_cached_time_update::slot %d\r\n", slot);
 	tp = &cached_times[slot];
 	tp->tv_sec = tv.tv_sec;
 	tp->tv_usec = tv.tv_usec;
