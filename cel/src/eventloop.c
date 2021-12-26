@@ -105,10 +105,10 @@ CelTimerId cel_eventloop_schedule_timer(CelEventLoop *evt_loop,
     if (cel_timerqueue_push(&(evt_loop->timer_queue), timer))
     {
         /* Earliest changed */
-        //cel_atomic_store(&(evt_loop->timer_wakeup), 1);
-        evt_loop->timer_wakeup++;
+		cel_atomic_increment(&(evt_loop->timer_wakeup), 1);
         cel_eventloop_wakeup(evt_loop);
     }
+	cel_compiler_barrier();
     return timer->timer_id;
 }
 
@@ -137,13 +137,14 @@ static int cel_eventloop_handle(CelEventLoop *evt_loop, CelEventCtlBlock *ecb)
             /* Earliest changed */
             if (cel_timerqueue_push(&(evt_loop->timer_queue), &(ecb->timer)))
             {
-                evt_loop->timer_wakeup++;
+                cel_atomic_increment(&(evt_loop->timer_wakeup), 1);
                 if (evt_loop->wait_threads > 0)
                     cel_eventloop_wakeup(evt_loop);
             }
             //_tprintf(_T("timer restart\r\n"));
             return 0;
         }
+		cel_compiler_barrier();
         /* This timer has stoped */
         cel_timer_free(&(ecb->timer));
         break;
@@ -176,9 +177,9 @@ int cel_eventloop_do_work(CelEventLoop *evt_loop)
     /*CEL_DEBUG((_T("wakeup_cnt = %d, %d, pid %d"), 
         evt_loop->wakeup_cnt, evt_loop->timer_wakeup, (int)cel_thread_getid()));*/
     if (evt_loop->wakeup_cnt != evt_loop->timer_wakeup)
-    {
-        evt_loop->wakeup_cnt = evt_loop->timer_wakeup;
-        timer_wakeup = evt_loop->timer_wakeup;
+    {	
+		timer_wakeup = cel_atomic_load(&(evt_loop->wakeup_cnt));
+		cel_atomic_store(&(evt_loop->wakeup_cnt), timer_wakeup);
         if ((timeout = 
 			cel_timerqueue_pop_timeout(&(evt_loop->timer_queue), NULL)) != 0)
         {
@@ -207,7 +208,7 @@ int cel_eventloop_do_work(CelEventLoop *evt_loop)
             }
         }
         if (cel_timerqueue_pop_expired(
-            &(evt_loop->timer_queue), &expireds, 1, NULL) > 0)
+			&(evt_loop->timer_queue), &expireds, 1, NULL) > 0)
         {
 			cel_cached_time_update();
             if (timer_wakeup == evt_loop->timer_wakeup)
@@ -237,23 +238,24 @@ int cel_eventloop_do_work(CelEventLoop *evt_loop)
         if (ol != NULL)
             cel_eventloop_handle(evt_loop, (CelEventCtlBlock *)ol);
     }
+	cel_compiler_barrier();
 
     return 0;
 }
 
-int cel_eventloop_do_work2(CelEventLoop *evt_loop, CelCoroutineScheduler *schd)
-{
-    //int wakeup_cnt, n_expireds;
-    //long timeout;
-    CelTimer *expireds[2];
-    CelOverLapped *ol = NULL;
-    CelCoroutineEntity *ceo;
-
-    cel_timerqueue_pop_expired(&(evt_loop->timer_queue), expireds, 2, NULL);
-    while (cel_poll_wait(&(evt_loop->poll), &ol, 0))
-        ;
-    while ((ceo = cel_coroutinescheduler_readies_pop(schd)) != NULL)
-        cel_coroutineentity_resume(ceo);
-
-    return 0;
-}
+//int cel_eventloop_do_work2(CelEventLoop *evt_loop, CelCoroutineScheduler *schd)
+//{
+//    //int wakeup_cnt, n_expireds;
+//    //long timeout;
+//    CelTimer *expireds[2];
+//    CelOverLapped *ol = NULL;
+//    CelCoroutineEntity *ceo;
+//
+//    cel_timerqueue_pop_expired(&(evt_loop->timer_queue), expireds, 2, NULL);
+//    while (cel_poll_wait(&(evt_loop->poll), &ol, 0))
+//        ;
+//    while ((ceo = cel_coroutinescheduler_readies_pop(schd)) != NULL)
+//        cel_coroutineentity_resume(ceo);
+//
+//    return 0;
+//}

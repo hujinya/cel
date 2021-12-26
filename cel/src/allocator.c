@@ -198,7 +198,7 @@ static volatile size_t s_per_thread_cache_size = THREAD_CACHE_MAX_SIZE;
 static int s_unclaimed_cache_space = THREAD_CACHE_DEFAULT_OVERALL_SIZE;
 static BOOL s_init = FALSE;
 
-static __inline size_t cel_sizemap_index(int s) 
+static __inline size_t cel_sizemap_index(size_t s) 
 {
     if (s < 1024)
         return (((s) + 7) >> 3);
@@ -209,21 +209,26 @@ static __inline size_t cel_sizemap_index(int s)
 /* Mapping from size cache to max size storable in that caches */
 static __inline size_t cel_sizemap_size_to_block(size_t size)
 {
-    return s_block_array[cel_sizemap_index(size)];
+	size_t n = s_block_array[cel_sizemap_index(size)];
+	CEL_ASSERT(n < BLOCKS_NUM);
+    return n;
 }
 
 static __inline size_t cel_sizemap_block_to_size(size_t index)
 {
+	CEL_ASSERT(index < BLOCKS_NUM);
     return s_block_to_size[index];
 }
 
 static __inline size_t cel_sizemap_block_to_pages(size_t index)
 {
+	CEL_ASSERT(index < BLOCKS_NUM);
     return s_block_to_pages[index];
 }
 
 static __inline size_t cel_sizemap_block_grow(size_t index)
 {
+	CEL_ASSERT(index < BLOCKS_NUM);
     return s_block_grow[index];
 }
 
@@ -364,9 +369,10 @@ int cel_sizemap_init()
         for (size = next_size; size <= max_size_in_class; size += ALIGNMENT) 
         {
             s_block_array[cel_sizemap_index(size)] = index;
-            //_tprintf(_T("size %d, index %d\r\n"), size, index);
+            //_tprintf(_T("idx %d, size %d, index %d\r\n"), cel_sizemap_index(size), size, index);
         }
         next_size = max_size_in_class + ALIGNMENT;
+		//_tprintf(_T("index %d, next_size %d\r\n"), index,  next_size);
     }
     /* Initialize the num_objects_to_move array. */
     for (index = 1; index  < BLOCKS_NUM; ++index) 
@@ -717,8 +723,7 @@ int cel_pageheap_release_pages(CelPageHeap *page_heap, int n_pages)
 
     while (released_pages < n_pages && page_heap->free_bytes > 0)
     {
-        for (i = 0; 
-            i < MAX_PAGES + 1 && released_pages < n_pages;
+        for (i = 0; i < MAX_PAGES + 1 && released_pages < n_pages;
             i++, (page_heap->realeased_index)++ )
         {
             if (page_heap->realeased_index > MAX_PAGES)
@@ -1237,8 +1242,7 @@ static CelThreadCache *cel_threadcache_get(void)
     {
         if ((thread_cache = cel_threadcache_new()) != NULL)
         {
-            if (cel_multithread_set_keyvalue(
-                CEL_MT_KEY_ALLOCATOR, thread_cache) != -1
+            if (cel_multithread_set_keyvalue(CEL_MT_KEY_ALLOCATOR, thread_cache) != -1
                 && cel_multithread_set_keydestructor(
                 CEL_MT_KEY_ALLOCATOR, 
                 (CelDestroyFunc)cel_threadcache_free) != -1)

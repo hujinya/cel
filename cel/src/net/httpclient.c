@@ -128,16 +128,16 @@ int cel_httpclient_reading_recv_request(CelHttpClient *client, CelHttpRequest *r
 
 int cel_httpclient_recv_request(CelHttpClient *client, CelHttpRequest *req)
 {
-    int ret;
+	int ret;
 
-    do
-    {
-        if ((ret = cel_tcpclient_recv(&(client->tcp_client), &(req->hs.s)) <= 0)
-            || (ret = cel_httpclient_reading_recv_request(client, req)) == -1)
-            return ret;
-    }while (ret != 1);
+	do
+	{
+		if ((ret = cel_tcpclient_recv(&(client->tcp_client), &(req->hs.s)) <= 0)
+			|| (ret = cel_httpclient_reading_recv_request(client, req)) == -1)
+			return ret;
+	}while (ret != 1);
 
-    return 0;
+	return 0;
 }
 
 void cel_httpclient_do_recv_request(CelHttpClient *client, 

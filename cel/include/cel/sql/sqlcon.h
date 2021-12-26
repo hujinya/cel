@@ -51,7 +51,7 @@ typedef long (* CelSqlResRowsFunc)(void *res);
 typedef int (* CelSqlResColsFunc)(void *res);
 typedef unsigned long* (* CelSqlResFetchLengthsFunc)(void *res);
 typedef char** (* CelSqlResFetchRowFunc)(void *res);
-typedef void* (*CelSqlResFetchFieldFunc)(void *res);
+typedef void* (* CelSqlResFetchFieldFunc)(void *res);
 typedef void (* CelSqlResFreeFunc)(void *res);
 
 typedef struct _CelSqlConClass

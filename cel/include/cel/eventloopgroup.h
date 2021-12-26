@@ -55,17 +55,17 @@ void cel_eventloopgroup_free(CelEventLoopGroup *group);
 
 static __inline void cel_eventloopgroup_exit(CelEventLoopGroup *group)
 {
-    int i;
+	int i;
 
-    if (group->is_shared)
-    {
-        cel_eventloop_exit(group->evt_loop);
-    }
-    else
-    {
-        for (i = 0; i < group->n_threads; i++)
-            cel_eventloop_exit(group->evt_loop_threads[i].evt_loop);
-    }
+	if (group->is_shared)
+	{
+		cel_eventloop_exit(group->evt_loop);
+	}
+	else
+	{
+		for (i = 0; i < group->n_threads; i++)
+			cel_eventloop_exit(group->evt_loop_threads[i].evt_loop);
+	}
 }
 
 static __inline 
