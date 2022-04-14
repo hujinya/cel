@@ -24,9 +24,9 @@ SO_TARGET = ../lib/libcel.so
 BIN_TARGET = 
 
 MAJOR = 1
-MINOR = 4
-REVISION = 2
-BUILD = 70
+MINOR = 5
+REVISION = 0
+BUILD = 71
 EXTRA = ""
 VERSION_FILE= "../include/cel/_version.h"
 

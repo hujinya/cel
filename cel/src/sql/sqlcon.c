@@ -154,6 +154,7 @@ CelSqlRes *_cel_sqlcon_execute_query(CelSqlCon *con)
     }
     res->st_res = st_res;
     res->kclass = con->kclass;
+
     return res;
 }
 

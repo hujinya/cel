@@ -68,10 +68,10 @@ int os_service_pidfile_exist(const TCHAR *name)
     //_tprintf(_T("ppid %d, getppid() = %d, pid %d \r\n"),
     //    ppid, getppid(), pid);
 	cel_process_getbypid(&ps, pid);
-    //cel_process_getbypid(&pps, ppid);
-    if (_tcscmp(ps.name, name) != 0
-		 || ((ppid <= 0 || (ppid == getppid() || kill(ppid, 0) == -1)) 
-        && (pid <= 0 || kill(pid, 0) == -1)))
+	//cel_process_getbypid(&pps, ppid);
+	if (_tcscmp(ps.name, name) != 0
+		|| ((ppid <= 0 || (ppid == getppid() || kill(ppid, 0) == -1)) 
+		&& (pid <= 0 || kill(pid, 0) == -1)))
     {
         fprintf(stderr, "Remove a stale pid file %s\n", file_path);
         unlink(file_path);

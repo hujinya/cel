@@ -729,7 +729,7 @@ static int cel_httprequest_writing_header(CelHttpRequest *req, CelStream *s)
 
 static int cel_httprequest_writing_body(CelHttpRequest *req, CelStream *s)
 {
-    size_t _size;
+    size_t _size = 0;
     long len;
 
     if (req->transfer_encoding == CEL_HTTPTE_CHUNKED)
@@ -750,11 +750,13 @@ static int cel_httprequest_writing_body(CelHttpRequest *req, CelStream *s)
                     cel_httpchunked_get_send_position(&(req->hs.chunked)));
                 if (req->body_writing_callback == NULL
                     || (_size = req->body_writing_callback(
-					&(req->hs), req->body_writing_user_data)) <= 0)
+					&(req->hs), req->body_writing_user_data)) == 0)
                 {
                     cel_stream_seal_length(s);
                     return CEL_HTTP_WANT_WRITE;
                 }
+				if (_size < 0) 
+					return CEL_HTTP_ERROR;
 				//printf("chunked send seek%d \r\n", (int)_size);
                 req->writing_body_offset += _size;
                 req->content_length += _size;
@@ -786,6 +788,8 @@ static int cel_httprequest_writing_body(CelHttpRequest *req, CelStream *s)
                     cel_stream_seal_length(s);
                     return CEL_HTTP_WANT_WRITE;
                 }
+				if (_size < 0) 
+					return CEL_HTTP_ERROR;
                 req->writing_body_offset += _size;
             }
         }

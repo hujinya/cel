@@ -672,40 +672,40 @@ int cel_httpcookie_reading(CelHttpCookie *cookie,
     size_t value_start = 0, value_end;
     size_t i = 0;
 
-    while (i < size)
-    {
-        if (value[i] == '=')
-        {
-            key_end = i;
-            value_start = i + 1;
-        }
-        if (value[i] == ';')
-        {
-            value_end = i;
-            if (key_end - key_start == 7
-                && memcmp(&value[key_start], "Expires", key_end - key_start) == 0)
-                cel_time_init_strtime_a(&(cookie->expires),
-                &value[value_start]);
-            else if (key_end - key_start == 6
-                && memcmp(&value[key_start], "Domain", key_end - key_start) == 0)
-                cel_vstring_assign_a(&(cookie->domain),
-                &value[value_start], value_end - value_start);
-            else if (key_end - key_start == 4
-                && memcmp(&value[key_start], "Path", key_end - key_start) == 0)
-                cel_vstring_assign_a(&(cookie->path), 
-                &value[value_start], value_end - value_start);
-            else if (key_end - key_start == 6
-                && memcmp(&value[key_start], "Secure", key_end - key_start) == 0)
-                cookie->secure = TRUE;
-            else if (key_end - key_start == 8
-                && memcmp(&value[key_start], "Httponly", key_end - key_start) == 0)
-                cookie->httponly = TRUE;
-            else
-                cel_vstring_assign_a(&(cookie->values),
-                &value[key_start], value_end - key_start);
-            key_start = value_start = i + 1;
-        }
-        i++;
+	while (i < size)
+	{
+		if (value[i] == '=')
+		{
+			key_end = i;
+			value_start = i + 1;
+		}
+		if (value[i] == ';')
+		{
+			value_end = i;
+			if (key_end - key_start == 7
+				&& memcmp(&value[key_start], "Expires", key_end - key_start) == 0)
+				cel_time_init_strtime_a(&(cookie->expires),
+				&value[value_start]);
+			else if (key_end - key_start == 6
+				&& memcmp(&value[key_start], "Domain", key_end - key_start) == 0)
+				cel_vstring_assign_a(&(cookie->domain),
+				&value[value_start], value_end - value_start);
+			else if (key_end - key_start == 4
+				&& memcmp(&value[key_start], "Path", key_end - key_start) == 0)
+				cel_vstring_assign_a(&(cookie->path), 
+				&value[value_start], value_end - value_start);
+			else if (key_end - key_start == 6
+				&& memcmp(&value[key_start], "Secure", key_end - key_start) == 0)
+				cookie->secure = TRUE;
+			else if (key_end - key_start == 8
+				&& memcmp(&value[key_start], "Httponly", key_end - key_start) == 0)
+				cookie->httponly = TRUE;
+			else
+				cel_vstring_assign_a(&(cookie->values),
+				&value[key_start], value_end - key_start);
+			key_start = value_start = i + 1;
+		}
+		i++;
     }
     return 0;
 }
@@ -1076,27 +1076,27 @@ long long cel_httpbodycache_save_file(CelHttpBodyCache *cache,
 
 int cel_httpbodycache_move_file(CelHttpBodyCache *cache, const char *file_path)
 {
-    if (cache->fp == NULL)
-    {
-        return (cel_httpbodycache_save_file(cache, 0, 0, file_path) != -1 
-            ? 0 : -1);
-    }
-    else
-    {
-        /*_tprintf("cel_httpbodycache_move_file %s %s\r\n", 
-            cel_vstring_str_a(&(cache->file_path)),
-            cel_fullpath_a(file_path));*/
-        cel_fclose(cache->fp);
-        cache->fp = NULL;
-        if (cel_fmove(cel_vstring_str_a(&(cache->file_path)),
-            cel_fullpath_a(file_path)) == 0)
-        {
-            cache->clear_file = FALSE;
-            cel_vstring_clear(&(cache->file_path));
-            cache->size = 0;
-            return 0;
-        }
-        CEL_SETERR((CEL_ERR_LIB, cel_geterrstr()));
-        return -1;
-    }
+	if (cache->fp == NULL)
+	{
+		return (cel_httpbodycache_save_file(cache, 0, 0, file_path) != -1 
+			? 0 : -1);
+	}
+	else
+	{
+		/*_tprintf("cel_httpbodycache_move_file %s %s\r\n", 
+		cel_vstring_str_a(&(cache->file_path)),
+		cel_fullpath_a(file_path));*/
+		cel_fclose(cache->fp);
+		cache->fp = NULL;
+		if (cel_fmove(cel_vstring_str_a(&(cache->file_path)),
+			cel_fullpath_a(file_path)) == 0)
+		{
+			cache->clear_file = FALSE;
+			cel_vstring_clear(&(cache->file_path));
+			cache->size = 0;
+			return 0;
+		}
+		CEL_SETERR((CEL_ERR_LIB, cel_geterrstr()));
+		return -1;
+	}
 }

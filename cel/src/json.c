@@ -152,73 +152,73 @@ static int cel_json_string_encode(CelJson *json, char ch)
 
 static int cel_json_string_decode(CelJson *json, char ch)
 {
-    //_tprintf(_T("%c escape %d\r\n"), ch, json->is_escape);
-    if ((--(json->is_escape)) < 0)
-    {
-        if (ch == '\\')
-        {
-            json->is_escape = 1;
-        }
-        else 
-        {
-            if (ch == '"')
-            {
-                json->colon = 1;
-                return 0;
-            }
-            cel_vstring_append_a(&(json->vstr), ch);
-        }
-    }
-    else
-    {
-        if (json->is_escape == 0)
-        {
-            if (ch == 'u')
-            {
-                json->is_escape = 5;
-                json->escape_cursor = 0;
-            }
-            else
-            {
-                switch (ch)
-                { 
-                case '\"':
-                case '/': 
-                case '\\': break;
-                case 'b': ch = '\b'; break; 
-                case 'f': ch = '\f'; break; 
-                case 'n': ch = '\n'; break; 
-                case 'r': ch = '\r'; break; 
-                case 't': ch = '\t'; break; 
-                default: 
-                    CEL_SETERR((CEL_ERR_LIB, 
+	//_tprintf(_T("%c escape %d\r\n"), ch, json->is_escape);
+	if ((--(json->is_escape)) < 0)
+	{
+		if (ch == '\\')
+		{
+			json->is_escape = 1;
+		}
+		else 
+		{
+			if (ch == '"')
+			{
+				json->colon = 1;
+				return 0;
+			}
+			cel_vstring_append_a(&(json->vstr), ch);
+		}
+	}
+	else
+	{
+		if (json->is_escape == 0)
+		{
+			if (ch == 'u')
+			{
+				json->is_escape = 5;
+				json->escape_cursor = 0;
+			}
+			else
+			{
+				switch (ch)
+				{ 
+				case '\"':
+				case '/': 
+				case '\\': break;
+				case 'b': ch = '\b'; break; 
+				case 'f': ch = '\f'; break; 
+				case 'n': ch = '\n'; break; 
+				case 'r': ch = '\r'; break; 
+				case 't': ch = '\t'; break; 
+				default: 
+					CEL_SETERR((CEL_ERR_LIB, 
 						_T("Json string decode error, undefined escap(%c)."), ch));
-                    json->state = CEL_JSONDS_ERROR;
-                    return -1;
-                }
-                //_puttchar(ch);
-                cel_vstring_append_a(&(json->vstr), ch);
-            }
-        }
-        /* Unicode */
-        else
-        {
-            json->escape_buf[(json->escape_cursor)++] = ch;
-            if (json->escape_cursor >= 4)
-            {
+					json->state = CEL_JSONDS_ERROR;
+					return -1;
+				}
+				//_puttchar(ch);
+				cel_vstring_append_a(&(json->vstr), ch);
+			}
+		}
+		/* Unicode */
+		else
+		{
+			json->escape_buf[(json->escape_cursor)++] = ch;
+			if (json->escape_cursor >= 4)
+			{
 #ifdef UNICODE
-                //cel_vstring_append_a(&(json->vstr), 0);
+				//cel_vstring_append_a(&(json->vstr), 0);
 #else
-                //cel_vstring_append_a(&(json->vstr), 0);
-                //cel_vstring_append_a(&(json->vstr), 0);
+				//cel_vstring_append_a(&(json->vstr), 0);
+				//cel_vstring_append_a(&(json->vstr), 0);
 #endif
-                json->escape_cursor = 0;
-                json->is_escape = 0;
-            }
-        }
-    }
+				json->escape_cursor = 0;
+				json->is_escape = 0;
+			}
+		}
+	}
 
-    return 0;
+	return 0;
 }
 
 static int cel_json_deserialize_key(CelJson *json, const char *buf, size_t size,

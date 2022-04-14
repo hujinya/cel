@@ -75,19 +75,19 @@ void cel_spinlock_free(CelSpinLock *spinlock)
 
 CelRwlock *cel_rwlock_new(CelRwlockAttr *attr)
 {
-    CelRwlock *rwlock;
+	CelRwlock *rwlock;
 
-    if ((rwlock = (CelRwlock *)cel_malloc(sizeof(CelRwlock))) != NULL)
-    {
-        if (cel_rwlock_init(rwlock, attr) == 0)
-            return rwlock;
-        cel_free(rwlock);
-    }
-    return NULL;
+	if ((rwlock = (CelRwlock *)cel_malloc(sizeof(CelRwlock))) != NULL)
+	{
+		if (cel_rwlock_init(rwlock, attr) == 0)
+			return rwlock;
+		cel_free(rwlock);
+	}
+	return NULL;
 }
 
 void cel_rwlock_free(CelRwlock *rwlock)
 {
-    cel_rwlock_destroy(rwlock); 
-    cel_free(rwlock);
+	cel_rwlock_destroy(rwlock); 
+	cel_free(rwlock);
 }

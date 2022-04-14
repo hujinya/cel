@@ -1,4 +1,8 @@
-* Sat Jann 27 2021 Hu Jinya <hjy@gzsunrun.cn> 1.4.2.70
+* Wed Apr 13 2022 Hu Jinya <hjy@gzsunrun.cn> 1.5.0.71
+- 修复：修复cel_httpresponse_writing_body\cel_httprequest_writing_body
+  未判断读写文件出错导致死循环读文件。
+
+* Sat Jan 27 2021 Hu Jinya <hjy@gzsunrun.cn> 1.4.2.70
 - 优化：单条日志缓存长度由512调整为1024。
 - 修复：修复重复初始化json导致内存泄露。
 - 修复：修复cel_reallocate中old_size未初始化导致内存泄露。
