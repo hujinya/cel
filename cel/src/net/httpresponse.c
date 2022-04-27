@@ -641,7 +641,7 @@ static int cel_httpresponse_writing_header(CelHttpResponse *rsp, CelStream *s)
 
 static int cel_httpresponse_writing_body(CelHttpResponse *rsp, CelStream *s)
 {
-    size_t _size = 0;
+    int _size = 0;
     long len;
 
     if (rsp->transfer_encoding == CEL_HTTPTE_CHUNKED)
@@ -663,10 +663,10 @@ static int cel_httpresponse_writing_body(CelHttpResponse *rsp, CelStream *s)
                 if (rsp->body_writing_callback == NULL
                     || (_size = rsp->body_writing_callback(
 					&(rsp->hs), rsp->body_writing_user_data)) == 0)
-                {
-                    cel_stream_seal_length(s);
-                    return CEL_HTTP_WANT_WRITE;
-                }
+				{
+					cel_stream_seal_length(s);
+					return CEL_HTTP_WANT_WRITE;
+				}
 				if (_size < 0) 
 					return CEL_HTTP_ERROR;
 				//printf("chunked send seek%d \r\n", (int)_size);

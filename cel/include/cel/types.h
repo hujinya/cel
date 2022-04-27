@@ -93,7 +93,7 @@ typedef int               BOOL;
 #define CEL_HDNUM            16    /* The maximum number of processors harddisk */
 #define CEL_NETDEVNUM        16    /* The maximum number of processors net device */
 #define CEL_THDNUM           64    /* Max threads for each process */
-#define CEL_BUFNUM            4    /* The number of static cache for each function */
+#define CEL_BUFNUM            8    /* The number of static cache for each function */
 
 #define CEL_ERRSLEN         512    /* Error string length */
 #define CEL_ARGSLEN         512    /* Args length */

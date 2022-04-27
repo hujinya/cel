@@ -282,7 +282,7 @@ CelTime *cel_time_new_now(void)
     CelTime *dt;
 
     if ((dt = cel_time_new()) != NULL)
-        gettimeofday(dt, NULL);
+        cel_time_init_now(dt);
     return dt;
 }
 
@@ -372,11 +372,11 @@ long cel_time_diffmilliseconds(const CelTime *dt2, const CelTime *dt1)
 void cel_time_get_date(CelTime *dt, int *year, int *mon, int *mday, int *wday)
 {
 	struct tm tms;
+	time_t time_sec;
 
-	if (dt == NULL)
-		gettimeofday(dt, NULL);
-
-	localtime_r((time_t *)&(dt->tv_sec), &tms);
+	CEL_TIME_NOW(dt);
+	time_sec = dt->tv_sec;
+	localtime_r(&time_sec, &tms);
 	if (year != NULL) *year = tms.tm_year + 1900;
 	if (mon != NULL) *mon = tms.tm_mon;
 	if (mday != NULL) *mday = tms.tm_mday;
@@ -386,11 +386,11 @@ void cel_time_get_date(CelTime *dt, int *year, int *mon, int *mday, int *wday)
 void cel_time_get_time(CelTime *dt, int *hour, int *min, int *sec)
 {
     struct tm tms;
+	time_t time_sec;
 
-    if (dt == NULL)
-		gettimeofday(dt, NULL);
-
-	localtime_r((time_t *)&(dt->tv_sec), &tms);
+    CEL_TIME_NOW(dt);
+    time_sec = dt->tv_sec;
+	localtime_r(&time_sec, &tms);
     if (hour != NULL) *hour = tms.tm_hour;
     if (min != NULL) *min = tms.tm_min;
     if (sec!= NULL) *sec = tms.tm_sec;
@@ -401,11 +401,11 @@ void cel_time_get(CelTime *dt, int *year,
 				  int *hour, int *min, int *sec)
 {
     struct tm tms;
+	time_t time_sec;
 
-    if (dt == NULL)
-		gettimeofday(dt, NULL);
-
-	localtime_r((time_t *)&(dt->tv_sec), &tms);
+    CEL_TIME_NOW(dt);
+    time_sec = dt->tv_sec;
+	localtime_r(&time_sec, &tms);
     if (year != NULL) *year = tms.tm_year + 1900;
     if (mon != NULL) *mon = tms.tm_mon;
     if (mday != NULL) *mday = tms.tm_mday;
@@ -418,8 +418,10 @@ void cel_time_get(CelTime *dt, int *year,
 void cel_time_set_date(CelTime *dt, int year, int mon, int mday)
 {
     struct tm tms;
+	time_t time_sec;
 
-    localtime_r((time_t *)&(dt->tv_sec), &tms);
+    time_sec = dt->tv_sec;
+	localtime_r(&time_sec, &tms);
     tms.tm_year = year - 1900;
     tms.tm_mon = mon;
     tms.tm_mday = mday;
@@ -430,8 +432,10 @@ void cel_time_set_date(CelTime *dt, int year, int mon, int mday)
 void cel_time_set_time(CelTime *dt, int hour, int min, int sec)
 {
     struct tm tms;
+	time_t time_sec;
 
-    localtime_r((time_t *)&(dt->tv_sec), &tms);
+    time_sec = dt->tv_sec;
+	localtime_r(&time_sec, &tms);
     tms.tm_hour = hour;
     tms.tm_min = min;
     tms.tm_sec = sec;
@@ -443,8 +447,10 @@ void cel_time_set_datetime(CelTime *dt, int year, int mon, int mday,
 						   int hour, int min, int sec)
 {
     struct tm tms;
+	time_t time_sec;
 
-    localtime_r((time_t *)&(dt->tv_sec), &tms);
+    time_sec = dt->tv_sec;
+	localtime_r(&time_sec, &tms);
     tms.tm_year = year - 1900;
     tms.tm_mon = mon;
     tms.tm_mday = mday;
@@ -459,10 +465,12 @@ void cel_time_add_months(CelTime *dt, int months)
 {
     int n_months, n_years;
     struct tm tms;
+	time_t time_sec;
 
     n_years  = months / 12;
     n_months = months % 12;
-    localtime_r((time_t *)&(dt->tv_sec), &tms);
+    time_sec = dt->tv_sec;
+	localtime_r(&time_sec, &tms);
     tms.tm_year += n_years;
     tms.tm_mon += n_months;
     if (tms.tm_mon > 11)
@@ -485,8 +493,10 @@ void cel_time_add_months(CelTime *dt, int months)
 void cel_time_add_years(CelTime *dt, int years)
 {
     struct tm tms;
+	time_t time_sec;
 
-    localtime_r((time_t *)&(dt->tv_sec), &tms);
+    time_sec = dt->tv_sec;
+	localtime_r(&time_sec, &tms);
     tms.tm_year += years;
     if (tms.tm_mon == 1 && tms.tm_mday == 29 
         && !CEL_ISLEAPYEAR(tms.tm_year + 1900))
@@ -498,12 +508,12 @@ size_t cel_time_strftime_a(CelTime *dt, BOOL local,
 						   CHAR *buf, size_t size, const CHAR *fmt)
 {
     struct tm tms;
+	time_t time_sec;
 
-    if (dt == NULL)
-		gettimeofday(dt, NULL);
+    CEL_TIME_NOW(dt);
+	time_sec = dt->tv_sec;
     return strftime(buf, size, fmt, 
-		(local ? localtime_r((time_t *)&(dt->tv_sec), &tms) 
-		: gmtime_r((time_t *)&(dt->tv_sec), &tms)));
+		(local ? localtime_r(&time_sec, &tms) : gmtime_r(&time_sec, &tms)));
 }
 
 #ifdef _CEL_WIN
@@ -511,11 +521,11 @@ size_t cel_time_strftime_w(CelTime *dt, BOOL local,
 						   WCHAR *buf, size_t size, const WCHAR *fmt)
 {
     struct tm tms;
+	time_t time_sec;
 
-    if (dt == NULL)
-		gettimeofday(dt, NULL);
+    CEL_TIME_NOW(dt);
+	time_sec = dt->tv_sec;
     return wcsftime(buf, size, fmt, 
-        (local ? localtime_r((time_t *)&(dt->tv_sec), &tms) 
-		: gmtime_r((time_t *)&(dt->tv_sec), &tms)));
+		(local ? localtime_r(&time_sec, &tms) : gmtime_r(&time_sec, &tms)));
 }
 #endif

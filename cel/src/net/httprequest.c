@@ -729,7 +729,7 @@ static int cel_httprequest_writing_header(CelHttpRequest *req, CelStream *s)
 
 static int cel_httprequest_writing_body(CelHttpRequest *req, CelStream *s)
 {
-    size_t _size = 0;
+    int _size = 0;
     long len;
 
     if (req->transfer_encoding == CEL_HTTPTE_CHUNKED)

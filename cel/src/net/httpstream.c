@@ -185,10 +185,11 @@ int cel_httpstream_send_file(CelHttpStream *hs, FILE *fp)
 
     if ((size = fread(cel_stream_get_pointer(&(hs->s)), 1,
 		cel_stream_get_remaining_capacity(&(hs->s)), fp)) <= 0) {
+		printf("cel_httpstream_send_file error");
         return -1;
 	}
     cel_stream_seek(&(hs->s), size);
     /*_tprintf(_T("cel_httprequest_body_file capacity %d, size %d\r\n"), 
-        cel_stream_get_remaining_capacity(s), size);*/
+        cel_stream_get_remaining_capacity(&(hs->s)), size);*/
     return size;
 }

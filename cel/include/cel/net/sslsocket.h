@@ -40,18 +40,18 @@ typedef void (*CelSslSocketShutdownCallbackFunc)(
 
 typedef struct _CelSslAsyncArgs
 {
-    int want;
-    CelAsyncBuf sock_buf;
-    CelAsyncBuf *ssl_buf;
-    CelAsyncResult result;
-    union {
-        CelSslSocketAcceptCallbackFunc accept_callback;
-        CelSslSocketConnectCallbackFunc connect_callback;
-        CelSslSocketHandshakeCallbackFunc handshake_callback;
-        CelSslSocketSendCallbackFunc send_callback;
-        CelSslSocketRecvCallbackFunc recv_callback;
-        CelSslSocketShutdownCallbackFunc shutdown_callback;
-    };
+	int want;
+	CelAsyncBuf sock_buf;
+	CelAsyncBuf *ssl_buf;
+	CelAsyncResult result;
+	union {
+		CelSslSocketAcceptCallbackFunc accept_callback;
+		CelSslSocketConnectCallbackFunc connect_callback;
+		CelSslSocketHandshakeCallbackFunc handshake_callback;
+		CelSslSocketSendCallbackFunc send_callback;
+		CelSslSocketRecvCallbackFunc recv_callback;
+		CelSslSocketShutdownCallbackFunc shutdown_callback;
+	};
 }CelSslAsyncArgs;
 
 struct _CelSslSocket{
