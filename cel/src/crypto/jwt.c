@@ -65,7 +65,7 @@ void cel_jwt_free(CelJwt *jwt)
     cel_free(jwt);
 }
 
-static int cel_jwt_base64url_decode_json(CelJson *json, const char *src, int n)
+static int cel_jwt_base64url_decode_json(CelJson *json, const char *src, size_t n)
 {
 	size_t len;
 	BYTE *buf;
@@ -242,7 +242,7 @@ static int cel_jwt_sign_sha_pem(BYTE *out, size_t *out_len,
         EC_KEY_free(ec_key);
 
         /* Get the sig from the DER encoded version. */
-        ec_sig = d2i_ECDSA_SIG(NULL, (const unsigned char **)&sig, slen);
+        ec_sig = d2i_ECDSA_SIG(NULL, (const unsigned char **)&sig, (long)slen);
         if (ec_sig == NULL)
         {
             ret = -1;
@@ -306,7 +306,7 @@ static int cel_jwt_verify_sha_pem(const EVP_MD *alg, int type,
     EVP_PKEY *pkey = NULL;
     BIO *bufkey = NULL;
     int ret = 0;
-    int slen;
+    size_t slen;
 
     slen = cel_base64url_decode_size(sig_len);
     sig = (unsigned char *)alloca(slen);
@@ -531,7 +531,7 @@ int cel_jwt_decode(CelJwt *jwt, const char *token, size_t token_len,
                    const BYTE *key, int key_len)
 {
     const char *head, *payload, *sig;
-    int head_len, payload_len, sig_len;
+    size_t head_len, payload_len, sig_len;
     int ret = 0;
 
     head = token;

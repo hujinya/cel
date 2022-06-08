@@ -41,10 +41,10 @@ typedef U8 CelHrdAddr[CEL_HRDADDRLEN];
 #define CEL_IP6NETMASKBITS   sizeof(CelIp6Netmask) * 8
 
 const TCHAR *cel_hrdaddr_get_addrs_r(CelHrdAddr *hrdaddr, 
-                                     TCHAR *buf, int size);
-const TCHAR *cel_ipaddr_get_addrs_r(CelIpAddr *ipaddr, TCHAR *buf, int size);
+                                     TCHAR *buf, size_t size);
+const TCHAR *cel_ipaddr_get_addrs_r(CelIpAddr *ipaddr, TCHAR *buf, size_t size);
 const TCHAR *cel_ip6addr_get_addrs_r(CelIp6Addr *ip6addr, 
-                                     TCHAR *buf, int size);
+                                     TCHAR *buf, size_t size);
 /*
  * int cel_hrdaddr_pton(const TCHAR *hrdstr, CelHrdAddr *hrdaddr);
  * const TCHAR *cel_hrdaddr_notp(CelHrdAddr *hrdaddr);

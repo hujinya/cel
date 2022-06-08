@@ -124,7 +124,7 @@ typedef struct _CelSpan
         };
     };
     uintptr_t start;                /* Starting page number */
-    unsigned int n_pages;           /* Number of pages in span */
+    size_t n_pages;                 /* Number of pages in span */
     unsigned int ref_count:16;      /* Number of non-free objects */
     unsigned int index:8;           /* Block-index for small objects (or 0) */
     unsigned int location:2;        /* Is the span on a freelist, and if so, which? */
@@ -168,8 +168,8 @@ typedef struct _CelCentralCache
     size_t n_allocated_blocks;    /* Number of allocated blocks from pageheap */
     size_t used_slots;            /* Number of currently used slots */
     CelBlockSlot slots[SLOTS_NUM];/* Cache slots */
-    int cache_size;               /* The current number of slots for this size class.*/
-    int max_cache_size;           /* Maximum size of the cache for a given size class. */
+    size_t cache_size;               /* The current number of slots for this size class.*/
+    size_t max_cache_size;           /* Maximum size of the cache for a given size class. */
 }CelCentralCache;
 
 typedef struct _CelThreadCache
@@ -185,17 +185,17 @@ typedef struct _CelThreadCache
     CelFreeList free_list[BLOCKS_NUM];
 }CelThreadCache;
 
-static int s_block_array[BLOCK_ARRAY_NUM];
-static int s_block_grow[BLOCKS_NUM];
-static int s_block_to_size[BLOCKS_NUM];
-static int s_block_to_pages[BLOCKS_NUM];
+static size_t s_block_array[BLOCK_ARRAY_NUM];
+static size_t s_block_grow[BLOCKS_NUM];
+static size_t s_block_to_size[BLOCKS_NUM];
+static size_t s_block_to_pages[BLOCKS_NUM];
 static CelPageHeap s_pageheap;
 static CelCentralCache s_centralcache[BLOCKS_NUM];
 
 static CelList s_threadcache_list;
 static CelThreadCache *s_next_memory_steal = NULL;
 static volatile size_t s_per_thread_cache_size = THREAD_CACHE_MAX_SIZE;
-static int s_unclaimed_cache_space = THREAD_CACHE_DEFAULT_OVERALL_SIZE;
+static size_t s_unclaimed_cache_space = THREAD_CACHE_DEFAULT_OVERALL_SIZE;
 static BOOL s_init = FALSE;
 
 static __inline size_t cel_sizemap_index(size_t s) 
@@ -290,7 +290,7 @@ int cel_sizemap_grow(size_t size)
     if (size == 0) 
         return 0;
     /* Use approx 64k transfers between thread and central caches. */
-    num = (64 * 1024 / size);
+    num = (int)(64 * 1024 / size);
     if (num < 2) 
         num = 2;
     if (num > 32) 
@@ -445,7 +445,7 @@ static void cel_pageheap_merge_into_freelist(CelPageHeap *page_heap,
                                              CelSpan *span)
 {
     uintptr_t page_id;
-    unsigned int n_pages;
+    size_t n_pages;
     CelSpan *prev, *next;
 
     page_id = span->start;
@@ -522,7 +522,7 @@ void cel_pageheap_destroy(CelPageHeap *page_heap)
 CelSpan *cel_pageheap_search_free_and_large_list(CelPageHeap *page_heap,
                                                  size_t n_pages)
 {
-    int i;
+    size_t i;
     CelSpan *span, *tail, *best = NULL;
     CelSpanList *span_list;
 
@@ -583,8 +583,7 @@ CelSpan *cel_pageheap_search_free_and_large_list(CelPageHeap *page_heap,
 
 int cel_pageheap_grow(CelPageHeap *page_heap, size_t n_pages)
 {
-    unsigned int ask;
-    size_t actual_size;
+    size_t ask, actual_size;
     char *ptr;
     CelSpan *span;
 
@@ -635,7 +634,7 @@ CelSpan *cel_pageheap_carve(CelPageHeap *page_heap,
     old_location = span->location;
     cel_pageheap_remove_span(page_heap, span);
     span->location = SPAN_IN_USE;
-    if ((extra = span->n_pages - n_pages) > 0)
+    if ((extra = (int)span->n_pages - (int)n_pages) > 0)
     {
         leftover = (CelSpan *)_cel_sys_malloc(sizeof(CelSpan));
         leftover->next = leftover->prev = NULL;
@@ -675,16 +674,16 @@ CelSpan *cel_pageheap_carve(CelPageHeap *page_heap,
 }
 
 void cel_pageheap_register_block(CelPageHeap *page_heap, 
-                                 CelSpan *span, int block_index)
+                                 CelSpan *span, size_t block_index)
 {
     unsigned int i;
 
-    span->index = block_index;
+    span->index = (unsigned int)block_index;
     for (i = 1; i < span->n_pages - 1; i++)
         cel_radixtree_set(&(page_heap->page_map), span->start + i, span);
 }
 
-CelSpan *cel_pageheap_allocate(CelPageHeap *page_heap, int n_pages)
+CelSpan *cel_pageheap_allocate(CelPageHeap *page_heap, size_t n_pages)
 {
     CelSpan *span;
 
@@ -714,9 +713,9 @@ CelSpan *cel_pageheap_allocate(CelPageHeap *page_heap, int n_pages)
     return span;
 }
 
-int cel_pageheap_release_pages(CelPageHeap *page_heap, int n_pages)
+size_t cel_pageheap_release_pages(CelPageHeap *page_heap, size_t n_pages)
 {
-    int released_pages = 0, released_length;
+    size_t released_pages = 0, released_length;
     int i;
     CelSpanList *span_list;
     CelSpan *span;
@@ -752,10 +751,10 @@ int cel_pageheap_release_pages(CelPageHeap *page_heap, int n_pages)
     return released_pages;
 }
 
-void cel_pageheap_incremental_scavenge(CelPageHeap *page_heap, int n_pages)
+void cel_pageheap_incremental_scavenge(CelPageHeap *page_heap, size_t n_pages)
 {
     double rate = 1, mult, wait;
-    int released_pages;
+    size_t released_pages;
 
     (page_heap->scavenge_counter) -= n_pages;
     if (page_heap->scavenge_counter > 0)
@@ -777,7 +776,7 @@ void cel_pageheap_incremental_scavenge(CelPageHeap *page_heap, int n_pages)
 
 void cel_pageheap_deallocate(CelPageHeap *page_heap, CelSpan *span)
 {
-    int n;
+    size_t n;
     
     n = span->n_pages;
     cel_spinlock_lock(&(page_heap->lock));
@@ -955,10 +954,10 @@ CelBlock *cel_centralcache_fetch_from_span(CelCentralCache *central_cache)
     return free_block;
 }
 
-int cel_centralcache_allocate(CelCentralCache *central_cache, 
-                              CelBlock **start, CelBlock **end, int num)
+size_t cel_centralcache_allocate(CelCentralCache *central_cache, 
+								 CelBlock **start, CelBlock **end, size_t num)
 {
-    int ret;
+    size_t ret;
     CelBlock *fetch_block;
 
     cel_spinlock_lock(&(central_cache->lock));
@@ -995,7 +994,7 @@ int cel_centralcache_allocate(CelCentralCache *central_cache,
 }
 
 BOOL cel_centralcache_shrink_cache(CelCentralCache *central_cache, 
-                                   int locked_index, BOOL force)
+                                   size_t locked_index, BOOL force)
 {
     BOOL b_ret;
     CelBlock *start, *next;
@@ -1003,14 +1002,14 @@ BOOL cel_centralcache_shrink_cache(CelCentralCache *central_cache,
     if (central_cache->cache_size == 0)
         return FALSE;
     if (force == FALSE 
-        && central_cache->used_slots == (size_t)central_cache->cache_size)
+        && central_cache->used_slots == central_cache->cache_size)
         return FALSE;
     if (central_cache->cache_size == 0)
         return FALSE;
     // lock inverter
     //cel_spinlock_unlock(&(s_centralcache[locked_index].lock));
     //cel_spinlock_lock(&(central_cache->lock));
-    if (central_cache->used_slots == (size_t)central_cache->cache_size)
+    if (central_cache->used_slots == central_cache->cache_size)
     {
         if (force == FALSE)
         {
@@ -1042,10 +1041,10 @@ BOOL cel_centralcache_shrink_cache(CelCentralCache *central_cache,
 }
 
 BOOL cel_centralcache_evict_random(CelCentralCache *central_cache, 
-                                   int locked_index, BOOL force)
+                                   size_t locked_index, BOOL force)
 {
-    static int race_counter = 0;
-    int t = race_counter++;
+    static size_t race_counter = 0;
+    size_t t = race_counter++;
     if (t > BLOCKS_NUM)
     {
         while (t >= BLOCKS_NUM)
@@ -1077,8 +1076,8 @@ BOOL cel_centralcache_make_cache_space(CelCentralCache *central_cache)
     return FALSE;
 }
 
-int cel_centralcache_deallocate(CelCentralCache *central_cache, 
-                                CelBlock *start, CelBlock *end, int num)
+size_t cel_centralcache_deallocate(CelCentralCache *central_cache, 
+								   CelBlock *start, CelBlock *end, size_t num)
 {
     CelBlock *next;
 
@@ -1177,12 +1176,12 @@ static CelThreadCache *cel_threadcache_new(void)
 }
 
 void cel_threadcache_release_blocks(CelThreadCache *thread_cache, 
-                                    CelFreeList *free_list, int index, int num)
+                                    CelFreeList *free_list, size_t index, size_t num)
 {
-    int grow_size, delta_bytes;
+    size_t grow_size, delta_bytes;
     CelBlock *start, *end;
 
-    if (num > (int)cel_freelist_get_size(free_list))
+    if (num > cel_freelist_get_size(free_list))
         num = cel_freelist_get_size(free_list);
     delta_bytes = num * cel_sizemap_block_to_size(index);
     grow_size = cel_sizemap_block_grow(index);
@@ -1310,7 +1309,7 @@ CelBlock *cel_threadcache_allocate(CelThreadCache *thread_cache, size_t index)
 }
 
 void cel_threadcache_freelist_too_long(CelThreadCache *thread_cache,
-                                       CelFreeList *free_list, int index)
+                                       CelFreeList *free_list, size_t index)
 {
     size_t grow_size;
 
@@ -1335,7 +1334,7 @@ void cel_threadcache_freelist_too_long(CelThreadCache *thread_cache,
 
 void cel_threadcache_sacvenge(CelThreadCache *thread_cache)
 {
-    int index, lowmark, drop;
+    size_t index, lowmark, drop;
     size_t grow_size, new_size;
     CelFreeList *free_list;
 
@@ -1374,10 +1373,10 @@ void cel_threadcache_deallocate(CelThreadCache *thread_cache,
     block_size = cel_sizemap_block_to_size(index);
     free_list = &(thread_cache->free_list[index]);
     thread_cache->size += block_size;
-    size_head_room = thread_cache->max_size - thread_cache->size - 1;
+    size_head_room = (int)thread_cache->max_size - (int)thread_cache->size - 1;
     cel_freelist_push(free_list, free_block);
-    list_head_room = cel_freelist_get_max_size(free_list) 
-        - cel_freelist_get_size(free_list);
+    list_head_room = (int)cel_freelist_get_max_size(free_list) 
+        - (int)cel_freelist_get_size(free_list);
     if ((size_head_room | list_head_room) < 0)
     {
         if (list_head_room < 0)
@@ -1392,8 +1391,8 @@ int cel_allocator_dump(char *buf, size_t size)
     int i;
     size_t cursor;
     size_t num1, num2;
-	long central_caches_total_size = 0;
-	long page_heaps_total_size = 0;
+	long long central_caches_total_size = 0;
+	long long page_heaps_total_size = 0;
     CelThreadCache *thread_cache, *thread_cache_tail;
 
     if (cel_malloc != cel_allocate)
@@ -1436,7 +1435,7 @@ int cel_allocator_dump(char *buf, size_t size)
     cursor -= 1;
     cursor += snprintf(buf + cursor, size - cursor, "],");
 	cursor += snprintf(buf + cursor, size - cursor, 
-		CEL_CRLF"\"central_caches_total_size\":%ld,", central_caches_total_size);
+		CEL_CRLF"\"central_caches_total_size\":%ld,", (long)central_caches_total_size);
     /* page_heaps */
     cel_spinlock_lock(&(s_pageheap.lock));
     cursor += snprintf(buf + cursor, size - cursor, CEL_CRLF"{\"page_heaps\":[");
@@ -1454,7 +1453,7 @@ int cel_allocator_dump(char *buf, size_t size)
     cursor -= 1;
     cursor += snprintf(buf + cursor, size - cursor, "],");
 	cursor += snprintf(buf + cursor, size - cursor, CEL_CRLF"\"page_heaps_total_size\":%ld,", 
-		page_heaps_total_size);
+		(long)page_heaps_total_size);
     /* lagre_pages */
 	num1 = cel_list_get_size(&(s_pageheap.large.normal_spans));
 	num2 = cel_list_get_size(&(s_pageheap.large.returned_spans));

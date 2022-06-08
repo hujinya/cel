@@ -75,7 +75,7 @@ static __inline CelBlock *cel_freelist_pop(CelFreeList *free_list)
 
 static __inline 
 void cel_freelist_push_range(CelFreeList *free_list, 
-                             CelBlock *start, CelBlock *end, int num)
+                             CelBlock *start, CelBlock *end, size_t num)
 {
     /*int i = 0;
     CelBlock *check = start;
@@ -92,7 +92,7 @@ void cel_freelist_push_range(CelFreeList *free_list,
 }
 
 void cel_freelist_pop_range(CelFreeList *free_list, 
-                            CelBlock **start, CelBlock **end, int num);
+                            CelBlock **start, CelBlock **end, size_t num);
 
 #ifdef __cplusplus
 }

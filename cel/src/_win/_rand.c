@@ -24,7 +24,7 @@ void os_rand_bytes(void *out, size_t out_len)
     {
         out_bytes_this_pass = ~(((U32)(-1)) >> 1);
         if (out_bytes_this_pass > out_len)
-            out_bytes_this_pass = out_len;
+            out_bytes_this_pass = (U32)out_len;
         RtlGenRandom(out_ptr, out_bytes_this_pass);
         out_len -= out_bytes_this_pass;
         out_ptr += out_bytes_this_pass;

@@ -15,7 +15,7 @@
 #ifndef __CEL_CONFIG_H__
 #define __CEL_CONFIG_H__
 
-#ifdef _WIN32
+#if((defined _WIN32) || (defined _WIN64))
 #undef _CEL_UNIX
 #define _CEL_WIN
 #else

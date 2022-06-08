@@ -84,8 +84,7 @@ static __inline int cel_stream_begin_read(CelStream *s)
 	CEL_SETFLAG(s->mode, CEL_STREAM_READING);
 	cel_stream_seal_length(s);
 	cel_stream_set_position(s, 0);
-	return cel_stream_get_length(s);
-	return -1;
+	return (int)cel_stream_get_length(s);
 }
 static __inline void cel_stream_end_read(CelStream *s)
 {
@@ -108,7 +107,7 @@ static __inline int cel_stream_begin_write(CelStream *s)
 	{
 		cel_stream_set_position(s, 0);
 	}
-	return cel_stream_get_remaining_length(s);
+	return (int)cel_stream_get_remaining_length(s);
 }
 static __inline void cel_stream_end_write(CelStream *s)
 {
@@ -155,7 +154,7 @@ static __inline int cel_stream_write(CelStream *_s, const void* _b, size_t _n)
 {
     memcpy(_s->pointer, (_b), (_n));
     cel_stream_seek(_s, _n);
-    return _n;
+    return (int)_n;
 }
 int cel_stream_printf(CelStream *_s, const char *fmt, ...);
 static __inline void cel_stream_zero(CelStream *_s, size_t _n)

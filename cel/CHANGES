@@ -1,6 +1,7 @@
-* Wed Apr 13 2022 Hu Jinya <hjy@gzsunrun.cn> 1.5.0.72
+* Wed Apr 13 2022 Hu Jinya <hjy@gzsunrun.cn> 1.5.1.73
 - fix: 修复cel_httpresponse_writing_body\cel_httprequest_writing_body
   未判断读写文件出错导致死循环读文件。
+- refactor: 兼容win x64。
 
 * Sat Jan 27 2021 Hu Jinya <hjy@gzsunrun.cn> 1.4.2.70
 - perf: 单条日志缓存长度由512调整为1024。

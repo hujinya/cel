@@ -174,7 +174,7 @@ int cel_hexdump(void *dest, size_t dest_size, const BYTE *src, size_t src_size)
         src_offset += this_line;
         line += this_line;
     }
-    return dest_offset;
+    return (int)dest_offset;
 }
 
 TCHAR *cel_strreppswd(TCHAR *str, const TCHAR *rep, TCHAR pswd_chr)

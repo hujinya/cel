@@ -386,7 +386,7 @@ FILE *cel_fopen(const TCHAR *file_name, const TCHAR *mode)
 int cel_fsync(const TCHAR *dest_file,const TCHAR *src_file)
 {
     char buf[CEL_LINELEN];
-	int len;
+	size_t len;
     FILE *fp, *fp_;
 
     if ((fp = cel_fopen(src_file, _T("r"))) == NULL 
@@ -447,7 +447,7 @@ int cel_fforeach(const TCHAR *file_name,
     return ret;
 }
 
-int cel_mkdirs_intern_a(CHAR *dir, int dir_idx, int mode)
+int cel_mkdirs_intern_a(CHAR *dir, size_t dir_idx, int mode)
 {
     CHAR _c;
 
@@ -484,7 +484,7 @@ int cel_mkdirs_intern_a(CHAR *dir, int dir_idx, int mode)
 
 int cel_mkdirs_a(const CHAR *dir, int mode)
 {
-    int dir_idx;
+    size_t dir_idx;
     CHAR _dir[CEL_PATHLEN + 1];
 
     if ((dir_idx = strlen(dir)) > CEL_PATHLEN)
@@ -494,7 +494,7 @@ int cel_mkdirs_a(const CHAR *dir, int mode)
     return cel_mkdirs_intern_a(_dir, dir_idx - 1, mode);
 }
 
-int cel_mkdirs_intern_w(WCHAR *dir, int dir_idx, int mode)
+int cel_mkdirs_intern_w(WCHAR *dir, size_t dir_idx, int mode)
 {
     WCHAR _c;
 
@@ -531,7 +531,7 @@ int cel_mkdirs_intern_w(WCHAR *dir, int dir_idx, int mode)
 
 int cel_mkdirs_w(const WCHAR *dir, int mode)
 {
-    int dir_idx;
+    size_t dir_idx;
     WCHAR _dir[CEL_PATHLEN + 1];
 
     if ((dir_idx = wcslen(dir)) > CEL_PATHLEN)

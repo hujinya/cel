@@ -28,7 +28,7 @@ typedef struct _CelHttpChunked
 {
     BOOL last;
     int start;
-    unsigned int size;
+    size_t size;
 }CelHttpChunked;
 
 static __inline 
@@ -45,7 +45,7 @@ long cel_httpchunked_reading(CelStream *s);
 static __inline 
 int cel_httpchunked_get_send_position(CelHttpChunked *chunked)
 {
-    return chunked->start + chunked->size + 9;
+    return chunked->start + (int)chunked->size + 9;
 }
 static __inline 
 void *cel_httpchunked_get_send_pointer(CelHttpChunked *chunked, CelStream *s)
@@ -112,8 +112,8 @@ static __inline int cel_httpstream_remaining_resize(CelHttpStream *hs, size_t ne
 static __inline int cel_httpstream_get_position(CelHttpStream *hs)
 {
 	return (hs->is_chunked
-		? hs->chunked.start + hs->chunked.size + 9
-		: hs->s.pointer - hs->s.buffer);
+		? hs->chunked.start + (int)hs->chunked.size + 9
+		: (int)(hs->s.pointer - hs->s.buffer));
 }
 static __inline void *cel_httpstream_get_pointer(CelHttpStream *hs)
 {

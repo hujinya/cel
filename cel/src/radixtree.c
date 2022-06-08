@@ -96,7 +96,8 @@ void cel_radixtree_free(CelRadixTree *radix_tree)
 
 void *cel_radixtree_get(CelRadixTree *radix_tree, uintptr_t key)
 {
-    int height, slot_bits, sub_index;
+    unsigned int height, slot_bits;
+	uintptr_t sub_index;
     CelRadixNode *node, *slot;
 
     slot = radix_tree->root;
@@ -119,7 +120,8 @@ void *cel_radixtree_get(CelRadixTree *radix_tree, uintptr_t key)
 
 int cel_radixtree_set(CelRadixTree *radix_tree, uintptr_t key, void *value)
 {
-    int height, slot_bits, sub_index;
+    int height, slot_bits;
+	uintptr_t sub_index;
     CelRadixNode *node = NULL, *slot;
 
     slot = radix_tree->root;
@@ -131,10 +133,10 @@ int cel_radixtree_set(CelRadixTree *radix_tree, uintptr_t key, void *value)
         {
             if ((slot = (CelRadixNode *)radix_tree->node_malloc(
                 sizeof(CelRadixNode)
-                * (1UL << radix_tree->slot_bits))) == NULL)
+                * ((uintptr_t)1 << radix_tree->slot_bits))) == NULL)
                 return -1;
             memset(slot, 0, 
-                sizeof(CelRadixNode) * (1UL << radix_tree->slot_bits));
+                sizeof(CelRadixNode) * ((uintptr_t)1 << radix_tree->slot_bits));
             if (node != NULL)
                 node->childs = slot;
             else

@@ -25,7 +25,7 @@ int cel_hrdaddr_pton(const TCHAR *hrdstr, CelHrdAddr *hrdaddr)
         (int *)&(*hrdaddr)[4], (int *)&(*hrdaddr)[5]) != 6 ? -1 : 0);
 }
 
-const TCHAR *cel_hrdaddr_get_addrs_r(CelHrdAddr *hrdaddr, TCHAR *buf, int size)
+const TCHAR *cel_hrdaddr_get_addrs_r(CelHrdAddr *hrdaddr, TCHAR *buf, size_t size)
 {
     static volatile int i = 0;
     static TCHAR s_buf[CEL_BUFNUM][CEL_HRDSTRLEN] = { {_T('\0')}, {_T('\0')} };
@@ -42,7 +42,7 @@ const TCHAR *cel_hrdaddr_get_addrs_r(CelHrdAddr *hrdaddr, TCHAR *buf, int size)
     return buf;
 }
 
-const TCHAR *cel_ipaddr_get_addrs_r(CelIpAddr *ipaddr, TCHAR *buf, int size)
+const TCHAR *cel_ipaddr_get_addrs_r(CelIpAddr *ipaddr, TCHAR *buf, size_t size)
 {
     static volatile int i = 0;
     static TCHAR s_buf[CEL_BUFNUM][CEL_IPSTRLEN] = { {_T('\0')}, {_T('\0')} };
@@ -52,10 +52,10 @@ const TCHAR *cel_ipaddr_get_addrs_r(CelIpAddr *ipaddr, TCHAR *buf, int size)
         buf = s_buf[((++i) >= CEL_BUFNUM ? 0 : i)];
         size = CEL_IPSTRLEN;
     }
-    return InetNtop(AF_INET, ipaddr, buf, size);
+    return InetNtop(AF_INET, ipaddr, buf, (socklen_t)size);
 }
 
-const TCHAR *cel_ip6addr_get_addrs_r(CelIp6Addr *ip6addr, TCHAR *buf, int size)
+const TCHAR *cel_ip6addr_get_addrs_r(CelIp6Addr *ip6addr, TCHAR *buf, size_t size)
 {
     static volatile int i = 0;
     static TCHAR s_buf[CEL_BUFNUM][CEL_IP6STRLEN] = { {_T('\0')}, {_T('\0')} };
@@ -65,7 +65,7 @@ const TCHAR *cel_ip6addr_get_addrs_r(CelIp6Addr *ip6addr, TCHAR *buf, int size)
         buf = s_buf[((++i) >= CEL_BUFNUM ? 0 : i)];
         size = CEL_IP6STRLEN;
     }
-    return InetNtop(AF_INET6, ip6addr, buf, size);
+    return InetNtop(AF_INET6, ip6addr, buf, (socklen_t)size);
 }
 
 int cel_netmask_dton(int prefixlen, void *netmask, int nm_len)

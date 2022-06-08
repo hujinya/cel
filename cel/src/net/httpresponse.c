@@ -327,7 +327,7 @@ static int cel_httpresponse_reading_header(CelHttpResponse *rsp, CelStream *s)
     int hdr_index;
     CelHttpHeaderHandler *handler;
 
-    key_start = cel_stream_get_position(s);
+    key_start = (int)cel_stream_get_position(s);
     key_end  = key_start;
     value_start = key_start;
     value_end = key_start;
@@ -340,7 +340,7 @@ static int cel_httpresponse_reading_header(CelHttpResponse *rsp, CelStream *s)
             cel_stream_read_u8(s, ch);
             if ((char)ch == ' ')
             {
-                value_start = cel_stream_get_position(s);
+                value_start = (int)cel_stream_get_position(s);
                 key_end = value_start - 2;
             }
         }
@@ -349,7 +349,7 @@ static int cel_httpresponse_reading_header(CelHttpResponse *rsp, CelStream *s)
             cel_stream_read_u8(s, ch);
             if ((char)ch == '\n')
             {
-                value_end = cel_stream_get_position(s) - 2;
+                value_end = (int)cel_stream_get_position(s) - 2;
                 /*printf("key_start %p key_end %p value_start %p "
                     "value end = %p \r\n",
                     key_start, key_end, value_start, value_end);*/
@@ -404,7 +404,7 @@ static int cel_httpresponse_reading_header(CelHttpResponse *rsp, CelStream *s)
                 }
             }
             rsp->reading_hdr_offset += (value_end - key_start);
-            key_start = cel_stream_get_position(s);
+            key_start = (int)cel_stream_get_position(s);
             key_end  = key_start;
             value_start = key_start;
             value_end = key_start;
@@ -475,7 +475,7 @@ start:
         }
     }
     //printf("len2 = %d\r\n", cel_stream_get_remaining_length(s));
-    if ((len2 = cel_stream_get_remaining_length(s)) >= len1)
+    if ((len2 = (long)cel_stream_get_remaining_length(s)) >= len1)
     {
         if (cel_httpresponse_reading_body_content(rsp, s, len1) != len1)
         {
@@ -513,7 +513,7 @@ int cel_httpresponse_reading(CelHttpResponse *rsp)
         rsp->reading_state = CEL_HTTPRESPONSE_READING_VERSION;
     case CEL_HTTPRESPONSE_READING_VERSION:
         //puts("CEL_HTTPRESPONSE_READING_VERSION");
-        start = cel_stream_get_position(s);
+        start = (int)cel_stream_get_position(s);
         do 
         {
             if (cel_stream_get_remaining_length(s) < 1)
@@ -525,7 +525,7 @@ int cel_httpresponse_reading(CelHttpResponse *rsp)
             }
             cel_stream_read_u8(s, ch);
         }while ((char)ch != ' ');
-        end = cel_stream_get_position(s);
+        end = (int)cel_stream_get_position(s);
         if ((i = cel_keyword_binary_search_a(g_httpversion, CEL_HTTPVER_COUNT,
             (char *)(cel_stream_get_buffer(s) + start),
             end - start - 1)) == -1)
@@ -540,7 +540,7 @@ int cel_httpresponse_reading(CelHttpResponse *rsp)
         rsp->reading_state = CEL_HTTPRESPONSE_READING_STATUS;
     case CEL_HTTPRESPONSE_READING_STATUS:
         //puts("CEL_HTTPRESPONSE_READING_STATUS");
-        start = cel_stream_get_position(s);
+        start = (int)cel_stream_get_position(s);
         do 
         {
             if (cel_stream_get_remaining_length(s) < 1)
@@ -552,7 +552,7 @@ int cel_httpresponse_reading(CelHttpResponse *rsp)
             }
             cel_stream_read_u8(s, ch);
         }while ((char)ch != ' ');
-        end = cel_stream_get_position(s);
+        end = (int)cel_stream_get_position(s);
         //puts(buf + start);
         if ((rsp->status = (CelHttpStatusCode)atoi(
             (char *)(cel_stream_get_buffer(s) + start))) <= 0)
@@ -564,7 +564,7 @@ int cel_httpresponse_reading(CelHttpResponse *rsp)
         //printf("statsu %s\r\n", rsp->status);
     case CEL_HTTPRESPONSE_READING_REASON:
         //puts("CEL_HTTPRESPONSE_READING_REASON");
-        start = cel_stream_get_position(s);
+        start = (int)cel_stream_get_position(s);
         do 
         {
             if (cel_stream_get_remaining_length(s) < 1)
@@ -577,7 +577,7 @@ int cel_httpresponse_reading(CelHttpResponse *rsp)
             ch1 = ch;
             cel_stream_read_u8(s, ch);
         }while ((char)ch != '\n' || (char)ch1 != '\r');
-        end = cel_stream_get_position(s);
+        end = (int)cel_stream_get_position(s);
         cel_vstring_assign_a(&(rsp->reason), 
             (char *)(cel_stream_get_buffer(s) + start), end - start - 2);
         //printf("reason %s\r\n", rsp->reason.str);
@@ -734,7 +734,7 @@ int cel_httpresponse_writing(CelHttpResponse *rsp)
 		if ((ret = cel_httpresponse_writing_header(rsp, s)) != CEL_HTTP_NO_ERROR)
 			return ret;
 		if (rsp->transfer_encoding == CEL_HTTPTE_CHUNKED)
-			cel_httpchunked_init(&(rsp->hs.chunked), cel_stream_get_position(s));
+			cel_httpchunked_init(&(rsp->hs.chunked), (int)cel_stream_get_position(s));
         rsp->writing_state = CEL_HTTPRESPONSE_WRITING_BODY;
     case CEL_HTTPRESPONSE_WRITING_BODY:
         //puts("CEL_HTTPRESPONSE_WRITING_BODY");
@@ -867,7 +867,7 @@ int cel_httpresponse_write(CelHttpResponse *rsp, const void *buf, size_t size)
         return -1;
     cel_httpresponse_set_body_writing_callback(rsp, NULL, NULL);
 
-    return rsp_buf.size;
+    return (int)rsp_buf.size;
 }
 
 int cel_httpresponse_vprintf(CelHttpResponse *rsp, 
@@ -904,7 +904,7 @@ int cel_httpresponse_vprintf(CelHttpResponse *rsp,
 int cel_httpresponse_printf(CelHttpResponse *rsp, const char *fmt, ...)
 {
     va_list _args;
-    size_t size;
+    int size;
 
     va_start(_args, fmt);
     size = cel_httpresponse_vprintf(rsp, fmt, _args);
@@ -1053,8 +1053,7 @@ int cel_httpresponse_send_tryfile(CelHttpResponse *rsp,
                 CEL_HTTPHDR_CONTENT_DISPOSITION, disposition, len);
             cel_httpresponse_set_header(rsp,
                 CEL_HTTPHDR_CONTENT_TYPE,
-                "application/octet-stream", 
-                strlen("application/octet-stream"));
+                "application/octet-stream", strlen("application/octet-stream"));
         }
     }
     rsp->body_cache.clear_file = FALSE;
@@ -1092,7 +1091,7 @@ static int cel_httpresponse_body_write_file(CelHttpResponse *rsp,
     cel_stream_seek(s, size);
    /* _tprintf(_T("file %s s %p, len %d, return size %d\r\n"), 
         cel_vstring_str_a(file_path), s, len, size);*/
-    return size;
+    return (int)size;
 }
 
 int cel_httpresponse_recv_file(CelHttpResponse *rsp, const char *file_path)

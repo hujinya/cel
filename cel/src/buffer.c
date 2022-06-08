@@ -100,7 +100,7 @@ int cel_buffer_read(CelBuffer *buf, void *data, size_t size)
     }
     buf->remaining += size;
 
-    return size;
+    return (int)size;
 }
 
 size_t cel_buffer_dup(CelBuffer *buf, void *data, size_t size)
@@ -154,5 +154,5 @@ int cel_buffer_write(CelBuffer *buf, void *data, size_t size)
     }
     buf->remaining -= size;
 
-    return size;
+    return (int)size;
 }

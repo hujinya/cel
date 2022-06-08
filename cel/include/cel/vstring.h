@@ -89,9 +89,9 @@ int cel_vstring_vprintf_a(CelVStringA *vstr, const char *fmt, va_list ap)
 		if (n > -1 && n < (int)(vstr->capacity))
 		{
 			vstr->size = n;
-			return vstr->size;
+			return (int)vstr->size;
 		}
-		n = vstr->capacity * 2;
+		n = (int)vstr->capacity * 2;
 		if (cel_vstring_resize_a(vstr, n) != 0)
 		{
 			return -1;

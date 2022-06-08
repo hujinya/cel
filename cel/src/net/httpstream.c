@@ -36,7 +36,7 @@
 */
 long cel_httpchunked_reading(CelStream *s)
 {
-    int position;
+    size_t position;
     size_t ch = 0, ch1;
     char *ptr;
     long chunk_size;
@@ -106,7 +106,7 @@ long cel_httpchunked_writing_last(CelHttpChunked *chunked, CelStream *s)
     cel_stream_set_position(s, chunked->start);
     if (chunked->size > 0)
     {
-        sprintf((char *)cel_stream_get_pointer(s), "%07x", chunked->size);
+        sprintf((char *)cel_stream_get_pointer(s), "%07x", (int)chunked->size);
         cel_stream_seek(s, 7);
         cel_stream_write(s, "\r\n", 2);
         cel_stream_seek(s, chunked->size);
@@ -115,7 +115,7 @@ long cel_httpchunked_writing_last(CelHttpChunked *chunked, CelStream *s)
     cel_stream_write_u8(s, '0');
     cel_stream_write(s, "\r\n\r\n", 4);
     //puts((char *)s->buffer);
-    return chunked->size;
+    return (long)chunked->size;
 }
 
 int cel_httpstream_init(CelHttpStream *hs, size_t size)
@@ -148,18 +148,18 @@ int cel_httpstream_write(CelHttpStream *hs, CelHttpStreamBuf *buf)
     cel_stream_write(&(hs->s), buf->buf, buf->size);
 	if (hs->is_chunked)
 		hs->chunked.size += buf->size;
-    return buf->size;
+    return (int)buf->size;
 }
 
 int cel_httpstream_printf(CelHttpStream *hs, CelHttpStreamFmtArgs *fmt_args)
 {
-	int remaining_size;
+	size_t remaining_size;
 	//puts(fmt_args->fmt);
 
 	remaining_size = cel_httpsteam_get_write_buffer_size(hs);
 	fmt_args->size = vsnprintf((char *)cel_httpstream_get_pointer(hs), 
 		remaining_size, fmt_args->fmt, fmt_args->args);
-	if (fmt_args->size < 0 || fmt_args->size >= remaining_size)
+	if (fmt_args->size < 0 || fmt_args->size >= (int)remaining_size)
 	{
 		if (fmt_args->size > 0)
 			cel_httpstream_remaining_resize(hs, fmt_args->size);
@@ -170,7 +170,7 @@ int cel_httpstream_printf(CelHttpStream *hs, CelHttpStreamFmtArgs *fmt_args)
 		remaining_size = cel_stream_get_remaining_capacity(&(hs->s));
 		fmt_args->size = vsnprintf((char *)cel_stream_get_pointer(&(hs->s)), 
 			remaining_size, fmt_args->fmt, fmt_args->args);
-		if (fmt_args->size < 0 || fmt_args->size >= remaining_size)
+		if (fmt_args->size < 0 || fmt_args->size >= (int)remaining_size)
 			return -1;
 	}
 	cel_stream_seek(&(hs->s), fmt_args->size);
@@ -191,5 +191,5 @@ int cel_httpstream_send_file(CelHttpStream *hs, FILE *fp)
     cel_stream_seek(&(hs->s), size);
     /*_tprintf(_T("cel_httprequest_body_file capacity %d, size %d\r\n"), 
         cel_stream_get_remaining_capacity(&(hs->s)), size);*/
-    return size;
+    return (int)size;
 }

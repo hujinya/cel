@@ -57,8 +57,8 @@ static __inline int cel_ringlist_get_size(CelRingList *ring_list)
 }
 static __inline int cel_ringlist_get_count(CelRingList *ring_list)
 {
-    U32 prod_tail = ring_list->p_tail;
-    U32 cons_tail = ring_list->c_tail;
+    U32 prod_tail = (U32)ring_list->p_tail;
+    U32 cons_tail = (U32)ring_list->c_tail;
     U32 count = ((prod_tail - cons_tail) & ring_list->mask);
     return (count > ring_list->size) ? ring_list->size : count;
 }

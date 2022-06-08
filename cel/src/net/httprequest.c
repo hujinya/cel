@@ -357,7 +357,7 @@ static int cel_httprequest_reading_header(CelHttpRequest *req, CelStream *s)
     int hdr_index;
     CelHttpHeaderHandler *handler;
 
-    key_start = cel_stream_get_position(s);
+    key_start = (int)cel_stream_get_position(s);
     key_end = key_start;
     value_start = key_start;
     value_end = key_start;
@@ -370,7 +370,7 @@ static int cel_httprequest_reading_header(CelHttpRequest *req, CelStream *s)
             cel_stream_read_u8(s, ch);
             if ((char)ch == ' ')
             {
-                value_start = cel_stream_get_position(s);
+                value_start = (int)cel_stream_get_position(s);
                 key_end = value_start - 2;
             }
         }
@@ -379,7 +379,7 @@ static int cel_httprequest_reading_header(CelHttpRequest *req, CelStream *s)
             cel_stream_read_u8(s, ch);
             if ((char)ch == '\n')
             {
-                value_end = cel_stream_get_position(s) - 2;
+                value_end = (int)cel_stream_get_position(s) - 2;
                 /*printf("key_start %p key_end %p value_start %p 
                     value end = %p \r\n",
                     key_start, key_end, value_start, value_end);*/
@@ -441,7 +441,7 @@ static int cel_httprequest_reading_header(CelHttpRequest *req, CelStream *s)
                 }
             }
             req->reading_hdr_offset += (value_end - key_start);
-            key_start = cel_stream_get_position(s);
+            key_start = (int)cel_stream_get_position(s);
             key_end = key_start;
             value_start = key_start;
             value_end = key_start;
@@ -520,7 +520,7 @@ start:
             }
         }
     }
-    if ((len2 = cel_stream_get_remaining_length(s)) >= len1)
+    if ((len2 = (long)cel_stream_get_remaining_length(s)) >= len1)
     {
         if (cel_httprequest_reading_body_content(req, s, len1) != len1)
         {
@@ -559,7 +559,7 @@ int cel_httprequest_reading(CelHttpRequest *req)
     case CEL_HTTPREQUEST_READING_INIT:
         req->reading_state = CEL_HTTPREQUEST_READING_METHOD;
     case CEL_HTTPREQUEST_READING_METHOD:
-        start = cel_stream_get_position(s);
+        start = (int)cel_stream_get_position(s);
         do {
             if (cel_stream_get_remaining_length(s) < 1)
             {
@@ -570,7 +570,7 @@ int cel_httprequest_reading(CelHttpRequest *req)
             }
             cel_stream_read_u8(s, ch);
         }while ((char)ch != ' ');
-        end = cel_stream_get_position(s);
+        end = (int)cel_stream_get_position(s);
         if ((req->method = (CelHttpMethod)cel_keyword_binary_search_a(
             g_requestmethod,CEL_HTTPM_CONUT, 
             (char *)(cel_stream_get_buffer(s) + start), end - start - 1)) == -1)
@@ -583,7 +583,7 @@ int cel_httprequest_reading(CelHttpRequest *req)
         req->reading_state = CEL_HTTPREQUEST_READING_URL;
     case CEL_HTTPREQUEST_READING_URL:
     case CEL_HTTPREQUEST_READING_VERSION:
-        start = cel_stream_get_position(s);
+        start = (int)cel_stream_get_position(s);
         do {
             if (cel_stream_get_remaining_length(s) < 1)
             {
@@ -596,12 +596,12 @@ int cel_httprequest_reading(CelHttpRequest *req)
             ch1 = ch;
             cel_stream_read_u8(s, ch);
             if (ch == ' ')
-                _end = cel_stream_get_position(s);
+                _end = (int)cel_stream_get_position(s);
         }while ((char)ch != '\n' || (char)ch1 != '\r');
         cel_httpurl_reading(&(req->url), 
             (char *)(cel_stream_get_buffer(s) + start), _end - start - 1);
         start = _end;
-        end = cel_stream_get_position(s);
+        end = (int)cel_stream_get_position(s);
         //printf("len %d %s \r\n", end - start - 2, 
         //    (char *)(cel_stream_get_buffer(s) + start));
         if ((i = cel_keyword_binary_search_a(g_httpversion, CEL_HTTPVER_COUNT,
@@ -852,7 +852,7 @@ int cel_httprequest_writing(CelHttpRequest *req)
     case CEL_HTTPREQUEST_WRITING_HEADER:
         if ((ret = cel_httprequest_writing_header(req, s)) != CEL_HTTP_NO_ERROR)
             return ret;
-		cel_httpchunked_init(&(req->hs.chunked), cel_stream_get_position(s));
+		cel_httpchunked_init(&(req->hs.chunked), (int)cel_stream_get_position(s));
         req->writing_state = CEL_HTTPREQUEST_WRITING_BODY;
     case CEL_HTTPREQUEST_WRITING_BODY:
         if ((ret = cel_httprequest_writing_body(req, s)) != CEL_HTTP_NO_ERROR)
@@ -1079,7 +1079,7 @@ int cel_httprequest_write(CelHttpRequest *req,
         return -1;
     cel_httprequest_set_body_writing_callback(req, NULL, NULL);
 
-    return req_buf.size;
+    return (int)req_buf.size;
 }
 
 int cel_httprequest_vprintf(CelHttpRequest *req,
@@ -1113,7 +1113,7 @@ int cel_httprequest_vprintf(CelHttpRequest *req,
 int cel_httprequest_printf(CelHttpRequest *req, const char *fmt, ...)
 {
     va_list _args;
-    size_t size;
+    int size;
 
     va_start(_args, fmt);
     size = cel_httprequest_vprintf(req, fmt, _args);

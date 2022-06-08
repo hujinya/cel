@@ -42,11 +42,11 @@ typedef int  (* CelSqlConOpenFunc)(void *con,
 								   const char *user, const char *pswd);
 typedef void (* CelSqlConCloseFunc)(void *con);
 typedef long (* CelSqlConExecuteNonequeryFunc)(
-	void *con, const char *sqlstr, unsigned long len);
+	void *con, const char *sqlstr, size_t len);
 typedef void* (* CelSqlConExecuteOnequeryFunc)(
-	void *con, const char *sqlstr, unsigned long len);
+	void *con, const char *sqlstr, size_t len);
 typedef CelSqlRes* (* CelSqlConExecuteQueryFunc)(
-	void *con, const char *sqlstr, unsigned long len);
+	void *con, const char *sqlstr, size_t len);
 typedef long (* CelSqlResRowsFunc)(void *res);
 typedef int (* CelSqlResColsFunc)(void *res);
 typedef unsigned long* (* CelSqlResFetchLengthsFunc)(void *res);

@@ -222,7 +222,7 @@ int _cel_logger_freelist_init(CelLogger *logger)
     cel_multithread_mutex_lock(CEL_MT_MUTEX_LOG);
     if (logger->mem_caches == NULL)
     {
-        logger->n_bufs = cel_power2min(logger->n_bufs);
+        logger->n_bufs = (size_t)cel_power2min((int)logger->n_bufs);
         if ((logger->mem_caches = (CelLogMsg **)_cel_sys_malloc(
             (sizeof(void *) + sizeof(CelLogMsg)) * logger->n_bufs)) == NULL)
         {

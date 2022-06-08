@@ -485,7 +485,7 @@ int cel_httpdatetime_reading(CelTime *dt, const char *value, size_t size)
 int cel_httpdatetime_writing(const char *hdr_name,
                              CelTime *dt, CelStream *s)
 {
-    int size;
+    size_t size;
 	if (dt->tv_sec != 0)
     {
         cel_stream_printf(s, "%s: ", hdr_name);
@@ -713,7 +713,7 @@ int cel_httpcookie_reading(CelHttpCookie *cookie,
 int cel_httpcookie_writing(const char *hdr_name, 
                            CelHttpCookie *cookie, CelStream *s)
 {
-    int size;
+    size_t size;
 
     if (cel_vstring_len(&(cookie->values)) > 0)
     {
@@ -982,8 +982,7 @@ int cel_httpbodycache_read(CelHttpBodyCache *cache,
 						   long long first, long long last,
 						   void *buf, size_t buf_size)
 {
-	size_t _size;
-	int size = 0;
+	size_t _size,size = 0;
 
 	if (first < 0 && last == 0)
 	{
@@ -994,7 +993,7 @@ int cel_httpbodycache_read(CelHttpBodyCache *cache,
 	{
 		last = cache->size - 1;
 	}
-	if (buf_size < last + 1 - first)
+	if (buf_size < (size_t)(last + 1 - first))
 		last = first + buf_size;
 	if ((_size = (size_t)(last + 1 - first)) <= 0)
 	{
@@ -1015,7 +1014,7 @@ int cel_httpbodycache_read(CelHttpBodyCache *cache,
 	if (size < (int)buf_size) 
 		*((char*)buf + size) = '\0';
 
-    return size;
+    return (int)size;
 }
 
 long long cel_httpbodycache_save_file(CelHttpBodyCache *cache,

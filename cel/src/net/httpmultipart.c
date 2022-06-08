@@ -152,7 +152,7 @@ int cel_httpmultipart_reading_header(CelHttpMultipart *multipart,
     multipart->reading_state = CEL_HTTPMULTIPART_ENTITY_VALUE;
     //puts("cel_httpmultipart_reading_header ok");
 
-    return _size;
+    return (int)_size;
 }
 
 int cel_httpmultipart_reading_value(CelHttpMultipart *multipart,
@@ -181,7 +181,7 @@ int cel_httpmultipart_reading_value(CelHttpMultipart *multipart,
                 &(reading_entity->cache), (char *)start, _size) != _size)
                 return -1;
 			//printf("offset %d size %d\r\n", (int)size + _size + 4, len);
-            return (int)size + _size + 4;
+            return (int)(size + _size + 4);
         }
         ch1 = ch;
     }
@@ -209,7 +209,7 @@ int cel_httpmultipart_reading(CelHttpMultipart *multipart,
                 return -1;
             offset += _offset;
             if (multipart->reading_entity == NULL)
-                return offset;
+                return (int)offset;
             break;
         case CEL_HTTPMULTIPART_ENTITY_HEADER:
             if ((_offset = cel_httpmultipart_reading_header(
@@ -229,5 +229,5 @@ int cel_httpmultipart_reading(CelHttpMultipart *multipart,
     }
     //puts(cel_vstring_str_a(&(multipart->boundary)));
     //printf("cel_httpmultipart_reading len %d\r\n", len);
-    return offset;
+    return (int)offset;
 }

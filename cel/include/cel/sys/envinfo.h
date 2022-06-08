@@ -23,7 +23,7 @@ extern "C" {
 
 #ifdef _CEL_WIN
 #define CelCpuMask DWORD_PTR
-#define cel_setcpumask(mask, i) ((*mask) = 1 << (i))
+#define cel_setcpumask(mask, i) ((*mask) = (CelCpuMask)1 << (i))
 #endif
 #ifdef _CEL_UNIX
 #include <sched.h>

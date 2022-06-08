@@ -25,9 +25,9 @@ int cel_ringlist_init(CelRingList *ring_list, size_t size,
     //printf("size = %d\r\n", size);
     if ((ring_list->ring = (void **)cel_malloc(sizeof(void *) * size)) == NULL)
         return -1;
-    ring_list->size = size;
+    ring_list->size = (U32)size;
     ring_list->value_free = value_free;
-    ring_list->mask = size -1;
+    ring_list->mask = (U32)size -1;
     ring_list->p_head = 0;
     ring_list->p_tail = 0;
     ring_list->c_head = 0;
@@ -137,8 +137,8 @@ int _cel_ringlist_push_do(CelRingList *ring_list, BOOL is_sp,
     do 
     {
         /* Reset n to the initial burst count */
-        prod_head = ring_list->p_head;
-        cons_tail = ring_list->c_tail;
+        prod_head = (U32)ring_list->p_head;
+        cons_tail = (U32)ring_list->c_tail;
         free_entries = (mask + 1 + cons_tail - prod_head);
         //printf("cons_tail = %d, prod_head = %d\r\n", cons_tail, prod_head);
         /* check that we have enough room in ring */
@@ -148,7 +148,7 @@ int _cel_ringlist_push_do(CelRingList *ring_list, BOOL is_sp,
                 return 0;
             n = free_entries;
         }
-        prod_next = prod_head + n;
+        prod_next = prod_head + (U32)n;
         if (is_sp)
         {
             ring_list->p_head = prod_next;
@@ -179,7 +179,7 @@ int _cel_ringlist_push_do(CelRingList *ring_list, BOOL is_sp,
     }
     ring_list->p_tail = prod_next;
     
-    return n;
+    return (int)n;
 }
 
 static __inline 
@@ -236,8 +236,8 @@ int _cel_ringlist_pop_do(CelRingList *ring_list, BOOL is_sp,
     do 
     {
         /* Restore n as it may change every loop */
-        cons_head = ring_list->c_head;
-        prod_tail = ring_list->p_tail;
+        cons_head = (U32)ring_list->c_head;
+        prod_tail = (U32)ring_list->p_tail;
         /* 
         * The subtraction is done between two unsigned 32bits value
         * (the result is always modulo 32 bits even if we have
@@ -253,7 +253,7 @@ int _cel_ringlist_pop_do(CelRingList *ring_list, BOOL is_sp,
                 return 0;
             n = entries;
         }
-        cons_next = cons_head + n;
+        cons_next = cons_head + (U32)n;
         if (is_sp)
         {
             ring_list->c_head = cons_next;
@@ -283,5 +283,5 @@ int _cel_ringlist_pop_do(CelRingList *ring_list, BOOL is_sp,
     }
     ring_list->c_tail = cons_next;
 
-    return n;
+    return (int)n;
 }

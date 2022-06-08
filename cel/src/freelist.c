@@ -48,9 +48,9 @@ void cel_freelist_free(CelFreeList *free_list)
 }
 
 void cel_freelist_pop_range(CelFreeList *free_list, 
-                            CelBlock **start, CelBlock **end, int num)
+                            CelBlock **start, CelBlock **end, size_t num)
 {
-    int i;
+    size_t i;
     CelBlock *tmp = free_list->free;
 
     for (i = 1; i < num; i++)

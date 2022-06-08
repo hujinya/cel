@@ -801,7 +801,7 @@ int mppc_compress(CelMppcContext *mppc, BYTE *src, U32 src_size, BYTE **pdest, U
     *dest_size = ((bs->position + 7) / 8);
 
     mppc->history_ptr = history_ptr;
-    mppc->history_offset = history_ptr - history_buffer;
+    mppc->history_offset = (U32)(history_ptr - history_buffer);
 
     return 1;
 }
