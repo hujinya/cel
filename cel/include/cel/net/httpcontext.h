@@ -105,6 +105,13 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx);
 int cel_httpcontext_response_write(CelHttpContext *http_ctx, CelHttpStatusCode status,
 								   int err_no, const char *msg);
 static __inline 
+int cel_httpcontext_response(CelHttpContext *http_ctx, 
+							 CelHttpStatusCode status, 
+							 const void *content, size_t content_len)
+{
+	return cel_httpresponse_send(&(http_ctx->rsp), status, content, content_len);
+}
+static __inline 
 int cel_httpcontext_response_tryfiles(CelHttpContext *http_ctx, 
 									  const char *file_path, const char *uri_file_path,
 									  long long first, long long last,

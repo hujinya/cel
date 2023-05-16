@@ -184,10 +184,11 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx)
 	TCHAR *err_str;
 	CelHttpConnection *connection;
 
+	//printf("cel_httpcontext_routing state = %d\r\n", http_ctx->state);
 	//Receive client request
-	//puts("cel_httpcontext_routing£ºReceive client request");
 	if (http_ctx->state == CEL_HTTPROUTEST_RECEVIE_REQUEST)
 	{
+		//puts("cel_httpcontext_routing:Receive client request");
 		if (cel_httpclient_async_handshake(&(http_ctx->http_client),
 			(CelHttpHandshakeCallbackFunc)cel_httpcontext_do_handshake) == -1)
 		{
@@ -200,10 +201,10 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx)
 		return CEL_RET_AGAIN;
 	}
 	// Http route
-	//puts("cel_httpcontext_routing£ºHttp route");
-	if (http_ctx->state <= CEL_HTTPROUTEST_FINISH_ROUTER 
+    if (http_ctx->state <= CEL_HTTPROUTEST_FINISH_ROUTER 
 		&& http_ctx->state >= CEL_HTTPROUTEST_BEFORE_ROUTER)
 	{
+		//puts("cel_httpcontext_routing:Http route");
 		if ((ret = cel_httproute_routing(&(http_ctx->serve_ctx->route), http_ctx)) == CEL_RET_AGAIN)
 		{
 			CEL_DEBUG((_T("Http context routing wait...")));
@@ -239,9 +240,9 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx)
 		return CEL_RET_AGAIN;
 	}
 	// Send respons to client
-	//puts("cel_httpcontext_routing£ºSend respons to client");
 	if (http_ctx->state == CEL_HTTPROUTEST_END)
 	{
+		//puts("cel_httpcontext_routing:Send respons to client");
 		if (http_ctx->serve_ctx->route.logger_on)
 			http_ctx->serve_ctx->route.logger_filter(http_ctx);
 		if ((connection = (CelHttpConnection *)cel_httprequest_get_header(

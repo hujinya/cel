@@ -161,11 +161,11 @@ static int cel_jwt_sign_sha_pem(BYTE *out, size_t *out_len,
         goto cel_jwt_sign_sha_pem_done;
     }
 
-    if (pkey->type != type)
-    {
-        ret = -1;
-        goto cel_jwt_sign_sha_pem_done;
-    }
+    //if (pkey->type != type)
+    //{
+    //    ret = -1;
+    //    goto cel_jwt_sign_sha_pem_done;
+    //}
 
     mdctx = EVP_MD_CTX_create();
     if (mdctx == NULL)
@@ -213,7 +213,7 @@ static int cel_jwt_sign_sha_pem(BYTE *out, size_t *out_len,
         goto cel_jwt_sign_sha_pem_done;
     }
 
-    if (pkey->type != EVP_PKEY_EC) 
+    if (type != EVP_PKEY_EC) 
     {
         if (slen > *out_len - 1)
         {
@@ -327,11 +327,11 @@ static int cel_jwt_verify_sha_pem(const EVP_MD *alg, int type,
     if (pkey == NULL)
         goto cel_jwt_verify_sha_pem_done;
 
-    if (pkey->type != type)
-        goto cel_jwt_verify_sha_pem_done;
+   /* if (pkey->type != type)
+        goto cel_jwt_verify_sha_pem_done;*/
 
     /* Convert EC sigs back to ASN1. */
-    if (pkey->type == EVP_PKEY_EC) 
+    if (type == EVP_PKEY_EC) 
     {
         unsigned int degree, bn_len;
         unsigned char *p;

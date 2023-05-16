@@ -25,8 +25,8 @@ BIN_TARGET =
 
 MAJOR = 1
 MINOR = 5
-REVISION = 1
-BUILD = 73
+REVISION = 2
+BUILD = 74
 EXTRA = ""
 VERSION_FILE= "../include/cel/_version.h"
 

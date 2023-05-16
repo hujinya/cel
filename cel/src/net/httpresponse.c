@@ -655,6 +655,7 @@ static int cel_httpresponse_writing_body(CelHttpResponse *rsp, CelStream *s)
                 cel_stream_seal_length(s);
                 return CEL_HTTP_WANT_WRITE;
             }
+			//printf("stream size %d \r\n", s->length);
             /* Chunk data */
             if (!cel_httpchunked_is_last(&(rsp->hs.chunked)))
             {
@@ -669,8 +670,8 @@ static int cel_httpresponse_writing_body(CelHttpResponse *rsp, CelStream *s)
 				}
 				if (_size < 0) 
 					return CEL_HTTP_ERROR;
-				//printf("chunked send seek%d \r\n", (int)_size);
                 cel_stream_seal_length(s);
+				//printf("chunked send seek %d stream size %d\r\n", (int)_size, s->length);
                 rsp->writing_body_offset += _size;
                 rsp->content_length += _size;
                 return CEL_HTTP_WANT_WRITE;
@@ -681,7 +682,7 @@ static int cel_httpresponse_writing_body(CelHttpResponse *rsp, CelStream *s)
 				cel_httpstream_write_end(&(rsp->hs));
                 cel_stream_seal_length(s);
 				//printf("chuked size %d stream size %d\r\n", (int)rsp->hs.chunked.size, s->length);
-				//puts((char *)s->buffer);
+				puts((char *)s->buffer);
                 return 0;
             }
         }
@@ -932,17 +933,24 @@ int cel_httpresponse_send(CelHttpResponse *rsp,
                           CelHttpStatusCode status, 
                           const void *content, size_t content_len)
 {
-    long long _content_len;
+	long long _content_len;
+	CelHttpStreamBuf rsp_buf;
 
-    cel_httpresponse_set_statuscode(rsp, status);
-    _content_len = content_len;
-    cel_httpresponse_set_header(rsp,
+	cel_httpresponse_set_statuscode(rsp, status);
+	_content_len = content_len;
+	cel_httpresponse_set_header(rsp,
 		CEL_HTTPHDR_CONTENT_LENGTH, &_content_len, sizeof(_content_len));
-    if (content != NULL)
-        cel_httpresponse_write(rsp, content, content_len);
-    cel_httpresponse_end(rsp);
-
-    return 0;
+	if (content != NULL) {
+		rsp_buf.buf = content;
+		rsp_buf.size = content_len;
+		cel_httpresponse_set_body_writing_callback(rsp, 
+			(CelHttpStreamWriteCallBack)cel_httpstream_write, &rsp_buf);
+		if (cel_httpresponse_writing(rsp) == CEL_HTTP_ERROR)
+			return -1;
+		cel_httpresponse_set_body_writing_callback(rsp, NULL, NULL);
+	}
+	cel_httpresponse_end(rsp);
+	return 0;
 }
 
 int cel_httpresponse_send_redirect(CelHttpResponse *rsp, const char *url)

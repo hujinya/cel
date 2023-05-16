@@ -2,12 +2,12 @@
 #define __VERSION_H__
 #define MAJOR 1
 #define MINOR 5
-#define REVISION 0
-#define BUILD 71
+#define REVISION 2
+#define BUILD 74
 #define EXTRA ""
 #define OS "\S"
 #define PLATFORM "Linux 3.10.0-327.el7.x86_64"
-#define COMPILE_BY "hjy"
+#define COMPILE_BY "hj"
 #define COMPILE_HOST "localhost.localdomain"
 #define COMPILER "gcc version 4.9.4 (GCC) "
 #endif

@@ -1,3 +1,6 @@
+* Wed Apr 13 2022 Hu Jinya <hjy@gzsunrun.cn> 1.5.2.74
+- feat: 增加cel_httpcontext_send。
+
 * Wed Apr 13 2022 Hu Jinya <hjy@gzsunrun.cn> 1.5.1.73
 - fix: 修复cel_httpresponse_writing_body\cel_httprequest_writing_body
   未判断读写文件出错导致死循环读文件。

@@ -160,6 +160,7 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 		abort();
 	while (TRUE)
 	{
+		//printf("cel_httproute_routing state = %d\r\n", http_ctx->state);
 		switch (http_ctx->state)
 		{
 		case CEL_HTTPROUTEST_BEFORE_ROUTER:
