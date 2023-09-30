@@ -131,6 +131,17 @@ void cel_sqlconpool_return(CelSqlConPool *pool, CelSqlCon *con)
 	cel_sqlcon_free(con);
 	cel_atomic_increment(&(pool->n_conns), -1);   
 }
+
+unsigned long cel_sqlconpool_real_escape_string(CelSqlConPool *pool, char *to, const char *from,
+												unsigned long length) {
+	CelSqlCon *con;
+	unsigned long len;
+	if ((con = cel_sqlconpool_get(pool)) == NULL)
+		return -1;
+	len = cel_sqlcon_real_escape_string(con, to, from, length);
+	cel_sqlconpool_return(pool, con);
+	return len;
+}
  
 long cel_sqlconpool_execute_nonequery(CelSqlConPool *pool, const char *fmt, ...)
 {

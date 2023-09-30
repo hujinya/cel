@@ -33,6 +33,8 @@ int cel_mysqlcon_open(CelMysqlCon *con,
 					  const char *user, const char *pswd);
 void cel_mysqlcon_close(CelMysqlCon *con);
 
+#define cel_mysqlcon_real_escape_string mysql_real_escape_string
+
 long cel_mysqlcon_execute_nonequery(CelMysqlCon *con, 
 									const char *sqlstr, unsigned long len);
 CelMysqlRes *cel_mysqlcon_execute_onequery(CelMysqlCon *con, 

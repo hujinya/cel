@@ -41,6 +41,10 @@ typedef int  (* CelSqlConOpenFunc)(void *con,
 								   const char *name, 
 								   const char *user, const char *pswd);
 typedef void (* CelSqlConCloseFunc)(void *con);
+
+typedef unsigned long (* CelSqlConRealEscapeStringFunc)(
+	void *con, char *to,const char *from, unsigned long length);
+
 typedef long (* CelSqlConExecuteNonequeryFunc)(
 	void *con, const char *sqlstr, size_t len);
 typedef void* (* CelSqlConExecuteOnequeryFunc)(
@@ -58,6 +62,7 @@ typedef struct _CelSqlConClass
 {
     CelSqlConOpenFunc con_open;
     CelSqlConCloseFunc con_close;
+	CelSqlConRealEscapeStringFunc con_real_escape_string;
     CelSqlConExecuteNonequeryFunc con_execute_nonequery;
     CelSqlConExecuteOnequeryFunc con_execute_onequery;
     CelSqlConExecuteQueryFunc con_execute_query;
@@ -119,6 +124,11 @@ static __inline void cel_sqlcon_close(CelSqlCon *con)
 static __inline int cel_sqlcon_sqlstr_resize(CelSqlCon *con, size_t size)
 {
 	return cel_vstring_resize_a(&(con->sqlstr), size);
+}
+static __inline unsigned long cel_sqlcon_real_escape_string(
+	CelSqlCon *con, char *to,const char *from, unsigned long length) {
+		return con->kclass->con_real_escape_string(
+			con->st_con, to, from, length);
 }
 
 long _cel_sqlcon_execute_nonequery(CelSqlCon *con);

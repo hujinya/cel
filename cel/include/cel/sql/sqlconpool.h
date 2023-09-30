@@ -50,6 +50,9 @@ void cel_sqlconpool_free(CelSqlConPool *pool);
 CelSqlCon *cel_sqlconpool_get(CelSqlConPool *pool);
 void cel_sqlconpool_return(CelSqlConPool *pool, CelSqlCon *con);
 
+unsigned long cel_sqlconpool_real_escape_string(CelSqlConPool *pool,char *to,const char *from,
+												unsigned long length);
+
 long cel_sqlconpool_execute_nonequery(CelSqlConPool *pool, const char *fmt, ...);
 CelSqlRes *cel_sqlconpool_execute_onequery(CelSqlConPool *pool, const char *fmt, ...);
 CelSqlRes *cel_sqlconpool_execute_query(CelSqlConPool *pool, const char *fmt, ...);

@@ -23,6 +23,7 @@ static CelSqlConClass mysql_kclass =
 {
     (CelSqlConOpenFunc)cel_mysqlcon_open,
     (CelSqlConCloseFunc)cel_mysqlcon_close,
+	(CelSqlConRealEscapeStringFunc)cel_mysqlcon_real_escape_string,
     (CelSqlConExecuteNonequeryFunc)cel_mysqlcon_execute_nonequery,
     (CelSqlConExecuteOnequeryFunc)cel_mysqlcon_execute_onequery,
     (CelSqlConExecuteQueryFunc)cel_mysqlcon_execute_query,

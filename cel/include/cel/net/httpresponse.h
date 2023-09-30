@@ -132,6 +132,7 @@ struct _CelHttpResponse
     void *body_reading_user_data;
 
     CelHttpResponseWritingState writing_state;
+	BOOL is_end;
 	size_t writing_hdr_offset;
     long long writing_body_offset;
     CelHttpStreamWriteCallBack body_writing_callback;

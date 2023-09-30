@@ -216,6 +216,7 @@ int cel_logmsg_puts(CelLogMsg **msgs, size_t n, void *user_data);
 int cel_logmsg_dbinsert(CelLogMsg **msgs, size_t n, void *user_data);
 
 // Like assert()
+#define _CEL_ASSERT
 #ifdef _CEL_ASSERT
 #define CEL_ASSERT(cond)  \
 do {                                                           \

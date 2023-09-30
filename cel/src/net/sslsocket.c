@@ -466,7 +466,7 @@ int cel_sslsocket_async_send(CelSslSocket *ssl_sock,
 {
     CelSslAsyncArgs *args = &(ssl_sock->out);
 
-    CEL_ASSERT(callback != NULL || co != NULL);
+    CEL_ASSERT(callback != NULL);
     args->ssl_buf = buffers;
     args->send_callback = callback;
     //printf("args->ssl_buf->len = %d\r\n", args->ssl_buf->len);
@@ -540,7 +540,7 @@ int cel_sslsocket_async_recv(CelSslSocket *ssl_sock,
 {
     CelSslAsyncArgs *args = &(ssl_sock->in);
 
-    CEL_ASSERT(callback != NULL || co != NULL);
+    CEL_ASSERT(callback != NULL);
     args->ssl_buf = buffers;
     args->recv_callback = callback;
     cel_ssl_clear_error();
@@ -599,7 +599,7 @@ int cel_sslsocket_async_shutdown(CelSslSocket *ssl_sock,
 {
     CelSslAsyncArgs *args = &(ssl_sock->out);
 
-    CEL_ASSERT(callback != NULL || co != NULL);
+    CEL_ASSERT(callback != NULL);
     args->shutdown_callback = callback;
     //printf("args->ssl_buf->len = %d\r\n", args->ssl_buf->len);
     cel_ssl_clear_error();
