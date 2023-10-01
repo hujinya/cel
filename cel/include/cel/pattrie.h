@@ -77,16 +77,25 @@ void cel_pattrie_insert(CelPatTrie *pat_trie, const char *key, void *value)
         pat_trie->value_free_func);
 }
 
-int _cel_pattrie_node_lookup(CelPatTrieNode *node,
-                             const char *key, size_t key_len, void **value, 
-                             CelPatTrieParams *params);
-static __inline void *cel_pattrie_lookup(CelPatTrie *pat_trie, const char *key,
-                                         CelPatTrieParams *params)
+int _cel_pattrie_node_lookup_param_key(CelPatTrieNode *node, 
+									   const char *param_key, size_t param_key_len,
+									   char *key, size_t *key_len,
+									   void **value, CelPatTrieParams *params);
+static __inline void *cel_pattrie_lookup_param_key(CelPatTrie *pat_trie, 
+												   const char *param_key,
+												   char *key, size_t *key_len,
+												   CelPatTrieParams *params)
 {
-    void *value;
-    return ((pat_trie->root == NULL
-        || _cel_pattrie_node_lookup(pat_trie->root, 
-        key, strlen(key), &value, params) == -1) ? NULL : value);
+	void *value;
+	size_t key_len1 = *key_len;
+	if (pat_trie->root == NULL
+		|| _cel_pattrie_node_lookup_param_key(pat_trie->root, 
+		param_key, strlen(param_key),key, key_len, &value, params) == -1) {
+			*key_len = 0;
+			return NULL;
+	}
+	*key_len = key_len1 - *key_len;
+	return value;
 }
 
 void _cel_pattrie_node_remove(CelPatTrieNode *node, 

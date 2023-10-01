@@ -35,15 +35,17 @@ CelHttpContext *cel_httpcontext_new(CelHttpClient *client,
 	memcpy(&(http_ctx->http_client), client, sizeof(CelHttpClient));
 	cel_httprequest_init(&(http_ctx->req));
     cel_httpresponse_init(&(http_ctx->rsp));
+
+	http_ctx->serve_ctx = serve_ctx;
+	http_ctx->state = 0;
+	http_ctx->path[0] = '\0';
+	http_ctx->current_filter = NULL;
+	cel_vstring_init(&(http_ctx->err_msg));
+	cel_rbtree_init(&(http_ctx->params), (CelCompareFunc)strcmp, NULL, cel_free);
 	cel_time_init(&(http_ctx->req_start_dt));
 	cel_time_init(&(http_ctx->rsp_finish_dt));
 	http_ctx->user[0] = '\0';
 	http_ctx->user_data = NULL;
-	http_ctx->serve_ctx = serve_ctx;
-	http_ctx->state = 0;
-	http_ctx->current_filter = NULL;
-	cel_vstring_init(&(http_ctx->err_msg));
-	cel_rbtree_init(&(http_ctx->params), (CelCompareFunc)strcmp, NULL, cel_free);
 	//puts("cel_httpcontext_new end");
 	return http_ctx;
 }
@@ -54,15 +56,16 @@ void cel_httpcontext_free(CelHttpContext *http_ctx)
 	cel_httpclient_destroy(&(http_ctx->http_client));
 	cel_httprequest_destroy(&(http_ctx->req));
     cel_httpresponse_destroy(&(http_ctx->rsp));
-	cel_time_destroy(&(http_ctx->req_start_dt));
-	cel_time_destroy(&(http_ctx->rsp_finish_dt));
-	http_ctx->user[0] = '\0';
-	http_ctx->user_data = NULL;
 	http_ctx->state = 0;
+	http_ctx->path[0] = '\0';
 	//http_ctx->serve_ctx = NULL;
 	http_ctx->current_filter = NULL;
 	cel_vstring_destroy(&(http_ctx->err_msg));
 	cel_rbtree_destroy(&(http_ctx->params));
+	cel_time_destroy(&(http_ctx->req_start_dt));
+	cel_time_destroy(&(http_ctx->rsp_finish_dt));
+	http_ctx->user[0] = '\0';
+	http_ctx->user_data = NULL;
 
 	 if (http_ctx->serve_ctx->free_func != NULL)
         http_ctx->serve_ctx->free_func(http_ctx);

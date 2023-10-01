@@ -152,6 +152,7 @@ int cel_httproute_filters_foreach(CelList *list, CelHttpContext *http_ctx)
 int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 {
 	int ret;
+	size_t path_len;
 	char *url, *prefix;
 	CelHttpFilterHandlerFunc route_handler;
 	CelList *filter_list;
@@ -200,9 +201,10 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 				break;
 			}
 			prefix = url + cel_vstring_size_a(&(route->prefix));
-			if ((route_handler = cel_pattrie_lookup(
+			path_len = CEL_ROUTR_PATH_LEN;
+			if ((route_handler = cel_pattrie_lookup_param_key(
 				&(route->root_tries[cel_httprequest_get_method(&(http_ctx->req))]), 
-				prefix, &(http_ctx->params))) == NULL)
+				prefix, http_ctx->path,  &path_len, &(http_ctx->params))) == NULL)
 			{
 				ret = CEL_RET_ERROR;
 				cel_httpresponse_set_statuscode(&(http_ctx->rsp), CEL_HTTPSC_NOT_FOUND);

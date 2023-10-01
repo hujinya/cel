@@ -42,11 +42,14 @@ struct _CelHttpContext
 	CelHttpResponse rsp;
 	// Context data
 	CelHttpServeContext *serve_ctx;
-	CelTime req_start_dt, rsp_finish_dt;
 	CelHttpRouteState state;
+	char path[CEL_ROUTR_PATH_LEN];
 	CelPatTrieParams params;
 	CelListItem *current_filter;
 	CelVString err_msg;
+	// Time
+	CelTime req_start_dt;
+	CelTime rsp_finish_dt;
 	// Token user
 	char user[CEL_UNLEN];
 	void *user_data;

@@ -20,6 +20,8 @@
 #include "cel/net/httprequest.h"
 #include "cel/net/httpfilter.h"
 
+#define CEL_ROUTR_PATH_LEN 256
+
 typedef int (* CelHttpRouteHandleFunc)(CelHttpContext *http_ctx);
 
 typedef struct _CelHttpRouteData CelHttpRouteData;

@@ -52,23 +52,24 @@ int pattrie_test(int argc, TCHAR *argv[])
     cel_pattrie_insert(&pat_trie, "/gopher/docpage.png", "5");
     cel_pattrie_insert(&pat_trie, "/gopher/doc.png", "6");
     cel_pattrie_insert(&pat_trie, "/gopher/doc", "7");
-    cel_pattrie_insert(&pat_trie, "/users/<id>", "8");
-    cel_pattrie_insert(&pat_trie, "/users/<id>/profile", "9");
-    cel_pattrie_insert(&pat_trie, "/users/<id>/<accnt:\\d+>/address", "10");
-    cel_pattrie_insert(&pat_trie, "/users/<id>/age", "11");
-    cel_pattrie_insert(&pat_trie, "/users/<id>/<accnt:\\d+>", "12");
-    cel_pattrie_insert(&pat_trie, "/users/<id>/test/<name>", "13");
-    cel_pattrie_insert(&pat_trie, "/users/abc/<id>/<name>", "14");
+    cel_pattrie_insert(&pat_trie, "/users/<user_id>", "8");
+    cel_pattrie_insert(&pat_trie, "/users/<user_id>/profile", "9");
+    cel_pattrie_insert(&pat_trie, "/users/<user_id>/<accnt:\\d+>/address", "10");
+    cel_pattrie_insert(&pat_trie, "/users/<user_id>/age", "11");
+    cel_pattrie_insert(&pat_trie, "/users/<user_id>/<accnt:\\d+>", "12");
+    cel_pattrie_insert(&pat_trie, "/users/<user_id>/test/<name>", "13");
+    cel_pattrie_insert(&pat_trie, "/users/abc/<user_id>/<name>", "14");
     cel_pattrie_insert(&pat_trie, "", "15");
     cel_pattrie_insert(&pat_trie, "/all/<:.*>", "16");
-    cel_pattrie_insert(&pat_trie, "/users/<id>/test2/<name>", "17");
-
+    cel_pattrie_insert(&pat_trie, "/users/<user_id>/test2/<name>", "17");
 
     pattrie_print(0, pat_trie.root);
 
-    if ((value = (char *)cel_pattrie_lookup(&pat_trie, "/users/<id>/age", NULL)) != NULL)
+	char path[256];
+	size_t size = 256;
+    if ((value = (char *)cel_pattrie_lookup_param_key(&pat_trie, "/users/1134/age", path, &size, NULL)) != NULL)
     {
-        printf("ok %s\r\n", value);
+        printf("ok %s - path %s\r\n", value, path);
     }
     else
     {
