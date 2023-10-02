@@ -87,27 +87,27 @@ int cel_httproute_remove(CelHttpRoute *route,
 	return 0;
 }
 
-static int _cel_httproute_each(char *key, void *value, CelHttpRouteData *rt_data)
+static int _cel_httproute_each(char *key, void *value, CelHttpRouteEachData *each_data)
 {
-	rt_data->path = key;
-	rt_data->handle_func = value;
-	return rt_data->_each_func(rt_data, rt_data->_user_data);
+	each_data->path = key;
+	each_data->handle_func = value;
+	return each_data->_each_func(each_data, each_data->_user_data);
 }
 
 int cel_httproute_foreach(CelHttpRoute *route,
 						  CelHttpRouteEachFunc each_func, void *user_data)
 {
 	int i, ret;
-	CelHttpRouteData rt_data;
+	CelHttpRouteEachData each_data;
 
-	rt_data._each_func = each_func;
-	rt_data._user_data = user_data;
+	each_data._each_func = each_func;
+	each_data._user_data = user_data;
 	for (i = 0; i < CEL_HTTPM_CONUT; i++)
 	{
-		rt_data.method = i;
+		each_data.method = i;
 		if ((ret = cel_pattrie_foreach(
 			&(route->root_tries[i]),
-			(CelKeyValuePairEachFunc)_cel_httproute_each, &rt_data)) != 0)
+			(CelKeyValuePairEachFunc)_cel_httproute_each, &each_data)) != 0)
 			return ret;
 	}
 	return 0;

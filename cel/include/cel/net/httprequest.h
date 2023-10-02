@@ -46,7 +46,7 @@ typedef enum _CelHttpRequsetWritingState
     CEL_HTTPREQUEST_WRITING_OK,
 }CelHttpRequsetWritingState;
 
-/* Request method */
+/* Request method,must be defined in character order */
 typedef enum _CelHttpMethod
 {
     CEL_HTTPM_UNDEFINED = -1,

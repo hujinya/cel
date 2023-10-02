@@ -384,12 +384,10 @@ next_static_children:
                         //printf("param %s= %s\r\n", node->param_name, key, );
 
 						//copy key
-						child_key_len = child->param_name_len + 2;
+						child_key_len = child->key_len;
 						if (*key_len <= child_key_len)
 							return -1;
-						*key = '<';
-						memcpy(key +1, child->param_name, child->param_name_len);
-						*(key + child->param_name_len + 1) = '>';
+						memcpy(key, child->key, child_key_len);
 						(*key_len) -= child_key_len;
 
 						sub_param_key = &param_key[i];
@@ -405,12 +403,10 @@ next_static_children:
 					//printf("param %s= %s\r\n", node->param_name, key);
 
 					//copy key
-					child_key_len = child->param_name_len + 2;
+					child_key_len = child->key_len;
 					if (*key_len <= child_key_len)
 						return -1;
-					*key = '<';
-					memcpy(key +1, child->param_name, child->param_name_len);
-					*(key + child->param_name_len + 1) = '>';
+					memcpy(key, child->key, child_key_len);
 					(*key_len) -= child_key_len;
 					key[child_key_len] = '\0';
 

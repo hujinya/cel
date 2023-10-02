@@ -46,7 +46,7 @@ typedef enum _CelHttpResponseWritingState
     CEL_HTTPRESPONSE_WRITING_OK
 }CelHttpResponseWritingState;
 
-/* Response status code */
+/* Response status code,must be defined in character order */
 typedef enum _CelHttpStatusCode
 {
     CEL_HTTPSC_CONTINUE = 100,

@@ -24,8 +24,8 @@
 
 typedef int (* CelHttpRouteHandleFunc)(CelHttpContext *http_ctx);
 
-typedef struct _CelHttpRouteData CelHttpRouteData;
-typedef int (* CelHttpRouteEachFunc)(CelHttpRouteData *rt_data, void *user_data);
+typedef struct _CelHttpRouteEachData CelHttpRouteEachData;
+typedef int (* CelHttpRouteEachFunc)(CelHttpRouteEachData *each_data, void *user_data);
 
 typedef enum _CelHttpRouteState
 {
@@ -39,7 +39,7 @@ typedef enum _CelHttpRouteState
 	CEL_HTTPROUTEST_END
 }CelHttpRouteState;
 
-struct _CelHttpRouteData
+struct _CelHttpRouteEachData
 {
 	CelHttpMethod method;
 	char *path;

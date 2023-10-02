@@ -51,6 +51,7 @@ typedef enum _CelHttpVersion
     CEL_HTTPVER_COUNT
 }CelHttpVersion;
 
+/* Must be defined in character order */
 typedef enum _CelHttpHeader
 {
     CEL_HTTPHDR_ACCEPT,                    /* RFC2616.14.1 */
