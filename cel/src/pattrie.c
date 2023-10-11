@@ -100,6 +100,7 @@ void cel_pattrie_node_free(CelPatTrieNode *node, CelFreeFunc value_free_func)
 			cel_pattrie_node_free(child, value_free_func);
 			child = next;
 		}
+		cel_list_free(node->static_children);
 	}
 	if ((list = node->param_children) != NULL)
 	{
@@ -111,6 +112,7 @@ void cel_pattrie_node_free(CelPatTrieNode *node, CelFreeFunc value_free_func)
 			cel_pattrie_node_free(child, value_free_func);
 			child = next;
 		}
+		cel_list_free(node->param_children);
 	}
 	/*printf("free key %s\r\n", node->key);*/
 	if (node->key != NULL)

@@ -215,13 +215,15 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx)
 		}
 		else if (ret == CEL_RET_ERROR)
 		{
-			if (cel_httpresponse_get_statuscode(&(http_ctx->rsp)) == CEL_HTTPSC_REQUEST_OK)
-				cel_httpresponse_set_statuscode(&(http_ctx->rsp), CEL_HTTPSC_ERROR);
-			cel_httpresponse_set_header(&(http_ctx->rsp), 
-				CEL_HTTPHDR_CONTENT_TYPE,
-				CEL_HTTPCONTEXT_CONTENT_TYPE, CEL_HTTPCONTEXT_CONTENT_TYPE_LEN);
-			cel_httpresponse_printf(&(http_ctx->rsp), "{\"error\":%d,\"message\":\"%s\"}", 
-				cel_geterrno(), cel_geterrstr());
+			if (http_ctx->rsp.writing_body_offset == 0) {
+				if (cel_httpresponse_get_statuscode(&(http_ctx->rsp)) == CEL_HTTPSC_REQUEST_OK)
+					cel_httpresponse_set_statuscode(&(http_ctx->rsp), CEL_HTTPSC_ERROR);
+				cel_httpresponse_set_header(&(http_ctx->rsp), 
+					CEL_HTTPHDR_CONTENT_TYPE,
+					CEL_HTTPCONTEXT_CONTENT_TYPE, CEL_HTTPCONTEXT_CONTENT_TYPE_LEN);
+				cel_httpresponse_printf(&(http_ctx->rsp), "{\"error\":%d,\"message\":\"%s\"}", 
+					cel_geterrno(), cel_geterrstr());
+			}
 			cel_httpresponse_end(&(http_ctx->rsp));
 		}
 		//printf("rsp %s\r\n", http_ctx->rsp.hs.s.buffer);
@@ -330,8 +332,10 @@ int cel_httpcontext_response_write(CelHttpContext *http_ctx,
 				CEL_HTTPHDR_CONTENT_TYPE,
 				CEL_HTTPCONTEXT_CONTENT_TYPE, CEL_HTTPCONTEXT_CONTENT_TYPE_LEN);
 		}
-		cel_httpresponse_printf(&(http_ctx->rsp), 
-			"{\"error\":%d,\"message\":\"%s\"}", err_no, msg);
+		if (msg != NULL) {
+			cel_httpresponse_printf(&(http_ctx->rsp), 
+				"{\"error\":%d,\"message\":\"%s\"}", err_no, msg);
+		}
 		cel_httpresponse_end(&(http_ctx->rsp));
         break;
     default:

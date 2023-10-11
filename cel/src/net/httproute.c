@@ -179,16 +179,6 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 			http_ctx->state = CEL_HTTPROUTEST_BEFORE_EXEC;
 		case CEL_HTTPROUTEST_BEFORE_EXEC:
 			//puts("CEL_HTTPROUTEST_BEFORE_EXEC");
-			filter_list = &(route->filters[http_ctx->state]);
-			if (cel_list_get_size(filter_list) > 0
-				&& (ret = cel_httproute_filters_foreach(filter_list, http_ctx)) != CEL_RET_OK)
-			{
-				CEL_SETERR((CEL_ERR_LIB,  
-					_T("Http route '[%s]%s' filter handler[%d] failed."), 
-					cel_httprequest_get_method_str(&(http_ctx->req)), 
-					cel_httprequest_get_url_path(&(http_ctx->req)), http_ctx->state));
-				break;
-			}
 			if ((url = cel_httprequest_get_url_path(&(http_ctx->req))) == NULL
 				|| strncmp(cel_vstring_str_a(&(route->prefix)),
 				url, cel_vstring_size_a(&(route->prefix))) != CEL_RET_OK)
@@ -210,6 +200,16 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 				cel_httpresponse_set_statuscode(&(http_ctx->rsp), CEL_HTTPSC_NOT_FOUND);
 				CEL_SETERR((CEL_ERR_LIB, _T("Http route path '[%s]%s' not supported."), 
 					cel_httprequest_get_method_str(&(http_ctx->req)), prefix));
+				break;
+			}
+			filter_list = &(route->filters[http_ctx->state]);
+			if (cel_list_get_size(filter_list) > 0
+				&& (ret = cel_httproute_filters_foreach(filter_list, http_ctx)) != CEL_RET_OK)
+			{
+				CEL_SETERR((CEL_ERR_LIB,  
+					_T("Http route '[%s]%s' filter handler[%d] failed."), 
+					cel_httprequest_get_method_str(&(http_ctx->req)), 
+					cel_httprequest_get_url_path(&(http_ctx->req)), http_ctx->state));
 				break;
 			}
 			http_ctx->state = CEL_HTTPROUTEST_EXEC;

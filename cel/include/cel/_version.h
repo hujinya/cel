@@ -3,11 +3,11 @@
 #define MAJOR 1
 #define MINOR 5
 #define REVISION 2
-#define BUILD 75
+#define BUILD 76
 #define EXTRA ""
 #define OS "\S"
 #define PLATFORM "Linux 3.10.0-327.el7.x86_64"
-#define COMPILE_BY "hj"
+#define COMPILE_BY "hjy"
 #define COMPILE_HOST "localhost.localdomain"
 #define COMPILER "gcc version 4.9.4 (GCC) "
 #endif
