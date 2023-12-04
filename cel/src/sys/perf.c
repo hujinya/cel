@@ -89,14 +89,17 @@ int cel_perfserialize(CelPerf *pi, char *buf, size_t size, int indent)
         for (i = 0; i < pi->fs.num; i++)
         {
 #ifdef _UNICODE
+			cel_unicode2mb(pi->fs.fss[i]->fsname, -1, (char *)pi->fs.fsname, CEL_DIRLEN);
             cel_unicode2mb(pi->fs.fss[i]->dir, -1, (char *)pi->fs.dir, CEL_DIRLEN);
 #endif
             len += snprintf(buf + len, size - len, 
-                "{\"dir\":\"%s\","
+				"{\"fsname\":\"%s\",\"dir\":\"%s\","
                 "\"total\":%lld,\"available\":%lld,\"free\":%lld,\"usage\":%d},", 
 #ifdef _UNICODE
+				(char *)pi->fs.fsname,
                 (char *)pi->fs.dir,
 #else
+				pi->fs.fss[i]->fsname,
                 pi->fs.fss[i]->dir, 
 #endif
                 pi->fs.fss[i]->total, pi->fs.fss[i]->available, pi->fs.fss[i]->free, 

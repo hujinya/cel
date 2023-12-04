@@ -17,7 +17,6 @@
 #include "cel/log.h"
 #include "cel/allocator.h"
 
-
 int cel_arraylist_init(CelArrayList *array_list, CelFreeFunc free_func)
 {
     array_list->free_func = free_func;

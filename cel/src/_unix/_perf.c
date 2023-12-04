@@ -167,30 +167,33 @@ CelMemPerf *cel_getmemperf(void)
 
 CelFsPerf *cel_getfsperf(void)
 {  
-    FILE* mount_table;
-    struct mntent *mount_entry;
+	char buf[1024];
+    FILE* mnt_tb;
+    struct mntent mntent, *pmntent;
     struct statfs fs_stat;
     CelFsPerf *c_hi, *s_hi = &(s_perf.fs);
 
-    if ((mount_table = setmntent(MOUNTED, "r")) == NULL)
+    if ((mnt_tb = setmntent(MOUNTED, "r")) == NULL)
     {
         return NULL;
     }
     s_hi->total = s_hi->available = s_hi->free = 0;
     s_hi->num = 0;
-    while ((mount_entry = getmntent(mount_table)) != NULL)
+    while ((pmntent = getmntent_r(mnt_tb, &mntent, buf, 1024)) != NULL)
     {
-        if (strncmp(mount_entry->mnt_fsname, "/dev/", 5) != 0 
-            || statfs(mount_entry->mnt_dir, &fs_stat) != 0)
+        if (strncmp(pmntent->mnt_fsname, "/dev/", 5) != 0
+			|| strcmp(pmntent->mnt_dir, "/tmp") == 0
+			|| strcmp(pmntent->mnt_dir, "/var/tmp") == 0
+            || statfs(pmntent->mnt_dir, &fs_stat) != 0)
             continue;
        /* printf("%s %s %s\r\n", 
-            mount_entry->mnt_type, mount_entry->mnt_opts, c_hi->fsname);*/
+            pmntent->mnt_type, pmntent->mnt_opts, c_hi->fsname);*/
         if ((c_hi = s_hi->fss[s_hi->num]) == NULL
             && (c_hi = (s_hi->fss[s_hi->num] = 
             (CelFsPerf *)cel_malloc(sizeof(CelFsPerf)))) == NULL)
             break;
-        strncpy(c_hi->fsname, mount_entry->mnt_fsname, CEL_FNLEN);
-        strncpy(c_hi->dir, mount_entry->mnt_dir, CEL_DIRLEN);
+        strncpy(c_hi->fsname, pmntent->mnt_fsname, CEL_FNLEN);
+        strncpy(c_hi->dir, pmntent->mnt_dir, CEL_DIRLEN);
         c_hi->total = fs_stat.f_blocks * fs_stat.f_bsize;
         c_hi->available = fs_stat.f_bavail * fs_stat.f_bsize;
         c_hi->free = fs_stat.f_bfree * fs_stat.f_bsize;
@@ -205,7 +208,7 @@ CelFsPerf *cel_getfsperf(void)
         s_hi->free += c_hi->free;
         if (++s_hi->num >= CEL_HDNUM) break; 
     }
-    endmntent(mount_table);
+    endmntent(mnt_tb);
     if (s_hi->total != 0)
     {
         if (s_hi->maxusage < (s_hi->usage = (BYTE)

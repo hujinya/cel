@@ -30,7 +30,7 @@ int cel_httproute_init(CelHttpRoute *route, const char *prefix)
     for (i = 0; i < CEL_HTTPM_CONUT; i++)
     {
         trie = &(route->root_tries[i]);
-        cel_pattrie_init(trie, NULL);
+        cel_pattrie_init(trie, cel_free);
     }
     return 0;
 }
@@ -74,9 +74,12 @@ void cel_httproute_free(CelHttpRoute *route)
 
 int cel_httproute_add(CelHttpRoute *route, 
                       CelHttpMethod method, const char *path, 
-                      CelHttpFilterHandlerFunc handle_func)
+                      CelHttpFilterHandlerFunc handle_func, BOOL is_auth)
 {
-    cel_pattrie_insert(&(route->root_tries[method]), path, handle_func);
+	CelHttpRouteData *rt_data = (CelHttpRouteData *)cel_malloc(sizeof(CelHttpRouteData));
+	rt_data->handle_func = handle_func;
+	rt_data->is_auth = is_auth;
+    cel_pattrie_insert(&(route->root_tries[method]), path, rt_data);
     return 0;
 }
 
@@ -90,7 +93,7 @@ int cel_httproute_remove(CelHttpRoute *route,
 static int _cel_httproute_each(char *key, void *value, CelHttpRouteEachData *each_data)
 {
 	each_data->path = key;
-	each_data->handle_func = value;
+	each_data->rt_data = (CelHttpRouteData *)value;
 	return each_data->_each_func(each_data, each_data->_user_data);
 }
 
@@ -110,6 +113,14 @@ int cel_httproute_foreach(CelHttpRoute *route,
 			(CelKeyValuePairEachFunc)_cel_httproute_each, &each_data)) != 0)
 			return ret;
 	}
+	return 0;
+}
+
+int cel_httproute_auth_filter_set(CelHttpRoute *route,
+								  CelHttpFilterHandlerFunc handle)
+{
+    route->auth_on = TRUE;
+	route->auth_filter = handle;
 	return 0;
 }
 
@@ -154,7 +165,8 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 	int ret;
 	size_t path_len;
 	char *url, *prefix;
-	CelHttpFilterHandlerFunc route_handler;
+	CelHttpRouteData *rt_data;
+	//CelHttpFilterHandlerFunc route_handler;
 	CelList *filter_list;
 
 	if (http_ctx->state == CEL_HTTPROUTEST_END)
@@ -192,7 +204,7 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 			}
 			prefix = url + cel_vstring_size_a(&(route->prefix));
 			path_len = CEL_ROUTR_PATH_LEN;
-			if ((route_handler = cel_pattrie_lookup_param_key(
+			if ((rt_data = cel_pattrie_lookup_param_key(
 				&(route->root_tries[cel_httprequest_get_method(&(http_ctx->req))]), 
 				prefix, http_ctx->path,  &path_len, &(http_ctx->params))) == NULL)
 			{
@@ -217,12 +229,17 @@ int cel_httproute_routing(CelHttpRoute *route, CelHttpContext *http_ctx)
 			//puts("CEL_HTTPROUTEST_EXEC");
 			/* route_handler can only be executed once*/
 			http_ctx->state = CEL_HTTPROUTEST_AFTER_EXEC; 
-			if ((ret = route_handler(http_ctx)) != CEL_RET_OK)
+			if (rt_data->is_auth) {
+				if ((ret= http_ctx->serve_ctx->route.auth_filter(http_ctx)) != CEL_RET_OK) {
+					break;
+				}
+			}
+			if ((ret = rt_data->handle_func(http_ctx)) != CEL_RET_OK)
 			{
 				/*if (ret == CEL_RET_ERROR)
 				{
-					CEL_SETERR((CEL_ERR_LIB, _T("Http route '[%s]%s' handler failed."), 
-						cel_httprequest_get_method_str(&(http_ctx->req)), prefix));
+				CEL_SETERR((CEL_ERR_LIB, _T("Http route '[%s]%s' handler failed."), 
+				cel_httprequest_get_method_str(&(http_ctx->req)), prefix));
 				}*/
 				break;
 			}			

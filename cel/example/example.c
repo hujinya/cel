@@ -47,5 +47,5 @@ int _tmain(int argc, TCHAR *argv[])
 {
     //_tscanf(_T("%s", ))
 
-    return pattrie_test(argc, argv);
+    return perf_test(argc, argv);
 }

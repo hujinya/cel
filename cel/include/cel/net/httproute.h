@@ -39,11 +39,17 @@ typedef enum _CelHttpRouteState
 	CEL_HTTPROUTEST_END
 }CelHttpRouteState;
 
+typedef struct _CelHttpRouteData
+{
+	BOOL is_auth;
+	CelHttpRouteHandleFunc handle_func;
+}CelHttpRouteData;
+
 struct _CelHttpRouteEachData
 {
 	CelHttpMethod method;
 	char *path;
-	CelHttpRouteHandleFunc handle_func;
+	CelHttpRouteData *rt_data;
 	CelHttpRouteEachFunc _each_func;
 	void *_user_data;
 };
@@ -54,9 +60,9 @@ typedef struct _CelHttpRoute
     CelPatTrie root_tries[CEL_HTTPM_CONUT];
     //BOOL policy_on;
     //CelList policies;
-    BOOL filter_on, logger_on;
+    BOOL filter_on, auth_on, logger_on;
     CelList filters[CEL_HTTPROUTEST_END];
-	CelHttpFilterHandlerFunc logger_filter;
+	CelHttpFilterHandlerFunc auth_filter, logger_filter;
 }CelHttpRoute;
 
 #ifdef __cplusplus
@@ -71,17 +77,17 @@ void cel_httproute_free(CelHttpRoute *route);
 
 int cel_httproute_add(CelHttpRoute *route, 
                       CelHttpMethod method, const char *path, 
-                      CelHttpRouteHandleFunc handle_func);
-#define cel_httproute_get_add(route, path, handle_func) \
-    cel_httproute_add(route, CEL_HTTPM_GET, path, handle_func)
-#define cel_httproute_post_add(route, path, handle_func) \
-    cel_httproute_add(route, CEL_HTTPM_POST, path, handle_func)
-#define cel_httproute_delete_add(route, path, handle_func) \
-    cel_httproute_add(route, CEL_HTTPM_DELETE, path, handle_func)
-#define cel_httproute_put_add(route, path, handle_func) \
-    cel_httproute_add(route, CEL_HTTPM_PUT, path, handle_func)
-#define cel_httproute_patch_add(route, path, handle_func) \
-    cel_httproute_add(route, CEL_HTTPM_PATCH, path, handle_func)
+                      CelHttpFilterHandlerFunc handle_func, BOOL is_auth);
+#define cel_httproute_get_add(route, path, handle_func, is_auth) \
+    cel_httproute_add(route, CEL_HTTPM_GET, path, handle_func, is_auth)
+#define cel_httproute_post_add(route, path, handle_func, is_auth) \
+    cel_httproute_add(route, CEL_HTTPM_POST, path, handle_func, is_auth)
+#define cel_httproute_delete_add(route, path, handle_func, is_auth) \
+    cel_httproute_add(route, CEL_HTTPM_DELETE, path, handle_func, is_auth)
+#define cel_httproute_put_add(route, path, handle_func, is_auth) \
+    cel_httproute_add(route, CEL_HTTPM_PUT, path, handle_func, is_auth)
+#define cel_httproute_patch_add(route, path, handle_func, is_auth) \
+    cel_httproute_add(route, CEL_HTTPM_PATCH, path, handle_func, is_auth)
 
 //#define cel_httproute_static_add(route, path);
 
@@ -102,6 +108,8 @@ int cel_httproute_foreach(CelHttpRoute *route,
 
 //#define cel_httproute_static_remove(route, path);
 
+int cel_httproute_auth_filter_set(CelHttpRoute *route,
+								  CelHttpFilterHandlerFunc handle);
 int cel_httproute_logger_filter_set(CelHttpRoute *route,
 									CelHttpFilterHandlerFunc handle);
 int cel_httproute_filter_insert(CelHttpRoute *route,
