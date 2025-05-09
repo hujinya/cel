@@ -150,8 +150,56 @@ static int cel_json_string_encode(CelJson *json, char ch)
     return 0;
 }
 
+
+//参考cJson转码
+static int parse_hex4(const char *str, unsigned int *out)
+{
+	int i;
+    // 解析4位十六进制数
+    *out = 0;
+    for (i = 0; i < 4; i++) {
+        char c = str[i];
+        *out <<= 4;
+        if (c >= '0' && c <= '9') *out |= c - '0';
+        else if (c >= 'A' && c <= 'F') *out |= c - 'A' + 10;
+        else if (c >= 'a' && c <= 'f') *out |= c - 'a' + 10;
+        else return 0; // 无效的十六进制
+    }
+    return 1;
+}
+
+static unsigned encode_utf8(char *buffer, unsigned int codepoint)
+{
+    if (codepoint <= 0x7F) {
+        buffer[0] = (char)codepoint;
+        return 1;
+    }
+    if (codepoint <= 0x7FF) {
+        buffer[0] = 0xC0 | ((codepoint >> 6) & 0x1F);
+        buffer[1] = 0x80 | (codepoint & 0x3F);
+        return 2;
+    }
+    if (codepoint <= 0xFFFF) {
+        buffer[0] = 0xE0 | ((codepoint >> 12) & 0x0F);
+        buffer[1] = 0x80 | ((codepoint >> 6) & 0x3F);
+        buffer[2] = 0x80 | (codepoint & 0x3F);
+        return 3;
+    }
+    if (codepoint <= 0x10FFFF) {
+        buffer[0] = 0xF0 | ((codepoint >> 18) & 0x07);
+        buffer[1] = 0x80 | ((codepoint >> 12) & 0x3F);
+        buffer[2] = 0x80 | ((codepoint >> 6) & 0x3F);
+        buffer[3] = 0x80 | (codepoint & 0x3F);
+        return 4;
+    }
+    return 0;
+}
+
 static int cel_json_string_decode(CelJson *json, char ch)
 {
+	unsigned int uc, i;
+	unsigned int utf8_len;
+	char utf8[4];
 	//_tprintf(_T("%c escape %d\r\n"), ch, json->is_escape);
 	if ((--(json->is_escape)) < 0)
 	{
@@ -206,12 +254,21 @@ static int cel_json_string_decode(CelJson *json, char ch)
 			json->escape_buf[(json->escape_cursor)++] = ch;
 			if (json->escape_cursor >= 4)
 			{
-#ifdef UNICODE
-				//cel_vstring_append_a(&(json->vstr), 0);
-#else
-				//cel_vstring_append_a(&(json->vstr), 0);
-				//cel_vstring_append_a(&(json->vstr), 0);
-#endif
+				// 解析4位十六进制Unicode码点
+				if (!(parse_hex4(json->escape_buf, &uc))) {
+					goto fail;
+				}
+				// UTF-16代理对检查(不支持补充平面字符）
+				if ((uc >= 0xDC00 && uc <= 0xDFFF) || (uc >= 0xD800 && uc <= 0xDBFF)){
+					goto fail;
+				}
+
+				// 转换为UTF-8编码
+				utf8_len = encode_utf8(utf8, uc);
+				for( i = 0; i < utf8_len; i++) {
+					cel_vstring_append_a(&(json->vstr), utf8[i]);
+				}
+fail:
 				json->escape_cursor = 0;
 				json->is_escape = 0;
 			}

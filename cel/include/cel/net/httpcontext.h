@@ -30,6 +30,7 @@ typedef void (* CelHttpContextFreeFunc)(CelHttpContext *http_ctx);
 typedef struct _CelHttpServeContext
 {
     char server[CEL_SNLEN];
+	int keepalive_timeout;
     CelHttpRoute route;
     CelHttpContextNewFunc new_func;
     CelHttpContextFreeFunc free_func;

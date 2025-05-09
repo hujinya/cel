@@ -544,7 +544,7 @@ int cel_httpconnection_writing(const char *hdr_name,
                                CelStream *s)
 {
     if (*connection == CEL_HTTPCON_KEEPALIVE)
-        cel_stream_printf(s, "%s: Keep-Alive\r\n", hdr_name);
+        cel_stream_printf(s, "%s: keep-alive\r\n", hdr_name);
     else if (*connection == CEL_HTTPCON_CLOSE)
         cel_stream_printf(s, "%s: close\r\n", hdr_name);
     return 0;

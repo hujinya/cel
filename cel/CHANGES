@@ -1,6 +1,10 @@
-* Mon Oct 2 2023 Hu Jinya <hjy@gzsunrun.cn> 1.5.2.76
+* Fri May 9 2025 Hu Jinya <hjy@gzsunrun.cn> 1.5.4.78
+- feat: CelJson支持unicode解析。
+
+* Mon Oct 2 2023 Hu Jinya <hjy@gzsunrun.cn> 1.5.3.77
 - feat: 增加cel_httpcontext_send。
 - refactor: 调整cel_pattrie_lookup_param_key。
+- feat: 增加httpserve支持keepalive_timeout。
 
 * Wed Apr 13 2022 Hu Jinya <hjy@gzsunrun.cn> 1.5.1.73
 - fix: 修复cel_httpresponse_writing_body\cel_httprequest_writing_body

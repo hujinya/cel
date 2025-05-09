@@ -107,7 +107,6 @@ int cel_mdcontext_hmac_finish(CelMdContext *ctx, BYTE *output, size_t *olen);
 int cel_mdcontext_hmac_md(CelMd *md, const BYTE *key, size_t keyl,
                           const void *input, size_t ilen, 
                           BYTE *output, size_t *olen);
-
 #include "cel/ssl/des.h"
 #include "cel/ssl/aes.h"
 #include "cel/ssl/rc4.h"

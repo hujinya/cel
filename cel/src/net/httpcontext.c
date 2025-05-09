@@ -92,6 +92,7 @@ static void cel_httpcontext_do_recv_request(CelHttpContext *http_ctx,
 											CelHttpRequest *req,
 											CelAsyncResult *result)
 {
+	CelHttpConnection http_connection;
     /*printf("cel_httpcontext_do_recv_request,"
              "result = %ld, reading_state %d\r\n", 
               result->ret, req->reading_state);
@@ -130,8 +131,15 @@ static void cel_httpcontext_do_recv_request(CelHttpContext *http_ctx,
 		/* Init response common header */
 		cel_httpresponse_set_header(&(http_ctx->rsp), CEL_HTTPHDR_SERVER,
 			http_ctx->serve_ctx->server, strlen(http_ctx->serve_ctx->server));
-		cel_httpresponse_set_header(&(http_ctx->rsp), CEL_HTTPHDR_CONNECTION,
-			&(req->connection), sizeof(CelHttpConnection));
+		if (http_ctx->serve_ctx->keepalive_timeout <= 0) {
+			http_connection = CEL_HTTPCON_CLOSE;
+			cel_httpresponse_set_header(&(http_ctx->rsp), CEL_HTTPHDR_CONNECTION,
+				&http_connection, sizeof(CelHttpConnection));
+		}
+		else {
+			cel_httpresponse_set_header(&(http_ctx->rsp), CEL_HTTPHDR_CONNECTION,
+				&(req->connection), sizeof(CelHttpConnection));
+		}
 		http_ctx->state = CEL_HTTPROUTEST_BEFORE_ROUTER;
 		cel_httpcontext_routing_again(http_ctx);
 		break;
@@ -210,7 +218,7 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx)
 		//puts("cel_httpcontext_routing:Http route");
 		if ((ret = cel_httproute_routing(&(http_ctx->serve_ctx->route), http_ctx)) == CEL_RET_AGAIN)
 		{
-			CEL_DEBUG((_T("Http context routing wait...")));
+			//CEL_DEBUG((_T("Http context routing wait...")));
 			return CEL_RET_AGAIN;
 		}
 		else if (ret == CEL_RET_ERROR)
@@ -226,7 +234,8 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx)
 			}
 			cel_httpresponse_end(&(http_ctx->rsp));
 		}
-		//printf("rsp %s\r\n", http_ctx->rsp.hs.s.buffer);
+		//CEL_DEBUG(("req %s\r\n", (char *)http_ctx->req.hs.s.buffer));
+		//CEL_DEBUG(("rsp %s\r\n", (char *)http_ctx->rsp.hs.s.buffer));
 		http_ctx->state = CEL_HTTPROUTEST_SEND_RESPONSE;
 		if (cel_httpresponse_get_statuscode(&(http_ctx->rsp))/400 >= 1)
 		{
@@ -247,14 +256,14 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx)
 	// Send respons to client
 	if (http_ctx->state == CEL_HTTPROUTEST_END)
 	{
-		//puts("cel_httpcontext_routing:Send respons to client");
+		CEL_DEBUG(("cel_httpcontext_routing:Send respons to client"));
 		if (http_ctx->serve_ctx->route.logger_on)
 			http_ctx->serve_ctx->route.logger_filter(http_ctx);
-		if ((connection = (CelHttpConnection *)cel_httprequest_get_header(
-			&(http_ctx->req), CEL_HTTPHDR_CONNECTION)) != NULL
+		if ((connection = (CelHttpConnection *)cel_httpresponse_get_header(
+			&(http_ctx->rsp), CEL_HTTPHDR_CONNECTION)) != NULL
 			&& *connection == CEL_HTTPCON_KEEPALIVE)
 		{
-			//puts("CEL_HTTPCON_KEEPALIVE");
+			//CEL_DEBUG(("CEL_HTTPCON_KEEPALIVE"));
 			cel_httpcontext_clear(http_ctx);
 			if (cel_httpclient_async_recv_request(&(http_ctx->http_client), 
 				&(http_ctx->req), 
@@ -268,7 +277,7 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx)
 		}
 		else
 		{
-			//puts("cel_httpcontext_free");
+			//CEL_DEBUG(("cel_httpcontext_free"));
 			if (cel_httpclient_async_shutdown(&(http_ctx->http_client), 
 				(CelHttpShutdownCallbackFunc)cel_httpcontext_do_shutdown) == -1)
 			{
