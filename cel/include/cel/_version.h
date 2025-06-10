@@ -2,8 +2,8 @@
 #define __VERSION_H__
 #define MAJOR 1
 #define MINOR 5
-#define REVISION 3
-#define BUILD 77
+#define REVISION 4
+#define BUILD 78
 #define EXTRA ""
 #define OS "\S"
 #define PLATFORM "Linux 3.10.0-327.el7.x86_64"

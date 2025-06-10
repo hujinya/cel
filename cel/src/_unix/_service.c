@@ -47,7 +47,7 @@ int os_service_pidfile_create(const TCHAR *name)
     if (_tcscmp(ps.name, pps.name) != 0)
         _ftprintf(fp, _T("%d\n"), pid);
     else
-        _ftprintf(fp, _T("%d\n%d\n"), pid, ppid);
+        _ftprintf(fp, _T("%d\n%d\n"), ppid, pid);
     fclose(fp);
     return (0);
 }
@@ -63,7 +63,7 @@ int os_service_pidfile_exist(const TCHAR *name)
 	_sntprintf(file, CEL_FNLEN, _T("./%s.pid"), name);
     if ((fp = _tfopen(cel_fullpath_r(file, file_path, CEL_PATHLEN), _T("r"))) == NULL)
         return 0;
-    fscanf(fp, "%d\n%d", &pid, &ppid);
+    fscanf(fp, "%d\n%d", &ppid, &pid);
     fclose(fp);
     //_tprintf(_T("ppid %d, getppid() = %d, pid %d \r\n"),
     //    ppid, getppid(), pid);
@@ -100,7 +100,7 @@ BOOL os_service_stop(const TCHAR *name)
     if ((fp = _tfopen(
 		cel_fullpath_r(file, file_path, CEL_PATHLEN), _T("r"))) == NULL)
         return 0;
-    fscanf(fp, "%d\n%d", &pid, &ppid);
+    fscanf(fp, "%d\n%d", &ppid, &pid);
     fclose(fp);
     //_tprintf(_T("pid %d ppid %d\r\n"), pid, ppid);
     if (ppid > 0 
@@ -124,7 +124,7 @@ BOOL os_service_reload(const TCHAR *name)
     if ((fp = _tfopen(
 		cel_fullpath_r(file, file_path, CEL_PATHLEN), _T("r"))) == NULL)
         return 0;
-    fscanf(fp, "%d\n%d", &pid, &ppid);
+    fscanf(fp, "%d\n%d", &ppid, &pid);
     fclose(fp);
     //_tprintf(_T("pid %d ppid %d\r\n"), pid, ppid);
     if (ppid > 0 
