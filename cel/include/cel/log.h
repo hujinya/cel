@@ -169,6 +169,9 @@ extern CelLogger g_logger;
     cel_logger_hexdump(&g_logger, g_logger.facility, level, p, len)
 #define cel_log_write(level, buf, size) \
     cel_logger_write(&g_logger, g_logger.facility, level, buf, size)
+
+typedef int (* CelLogFunc)(CelLogLevel level, const TCHAR *fmt, ...);
+
 int cel_log_printf(CelLogLevel level, const TCHAR *fmt, ...);
 static __inline int cel_log_flush(void){
     return cel_logger_flush(&g_logger);

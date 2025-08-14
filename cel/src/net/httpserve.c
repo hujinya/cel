@@ -27,6 +27,10 @@ int cel_httpserve_init(CelHttpServe *listener,
 {
 	if (cel_httplistener_init(&(listener->http_listener), addr, ssl_ctx) == 0)
 	{
+		if (serve_ctx->log_func == NULL)
+		{
+			serve_ctx->log_func = cel_log_printf;
+		}
 		listener->serve_ctx = serve_ctx;
 		return 0;
 	}
@@ -53,12 +57,14 @@ static void cel_httpserve_do_accept(CelHttpServe *listener,
 		CEL_SETERR((CEL_ERR_LIB, _T("Http serve %s do accept %d.(%s)"), 
 			cel_httpserve_get_localaddrs(listener), 
 			result->ret, cel_geterrstr()));
+		listener->serve_ctx->log_func(CEL_LOGLEVEL_ERR, "%s", cel_geterrstr());
 		cel_httpserve_post_accept(listener);
 		return ;
 	}
 	if ((new_ctx = cel_httpcontext_new(http_client, listener->serve_ctx)) == NULL)
 	{
 		CEL_SETERR((CEL_ERR_LIB, _T("Http context new return null")));
+		listener->serve_ctx->log_func(CEL_LOGLEVEL_ERR, "%s", cel_geterrstr());
 		cel_httpclient_destroy(http_client);
 		cel_httpserve_post_accept(listener);
 		return ;
@@ -92,6 +98,7 @@ static void cel_httpserve_do_accept(CelHttpServe *listener,
 	CEL_SETERR((CEL_ERR_LIB, _T("Http context %s init failed(%s)."), 
 		cel_httpclient_get_remoteaddr_str(&(new_ctx->http_client)), 
 		cel_geterrstr()));
+	listener->serve_ctx->log_func(CEL_LOGLEVEL_ERR, "%s", cel_geterrstr());
 	cel_httpcontext_free(new_ctx);
 }
 

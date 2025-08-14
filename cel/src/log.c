@@ -481,7 +481,7 @@ int cel_log_printf(CelLogLevel level, const TCHAR *fmt, ...)
     va_list args;
 
     va_start(args, fmt);
-    cel_log_vprintf(CEL_LOGLEVEL_DEBUG, fmt, args);
+    cel_log_vprintf(level, fmt, args);
     va_end(args);
 
     return 0;

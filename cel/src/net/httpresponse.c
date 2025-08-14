@@ -435,8 +435,11 @@ static long cel_httpresponse_reading_body_content(CelHttpResponse *rsp,
     }
     else
     {
-        size = cel_httpbodycache_reading(&(rsp->body_cache), 
-            (char *)cel_stream_get_pointer(s), (size_t)len);
+        if ((size = cel_httpbodycache_reading(&(rsp->body_cache), 
+			(char *)cel_stream_get_pointer(s), (size_t)len)) == -1)
+		{
+			return -1;
+		}
         cel_stream_seek(s, size);
     }
     rsp->reading_body_offset += size;

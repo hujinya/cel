@@ -15,6 +15,7 @@
 #ifndef __CEL_NET_HTTPCONTEXT_H__
 #define __CEL_NET_HTTPCONTEXT_H__
 
+#include "cel/log.h"
 #include "cel/net/httpclient.h"
 #include "cel/net/httpresponse.h"
 #include "cel/net/httproute.h"
@@ -34,6 +35,7 @@ typedef struct _CelHttpServeContext
     CelHttpRoute route;
     CelHttpContextNewFunc new_func;
     CelHttpContextFreeFunc free_func;
+	CelLogFunc log_func;
 }CelHttpServeContext;
 
 struct _CelHttpContext
