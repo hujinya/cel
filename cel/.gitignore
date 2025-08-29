@@ -1,5 +1,8 @@
 /obj
-/bin/*.pdb
-/bin/*.ilk
+/obj_aarch64
+/lib
+/lib_aarch64
+/bin
+/bin_aarch64
 /src/*.ncb
 /src/*.suo

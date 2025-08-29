@@ -104,7 +104,7 @@ int sslsocket_test(int argc, TCHAR *argv[])
             return 1;
         }
     }
-    if ((ssl_ctx = cel_sslcontext_new(CEL_SSL_METHOD_SSLv23)) == NULL
+    if ((ssl_ctx = cel_sslcontext_new(CEL_SSL_METHOD_TLS_server)) == NULL
         || cel_sslcontext_set_own_cert(ssl_ctx, "/etc/sunrun/gateway-server.crt", 
         "/etc/sunrun/gateway-server.key", "123456") == -1
         || cel_sslcontext_set_ciphersuites(ssl_ctx, 

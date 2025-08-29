@@ -276,7 +276,7 @@ int cel_socket_connect(CelSocket *sock, CelSockAddr *remote_addr)
     if (connect((sock)->fd, 
         &((remote_addr)->addr), cel_sockaddr_get_len(remote_addr)) == 0)
     {
-        sock->state = TRUE;
+        sock->state = CEL_SOCKET_CONNECTED;
         return 0;
     }
     return -1;

@@ -18,17 +18,15 @@
 
 CelKeyword ssl_methods[] = 
 {
-    //{ sizeof(_T("DTLS")) - 1, _T("DTLS"), (const void *)DTLS_method },
-    { sizeof(_T("DTLSv1")) - 1, _T("DTLSv1"), (const void *)DTLSv1_method },
-    //{ sizeof(_T("DTLSv1.2")) - 1, _T("DTLSv1.2"), (const void *)DTLSv1_2_method }, 
-#ifndef OPENSSL_NO_SSL2
-    { sizeof(_T("SSLv2")) - 1, _T("SSLv2"), (const void *)SSLv2_method },
-#endif
-    { sizeof(_T("SSLv23")) - 1, _T("SSLv23"), (const void *)SSLv23_method },
-    { sizeof(_T("SSLv3")) - 1, _T("SSLv3"), (const void *)SSLv3_method },
-    { sizeof(_T("TLSv1")) - 1, _T("TLSv1"), (const void *)TLSv1_method },
-    { sizeof(_T("TLSv1.1")) - 1, _T("TLSv1.1"), (const void *)TLSv1_1_method },
-    { sizeof(_T("TLSv1.2")) - 1, _T("TLSv1.2"), (const void *)TLSv1_2_method }
+	{ sizeof(_T("TLS")) - 1, _T("TLS"), (const void *)TLS_method },
+	{ sizeof(_T("TLS_server")) - 1, _T("TLS_server"), (const void *)TLS_server_method },
+	{ sizeof(_T("TLS_client")) - 1, _T("TLS_client"), (const void *)TLS_client_method },
+
+	{ sizeof(_T("TLSv1")) - 1, _T("TLSv1"), (const void *)TLSv1_method },
+	{ sizeof(_T("TLSv1.1")) - 1, _T("TLSv1.1"), (const void *)TLSv1_1_method },
+	{ sizeof(_T("TLSv1.2")) - 1, _T("TLSv1.2"), (const void *)TLSv1_2_method },
+
+	{ sizeof(_T("DTLSv1")) - 1, _T("DTLSv1"), (const void *)DTLSv1_method },
 };
 
 typedef const SSL_METHOD *(*CelSslMethodFunc)(void);

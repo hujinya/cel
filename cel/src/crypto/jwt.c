@@ -249,8 +249,18 @@ static int cel_jwt_sign_sha_pem(BYTE *out, size_t *out_len,
             goto cel_jwt_sign_sha_pem_done;
         }
 
-        r_len = BN_num_bytes(ec_sig->r);
-        s_len = BN_num_bytes(ec_sig->s);
+		const BIGNUM *r, *s;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+		// OpenSSL (<1.1.0)
+		r = ec_sig->r;
+		s = ec_sig->s
+#else
+		// OpenSSL (≥1.1.0)
+		ECDSA_SIG_get0(ec_sig, &r, &s);  // 安全获取成员
+#endif
+
+        r_len = BN_num_bytes(r);
+        s_len = BN_num_bytes(s);
         bn_len = (degree + 7) / 8;
         if ((r_len > bn_len) || (s_len > bn_len))
         {
@@ -268,8 +278,8 @@ static int cel_jwt_sign_sha_pem(BYTE *out, size_t *out_len,
 
         /* Pad the bignums with leading zeroes. */
         memset(raw_buf, 0, buf_len);
-        BN_bn2bin(ec_sig->r, raw_buf + bn_len - r_len);
-        BN_bn2bin(ec_sig->s, raw_buf + buf_len - s_len);
+        BN_bn2bin(r, raw_buf + bn_len - r_len);
+        BN_bn2bin(s, raw_buf + buf_len - s_len);
 
         /*BIO_write(out, raw_buf, buf_len);
         if (BIO_flush(out));*/
@@ -346,20 +356,30 @@ static int cel_jwt_verify_sha_pem(const EVP_MD *alg, int type,
         if (ec_key == NULL)
             goto cel_jwt_verify_sha_pem_done;
 
-        degree = EC_GROUP_get_degree(EC_KEY_get0_group(ec_key));
+		degree = EC_GROUP_get_degree(EC_KEY_get0_group(ec_key));
 
-        EC_KEY_free(ec_key);
+		EC_KEY_free(ec_key);
 
-        bn_len = (degree + 7) / 8;
-        if ((bn_len * 2) != (unsigned int)slen)
-            goto cel_jwt_verify_sha_pem_done;
+		const BIGNUM *r, *s;
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+		// OpenSSL (<1.1.0)
+		r = ec_sig->r;
+		s = ec_sig->s
+#else
+		// OpenSSL (≥1.1.0)
+		ECDSA_SIG_get0(ec_sig, &r, &s);  // 安全获取成员
+#endif
 
-        if ((BN_bin2bn(sig, bn_len, ec_sig->r) == NULL) 
-            || (BN_bin2bn(sig + bn_len, bn_len, ec_sig->s) == NULL))
-            goto cel_jwt_verify_sha_pem_done;
+		bn_len = (degree + 7) / 8;
+		if ((bn_len * 2) != (unsigned int)slen)
+			goto cel_jwt_verify_sha_pem_done;
+
+		if ((BN_bin2bn(sig, bn_len, r) == NULL) 
+			|| (BN_bin2bn(sig + bn_len, bn_len, s) == NULL))
+			goto cel_jwt_verify_sha_pem_done;
 
 
-        slen = i2d_ECDSA_SIG(ec_sig, NULL);
+		slen = i2d_ECDSA_SIG(ec_sig, NULL);
         sig = (unsigned char *)cel_malloc(slen);
         if (sig == NULL)
             goto cel_jwt_verify_sha_pem_done;

@@ -24,7 +24,7 @@ extern "C" {
 #define stricmp strcasecmp
 
 char *itoa(int num, char *str, int radix);
-#include <xmmintrin.h>
+//#include <xmmintrin.h>
 //unsigned _rotl(unsigned val,int shift);
 //unsigned _rotr (unsigned val,int shift);
 int snwprintf(WCHAR *str, size_t size, const WCHAR *format, ...);

@@ -894,11 +894,7 @@ int cel_httpresponse_vprintf(CelHttpResponse *rsp,
 			&transfer_encoding, sizeof(transfer_encoding));
     }
     fmt_args.fmt = fmt;
-#if defined(_CEL_UNIX)
-    *(fmt_args.args) = *_args;
-#elif defined(_CEL_WIN)
-    fmt_args.args = _args;
-#endif
+	va_copy(fmt_args.args, _args);
     fmt_args.size = 0;
     cel_httpresponse_set_body_writing_callback(rsp, 
         (CelHttpStreamWriteCallBack)cel_httpstream_printf, &fmt_args);

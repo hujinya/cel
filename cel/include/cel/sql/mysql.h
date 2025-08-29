@@ -22,9 +22,9 @@
 extern "C" {
 #endif
 
-typedef struct st_mysql CelMysqlCon;
-typedef struct st_mysql_res CelMysqlRes;
-typedef struct st_mysql_field CelMysqlField;
+typedef struct MYSQL CelMysqlCon;
+typedef struct MYSQL_RES CelMysqlRes;
+typedef struct MYSQL_FIELD CelMysqlField;
 typedef char** CelMysqlRow;
 
 int cel_mysqlcon_open(CelMysqlCon *con,

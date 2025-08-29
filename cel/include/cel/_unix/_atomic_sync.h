@@ -17,17 +17,24 @@
 
 #include "cel/types.h"
 
-#if defined(__x86_64__)
+#if defined(__x86_64__) || defined(__aarch64__)
 typedef volatile S64 OsAtomic;
 #else
 typedef volatile S32 OsAtomic;
 #endif
 
-#include <xmmintrin.h>
-//static __inline void _mm_pause(void)
-//{
-//    __asm__ __volatile__ ("pause" : : :"memory");
-//}
+#if defined(__x86_64__) || defined(__i386__)
+#include <xmmintrin.h> // Only include on x86
+#elif defined(__aarch64__)
+static __inline void _mm_pause(void) {
+	__asm__ __volatile__("yield" ::: "memory");
+}
+#else
+static __inline void _mm_pause(void)
+{
+    __asm__ __volatile__ ("pause" : : :"memory");
+}
+#endif
 #define os_compiler_barrier() __sync_synchronize()
 
 #define os_atomic_store(ptr, val) *(ptr) = val

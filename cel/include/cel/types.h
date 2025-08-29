@@ -27,7 +27,7 @@
 extern "C" {
 #endif
 
-#if defined __x86_64__
+#if defined(__x86_64__) || defined(__aarch64__)
 #ifndef _UINTPTR_T_DEFINED
 typedef unsigned long uintptr_t;
 #define _UINTPTR_T_DEFINED

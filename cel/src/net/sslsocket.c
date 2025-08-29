@@ -21,11 +21,40 @@
 crypto/bio/bss_mem.c 
 crypto/buffer.c
 */
+
+typedef int CRYPTO_REF_COUNT;
+
+struct bio_st {
+    OSSL_LIB_CTX *libctx;
+    const BIO_METHOD *method;
+    /* bio, mode, argp, argi, argl, ret */
+#ifndef OPENSSL_NO_DEPRECATED_3_0
+    BIO_callback_fn callback;
+#endif
+    BIO_callback_fn_ex callback_ex;
+    char *cb_arg;               /* first argument for the callback */
+    int init;
+    int shutdown;
+    int flags;                  /* extra storage */
+    int retry_reason;
+    int num;
+    void *ptr;
+    struct bio_st *next_bio;    /* used by filter BIOs */
+    struct bio_st *prev_bio;    /* used by filter BIOs */
+    CRYPTO_REF_COUNT references;
+    uint64_t num_read;
+    uint64_t num_write;
+    CRYPTO_EX_DATA ex_data;
+    CRYPTO_RWLOCK *lock;
+};
+
+
 #define CEL_BIO_MEM_SIZE  8192
 
 int cel_bio_mem_grow(CelBio *bio)
 {
-    BUF_MEM *bm = (BUF_MEM *)bio->ptr;
+    BUF_MEM *bm;
+	BIO_get_mem_ptr(bio, &bm);
     size_t length = bm->length, size;
 
     if ((size = cel_capacity_get_min(bm->max + 1)) < CEL_BIO_MEM_SIZE)
@@ -43,13 +72,16 @@ int cel_bio_mem_grow(CelBio *bio)
 
 char *cel_bio_mem_get_read_pointer(CelBio *bio)
 {
-    CEL_ASSERT(((BUF_MEM *)bio->ptr)->data != NULL);
-    return ((BUF_MEM *)bio->ptr)->data;
+	BUF_MEM *bm;
+	BIO_get_mem_ptr(bio, &bm);
+    CEL_ASSERT(bm->data != NULL);
+    return bm->data;
 }
 
 char *cel_bio_mem_get_write_pointer(CelBio *bio)
 {
-    BUF_MEM *bm = (BUF_MEM *)bio->ptr;
+    BUF_MEM *bm;
+	BIO_get_mem_ptr(bio, &bm);
     return &(bm->data[bm->length]);
 }
 
@@ -57,8 +89,8 @@ int cel_bio_mem_read_seek(CelBio *bio, int seek)
 {
     int ret= -1;
     BUF_MEM *bm;
+	BIO_get_mem_ptr(bio, &bm);
 
-    bm = (BUF_MEM *)bio->ptr;
     BIO_clear_retry_flags(bio);
     ret = ((seek >= 0 && (size_t)seek > bm->length) ? (int)bm->length : seek);
     //printf("cel_bio_mem_read_seek ret = %d\r\n", ret);
@@ -83,8 +115,7 @@ int cel_bio_mem_write_seek(CelBio *bio, int seek)
 {
     int ret= -1;
     BUF_MEM *bm;
-
-    bm = (BUF_MEM *)bio->ptr;
+	BIO_get_mem_ptr(bio, &bm);
     if (seek < 0 || bm->length + seek > bm->max)
     {
         CEL_SETERR((CEL_ERR_LIB, _T("cel_bio_mem_write_seek %d error."), seek));
@@ -94,7 +125,7 @@ int cel_bio_mem_write_seek(CelBio *bio, int seek)
         BIO_clear_retry_flags(bio);
         (bm->length) += seek;
         ret = seek;
-        if (ret > 0) 
+        if (ret > 0)
             bio->num_write += (unsigned long)ret;
     }
 
@@ -103,13 +134,16 @@ int cel_bio_mem_write_seek(CelBio *bio, int seek)
 
 size_t cel_bio_mem_get_remaining(CelBio *bio)
 {
-    BUF_MEM *bm = (BUF_MEM *)bio->ptr;
+    BUF_MEM *bm;
+	BIO_get_mem_ptr(bio, &bm);
     return bm->max - bm->length;
 }
 
 size_t cel_bio_mem_get_length(CelBio *bio)
 {
-    return ((BUF_MEM *)bio->ptr)->length;
+	BUF_MEM *bm;
+	BIO_get_mem_ptr(bio, &bm);
+    return bm->length;
 }
 
 void _cel_sslsocket_destroy_derefed(CelSslSocket *ssl_sock)
@@ -192,6 +226,7 @@ int cel_sslsocket_send_bio_mem(CelSslSocket *ssl_sock)
 {
     int _size, size = 0;
 
+	printf("cel_sslsocket_send_bio_mem want %d\r\n", cel_bio_mem_get_length(ssl_sock->w_bio));
     while (cel_bio_mem_get_length(ssl_sock->w_bio) > 0)
     {
         ssl_sock->out.sock_buf.buf = 
@@ -203,6 +238,7 @@ int cel_sslsocket_send_bio_mem(CelSslSocket *ssl_sock)
         cel_bio_mem_read_seek(ssl_sock->w_bio, _size);
         size += _size;
     }
+	printf("cel_sslsocket_send_bio_mem %d\r\n", size);
     return size;
 }
 
@@ -210,13 +246,14 @@ int cel_sslsocket_recv_bio_mem(CelSslSocket *ssl_sock)
 {
     int _size, size = 0;
 
+	printf("cel_sslsocket_recv_bio_mem max %d\r\n", cel_bio_mem_get_remaining(ssl_sock->r_bio));
     if (cel_bio_mem_get_remaining(ssl_sock->r_bio) > 0)
     {
         ssl_sock->in.sock_buf.buf = 
             cel_bio_mem_get_write_pointer(ssl_sock->r_bio);
         ssl_sock->in.sock_buf.len = 
             cel_bio_mem_get_remaining(ssl_sock->r_bio);
-        if ((_size = cel_socket_send(&(ssl_sock->sock),
+        if ((_size = cel_socket_recv(&(ssl_sock->sock),
             &(ssl_sock->in.sock_buf), 1)) <= 0)
             return -1;
         cel_bio_mem_write_seek(ssl_sock->r_bio, _size);
@@ -224,26 +261,48 @@ int cel_sslsocket_recv_bio_mem(CelSslSocket *ssl_sock)
             cel_bio_mem_grow(ssl_sock->r_bio);
         size += _size;
     }
+	printf("cel_sslsocket_recv_bio_mem %d\r\n", size);
     return size;
 }
 
 int cel_sslsocket_handshake(CelSslSocket *ssl_sock)
 {
+	int ret = 0;
     int result, error;
 
-    while ((result = cel_ssl_handshake(ssl_sock->ssl)) != 1)
-    {
-        if ((error = SSL_get_error(ssl_sock->ssl, result)) 
-            == SSL_ERROR_WANT_READ
-            || error == SSL_ERROR_WANT_WRITE)
-        {
-            if (cel_sslsocket_send_bio_mem(ssl_sock) > 0
-                && cel_sslsocket_recv_bio_mem(ssl_sock) > 0)
-                continue;
-        }
-        break;
-    }
-    return result;
+	while ((result = cel_ssl_handshake(ssl_sock->ssl)) != 1)
+	{
+		error = SSL_get_error(ssl_sock->ssl, result);
+		printf("result = %d error = %d\r\n", result, error);
+		if (error == SSL_ERROR_NONE
+			|| error == SSL_ERROR_WANT_READ
+			|| error == SSL_ERROR_WANT_WRITE)
+		{
+			if (cel_bio_mem_get_length(ssl_sock->w_bio) > 0)
+			{
+				if (cel_sslsocket_send_bio_mem(ssl_sock) <= 0){
+					ret = -1;
+					break;
+				}
+			}
+			else if (error == SSL_ERROR_WANT_READ)
+			{
+				if (cel_sslsocket_recv_bio_mem(ssl_sock) <= 0) {
+					ret = -1;
+					break;
+				}
+			}
+			cel_ssl_clear_error();
+			continue;
+		}
+		ret = -1;
+		break;
+	}
+	if (ret == -1) {
+		CEL_SETERR((CEL_ERR_LIB, _T("Ssl socket handshake failed(%s)."), 
+			cel_ssl_get_errstr(cel_ssl_get_errno())));
+	}
+    return ret;
 }
 
 int cel_sslsocket_send(CelSslSocket *ssl_sock, CelAsyncBuf *buffers, int count)
@@ -369,7 +428,7 @@ void cel_sslsocket_do_handshake(CelSocket *sock,
         }
         else
         {
-            CEL_SETERR((CEL_ERR_LIB, _T("cel_sslsocket_do_handshake  failed,")
+            CEL_SETERR((CEL_ERR_LIB, _T("cel_sslsocket_do_handshake failed,")
                     _T(" fd %d, result %ld error %d %s"), 
                 ssl_sock->sock.fd, args->result.ret, args->result.error, 
                 cel_ssl_get_errstr(cel_ssl_get_errno())));

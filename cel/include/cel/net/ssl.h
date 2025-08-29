@@ -32,17 +32,17 @@ extern "C" {
 typedef enum _CelSslMethod
 {
     CEL_SSL_METHOD_UNDEFINED = -1,
-    //CEL_SSL_METHOD_DTLS,     /* DTLS 1.0 and 1.2 */
-    CEL_SSL_METHOD_DTLSv1,   /* DTLSv1.0 */
-    //CEL_SSL_METHOD_DTLSv1_2, /* DTLSv1.2 */
-#ifndef OPENSSL_NO_SSL2
-    CEL_SSL_METHOD_SSLv2,    /* SSLv2 */
-#endif
-    CEL_SSL_METHOD_SSLv23,   /* Negotiate highest available SSL/TLS version */
-    CEL_SSL_METHOD_SSLv3,    /* SSLv3 */
+
+	CEL_SSL_METHOD_TLS,  /* TLS */
+	CEL_SSL_METHOD_TLS_server,  /* TLS_server */
+	CEL_SSL_METHOD_TLS_client,  /* TLS_client */
+
     CEL_SSL_METHOD_TLSv1,    /* TLSv1.0 */
     CEL_SSL_METHOD_TLSv1_1,  /* TLSv1.1 */
     CEL_SSL_METHOD_TLSv1_2,  /* TLSv1.2 */
+
+	CEL_SSL_METHOD_DTLSv1,   /* DTLSv1.0 */
+
     CEL_SSL_METHOD_COUNT
 }CelSslMethod;
 
@@ -67,7 +67,7 @@ typedef SSL CelSsl;
 extern CelKeyword ssl_methods[];
 
 #define cel_ssllibrary_init() \
-    CRYPTO_set_mem_functions(cel_malloc, cel_realloc, cel_free),\
+    CRYPTO_set_mem_functions((CRYPTO_malloc_fn)cel_malloc, (CRYPTO_realloc_fn)cel_realloc, (CRYPTO_free_fn)cel_free),\
     SSL_load_error_strings(), \
     SSL_library_init()
 /* SSL_library_init include OpenSSL_add_all_algorithms */

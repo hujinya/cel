@@ -113,7 +113,6 @@ static size_t s_httpreqhdr_offset[] =
     0,
     CEL_OFFSET(CelHttpRequest, x_real_ip),
     CEL_OFFSET(CelHttpRequest, x_requested_with),
-
 };
 
 int cel_httpurl_init(CelHttpUrl *url)
@@ -1098,11 +1097,7 @@ int cel_httprequest_vprintf(CelHttpRequest *req,
 			&transfer_encoding, sizeof(transfer_encoding));
     }
     fmt_args.fmt = fmt;
-#if defined(_CEL_UNIX)
-    *(fmt_args.args) = *_args;
-#elif defined(_CEL_WIN)
-    fmt_args.args = _args;
-#endif
+	va_copy(fmt_args.args, _args);
     fmt_args.size = 0;
     cel_httprequest_set_body_writing_callback(req, 
         (CelHttpStreamWriteCallBack)cel_httpstream_printf, &fmt_args);

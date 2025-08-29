@@ -47,5 +47,5 @@ int _tmain(int argc, TCHAR *argv[])
 {
     //_tscanf(_T("%s", ))
 
-    return perf_test(argc, argv);
+    return httpclient_test(argc, argv);
 }

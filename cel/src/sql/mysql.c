@@ -33,15 +33,12 @@ int cel_mysqlcon_open(CelMysqlCon *con,
                       const char *name, 
                       const char *user, const char *pswd)
 {
-    my_bool reconnect = 1;
-
     if (mysql_init(con) == NULL)
     {
         CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_init:%s."), mysql_error(con)));
         return -1;
     }
-    if (mysql_options(con, MYSQL_SET_CHARSET_NAME, "utf8") != 0
-        || mysql_options(con, MYSQL_OPT_RECONNECT, &reconnect) != 0)
+    if (mysql_options(con, MYSQL_SET_CHARSET_NAME, "utf8") != 0)
     {
         CEL_SETERR((CEL_ERR_MYSQL, _T("mysql_options:%s."), mysql_error(con)));
         return -1;

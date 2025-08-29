@@ -110,7 +110,7 @@ static __inline BOOL cel_tcpclient_is_connected(CelTcpClient *client)
 #define cel_tcpclient_get_state(client) \
     cel_socket_get_state((CelSocket *)client)
 
-void cel_tcpclient_set_ssl(CelTcpClient *client, BOOL use_ssl);
+int cel_tcpclient_set_ssl(CelTcpClient *client, BOOL use_ssl);
 
 #define cel_tcpclient_set_keepalive(client, on, idle, interval, count) \
     cel_socket_set_keepalive((CelSocket *)client, on, idle, interval, count)
@@ -140,13 +140,17 @@ void cel_tcpclient_set_ssl(CelTcpClient *client, BOOL use_ssl);
 static __inline 
 int cel_tcpclient_connect(CelTcpClient *client, CelSockAddr *remote_addr)
 {
-    return cel_socket_connect(&(client->sock), remote_addr);
+	if (client->ssl_sock.use_ssl)
+		cel_ssl_set_endpoint(client->ssl_sock.ssl, CEL_SSLEP_CLIENT);
+	return cel_socket_connect(&(client->sock), remote_addr);
 }
 static __inline
 int cel_tcpclient_connect_host(CelTcpClient *client, 
-                               const TCHAR *host, unsigned short port)
+							   const TCHAR *host, unsigned short port)
 {
-    return cel_socket_connect_host(&(client->sock), host, port);
+	if (client->ssl_sock.use_ssl)
+		cel_ssl_set_endpoint(client->ssl_sock.ssl, CEL_SSLEP_CLIENT);
+	return cel_socket_connect_host(&(client->sock), host, port);
 }
 static __inline 
 int cel_tcpclient_handshake(CelTcpClient *client)

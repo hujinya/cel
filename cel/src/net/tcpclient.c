@@ -177,19 +177,23 @@ void cel_tcpclient_free(CelTcpClient *client)
     cel_refcounted_destroy(&(client->ref_counted), client);
 }
 
-void cel_tcpclient_set_ssl(CelTcpClient *client, BOOL use_ssl)
+int cel_tcpclient_set_ssl(CelTcpClient *client, BOOL use_ssl)
 {
+	int ret = 0;
     CelSslContext *ssl_ctx;
 
+	client->ssl_sock.use_ssl = use_ssl;
     if (use_ssl
         && client->ssl_sock.ssl == NULL)
     {
         //puts("ssl_ctx default");
-        ssl_ctx = cel_sslcontext_new(cel_sslcontext_method(_T("SSLv23")));
-        cel_sslsocket_init(&(client->ssl_sock), &(client->sock), ssl_ctx);
+        ssl_ctx = cel_sslcontext_new(CEL_SSL_METHOD_TLS_client);
+		cel_sslcontext_set_verify(ssl_ctx, CEL_SSLVM_NONE, NULL);
+        ret = cel_sslsocket_init(&(client->ssl_sock), &(client->sock), ssl_ctx);
         cel_sslcontext_free(ssl_ctx);
     }
-    client->ssl_sock.use_ssl = use_ssl;
+    
+	return ret;
 }
 
 void cel_tcpclient_do_connect(CelTcpClient *client, CelAsyncResult *result)
@@ -276,6 +280,7 @@ int cel_tcpclient_send(CelTcpClient *client, CelStream *s)
     int ret;
     CelTcpClientAsyncArgs *args = &(client->out);
 
+	args->s = s;
     if ((args->async_buf.buf = cel_stream_get_pointer(s))== NULL
         || (args->async_buf.len = cel_stream_get_remaining_length(s)) <= 0)
     {
@@ -342,6 +347,7 @@ int cel_tcpclient_recv(CelTcpClient *client, CelStream *s)
     int ret;
     CelTcpClientAsyncArgs *args = &(client->in);
 
+	args->s = s;
     if ((args->async_buf.buf = cel_stream_get_pointer(s))== NULL
         || (args->async_buf.len = cel_stream_get_remaining_capacity(s)) <= 0)
     {

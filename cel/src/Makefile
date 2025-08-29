@@ -11,17 +11,30 @@
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
 # GNU General Public License for more details.
 
-CROSS =
+HOST_ARCH := $(shell uname -m)
+ARCH ?= $(HOST_ARCH)
+
+ifeq ($(ARCH), aarch64)
+	CROSS =aarch64-linux-gnu-
+	LDFLAGS = -L../../mysql/lib_aarch64 -L../../openssl/lib_aarch64
+	A_TARGET = ../lib_aarch64/libcel.a
+	SO_TARGET = ../lib_aarch64/libcel.so
+	BIN_TARGET = 
+	OBJ_DIR = ../obj_aarch64/src
+else ifeq ($(ARCH), x86_64)
+	CROSS =
+	LDFLAGS = -L../../mysql/lib -L../../openssl/lib
+	A_TARGET = ../lib/libcel.a
+	SO_TARGET = ../lib/libcel.so
+	BIN_TARGET = 
+	OBJ_DIR = ../obj/src
+endif
 CXX = $(CROSS)gcc
 STRIP = $(CROSS)strip
+AR = $(CROSS)ar
 
-CXXFLAGS = -Wall -Wno-deprecated -fPIC  -g  -I ../../cel/include
-LDFLAGS = -L/usr/lib64/mysql
-LIBS = -lpthread -lmysqlclient -lcrypt -lssl -lcrypto
-
-A_TARGET = ../lib/libcel.a
-SO_TARGET = ../lib/libcel.so
-BIN_TARGET = 
+CXXFLAGS = -Wall -Wno-deprecated -fPIC  -g  -I ../../cel/include -I ../../mysql/include -I ../../openssl/include
+LIBS = -lpthread -lcrypt -l:libmysqlclient.so.21.2.39 -l:libssl.so.3 -l:libcrypto.so.3
 
 MAJOR = 1
 MINOR = 5
@@ -33,6 +46,5 @@ VERSION_FILE= "../include/cel/_version.h"
 SUB_DIRS = 
 SRC_DIRS = _unix sys crypto net sql
 SRC_EXTS = .c .cc .cpp .cxx 
-OBJ_DIR = ../obj/src
 
 include ../tmpl.mk

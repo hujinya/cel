@@ -140,7 +140,7 @@ typedef enum _CelHttpHeader
     CEL_HTTPHDR_X_REAL_IP,
     CEL_HTTPHDR_X_REQUESTED_WITH,
 
-	CEL_HTTPHDR_EXT,
+	//CEL_HTTPHDR_EXT,
     
     CEL_HTTPHDR_COUNT
 }CelHttpHeader;

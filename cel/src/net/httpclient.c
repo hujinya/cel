@@ -455,16 +455,15 @@ int cel_httpclient_execute(CelHttpClient *client,
                            CelHttpRequest *req, CelHttpResponse *rsp)
 {
     char *host;
+	BOOL use_ssl;
     unsigned short port;
     int ret;
 
     if (!cel_httpclient_is_connected(client))
     {
-        if (req->url.scheme == CEL_HTTPSCHEME_HTTPS)
-            cel_tcpclient_set_ssl(&(client->tcp_client), TRUE);
-        else
-            cel_tcpclient_set_ssl(&(client->tcp_client), FALSE);
-        if ((host = cel_httprequest_get_url_host(req)) == NULL
+		use_ssl = req->url.scheme == CEL_HTTPSCHEME_HTTPS ? TRUE : FALSE;
+        if (cel_tcpclient_set_ssl(&(client->tcp_client),use_ssl) != 0
+			|| (host = cel_httprequest_get_url_host(req)) == NULL
             || (port = cel_httprequest_get_url_port(req)) == 0)
         {
             CEL_SETERR((CEL_ERR_LIB, _T("cel_httpclient_execute error")));
@@ -579,6 +578,7 @@ int cel_httpclient_async_execute(CelHttpClient *client,
 {
     char *host;
     unsigned short port;
+	BOOL use_ssl;
 
     //printf("http client fd %d\r\n", client->tcp_client.sock.fd);
     CEL_ASSERT(async_callback != NULL);
@@ -587,11 +587,9 @@ int cel_httpclient_async_execute(CelHttpClient *client,
     client->execute_callback = async_callback;
     if (!cel_httpclient_is_connected(client))
     {
-        if (req->url.scheme == CEL_HTTPSCHEME_HTTPS)
-            cel_tcpclient_set_ssl(&(client->tcp_client), TRUE);
-        else
-            cel_tcpclient_set_ssl(&(client->tcp_client), FALSE);
-        if ((host = cel_httprequest_get_url_host(req)) == NULL
+        use_ssl = req->url.scheme == CEL_HTTPSCHEME_HTTPS ? TRUE : FALSE;
+        if (cel_tcpclient_set_ssl(&(client->tcp_client),use_ssl) != 0
+			|| (host = cel_httprequest_get_url_host(req)) == NULL
             || (port = cel_httprequest_get_url_port(req)) == 0)
         {
             CEL_SETERR((CEL_ERR_LIB, _T("cel_httpclient_async_execute error")));
