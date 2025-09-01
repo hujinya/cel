@@ -65,8 +65,7 @@ int cel_tcpclient_init_addr(CelTcpClient *client,
         if (cel_socket_set_reuseaddr(&(client->sock), 1) == 0
             && cel_socket_connect(&(client->sock), addr) == 0
             && (ssl_ctx == NULL
-            || cel_sslsocket_init(&(client->ssl_sock), 
-            &(client->sock), ssl_ctx) == 0))
+            || cel_sslsocket_init(&(client->ssl_sock), &(client->sock), ssl_ctx) == 0))
         {
             memcpy(&(client->remote_addr),
                 addr, cel_sockaddr_get_len(addr));
@@ -180,17 +179,13 @@ void cel_tcpclient_free(CelTcpClient *client)
 int cel_tcpclient_set_ssl(CelTcpClient *client, BOOL use_ssl)
 {
 	int ret = 0;
-    CelSslContext *ssl_ctx;
 
 	client->ssl_sock.use_ssl = use_ssl;
     if (use_ssl
         && client->ssl_sock.ssl == NULL)
     {
-        //puts("ssl_ctx default");
-        ssl_ctx = cel_sslcontext_new(CEL_SSL_METHOD_TLS_client);
-		cel_sslcontext_set_verify(ssl_ctx, CEL_SSLVM_NONE, NULL);
-        ret = cel_sslsocket_init(&(client->ssl_sock), &(client->sock), ssl_ctx);
-        cel_sslcontext_free(ssl_ctx);
+        ret = cel_sslsocket_init(&(client->ssl_sock), 
+			&(client->sock), cel_sslcontext_client_specific_get());
     }
     
 	return ret;

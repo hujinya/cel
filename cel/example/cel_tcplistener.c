@@ -209,11 +209,10 @@ int tcplistener_test(int argc, TCHAR *argv[])
             return 1;
         }
     }
-    if (((sslctx = cel_sslcontext_new(
-        cel_sslcontext_method(_T("SSLv23")))) == NULL
-        || cel_sslcontext_set_own_cert(sslctx, 
-        cel_fullpath_a("../data/etc/vas-server.crt"), 
-        cel_fullpath_a("../data/etc/vas-server.key"), _T("38288446")) == -1
+    if (((sslctx = cel_sslcontext_new(CEL_SSL_METHOD_TLSv1)) == NULL
+        //|| cel_sslcontext_set_own_cert(sslctx, 
+        //cel_fullpath_a("../data/etc/vas-server.crt"), 
+        //cel_fullpath_a("../data/etc/vas-server.key"), _T("38288446")) == -1
         || cel_sslcontext_set_ciphersuites(
         sslctx, _T("AES:ALL:!aNULL:!eNULL:+RC4:@STRENGTH")) == -1))
     {

@@ -295,7 +295,7 @@ int cel_socket_connect_host(CelSocket *sock,
     hints.ai_protocol = sock->protocol;
     if (GetAddrInfo(host, _itot(port, ports, 10), &hints, &addr_info) != 0)
     {
-        CEL_SETERR((CEL_ERR_LIB, _T("GetAddrInfo():%s."), cel_geterrstr()));
+        CEL_SETERR((CEL_ERR_LIB, _T("GetAddrInfo():%s."), cel_sys_strerror(cel_sys_geterrno())));
         return -1;
     }
     result = addr_info;
@@ -304,12 +304,14 @@ int cel_socket_connect_host(CelSocket *sock,
         if (cel_socket_connect(
             sock, (CelSockAddr *)addr_info->ai_addr) == 0)
             return 0;
-        else if (cel_sys_geterrno() == EINPROGRESS)
+		else if (cel_sys_geterrno() == EINPROGRESS){
+			CEL_SETERR((CEL_ERR_LIB, _T("connect():%s."), cel_sys_strerror(cel_sys_geterrno())));
             return -1;
+		}
         addr_info = addr_info->ai_next;
     }
     FreeAddrInfo(result);
-
+	CEL_SETERR((CEL_ERR_LIB, _T("connect():%s."), cel_sys_strerror(cel_sys_geterrno())));
     return -1;
 }
 

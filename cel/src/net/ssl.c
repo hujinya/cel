@@ -39,6 +39,29 @@ WCHAR *cel_ssl_get_errstr_w(unsigned long err_no)
     return err->stic.w_buffer;
 }
 
+CelSslContext *cel_sslcontext_client_specific_get()
+{
+	CelSslContext *ctx_specific;
+
+	if ((ctx_specific = (CelSslContext *)
+		cel_multithread_get_keyvalue(CEL_MT_KEY_SSLCTX_CLIENT)) == NULL)
+	{
+		ctx_specific = cel_sslcontext_new(CEL_SSL_METHOD_TLS_client);
+		SSL_CTX_set_min_proto_version(ctx_specific, SSL3_VERSION);
+		SSL_CTX_set_max_proto_version(ctx_specific, TLS1_3_VERSION);
+		SSL_CTX_set_options(ctx_specific, SSL_OP_ALL | SSL_OP_NO_COMPRESSION);
+		cel_sslcontext_set_verify(ctx_specific, CEL_SSLVM_NONE, NULL);
+
+		if (cel_multithread_set_keyvalue(CEL_MT_KEY_SSLCTX_CLIENT, ctx_specific) != -1
+			&& cel_multithread_set_keydestructor(
+			CEL_MT_KEY_SSLCTX_CLIENT, (CelDestroyFunc)SSL_CTX_free) != -1)
+			return ctx_specific;
+		SSL_CTX_free(ctx_specific);
+		return NULL;
+	}
+	return ctx_specific;
+}
+
 CelSslContext *cel_sslcontext_new(CelSslMethod method)
 {
     SSL_CTX *ctx;

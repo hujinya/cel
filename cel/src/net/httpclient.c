@@ -466,12 +466,13 @@ int cel_httpclient_execute(CelHttpClient *client,
 			|| (host = cel_httprequest_get_url_host(req)) == NULL
             || (port = cel_httprequest_get_url_port(req)) == 0)
         {
-            CEL_SETERR((CEL_ERR_LIB, _T("cel_httpclient_execute error")));
+            CEL_SETERR((CEL_ERR_LIB, _T("cel_httpclient_execute error(%s)"), cel_geterrstr()));
             return -1;
         }
         if ((ret = cel_httpclient_connect_host(client, host, port)) != 0
-            || (ret = cel_httpclient_handshake(client)) != 0)
+			|| (ret = cel_httpclient_handshake(client)) != 0) {
             return ret;
+		}
     }
     if ((ret = cel_httpclient_send_request(client, req)) != 0
         || (ret = cel_httpclient_recv_response(client, rsp)) != 0)

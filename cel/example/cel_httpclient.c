@@ -2,19 +2,23 @@
 
 int httpclient_test(int argc, TCHAR *argv[])
 {
+	cel_cryptomutex_register(NULL, NULL);
+	cel_ssllibrary_init();
+	printf("OpenSSL version: %s\n", OPENSSL_VERSION_TEXT);
+    printf("Run-time version: %s\n", OpenSSL_version(OPENSSL_VERSION));
+
 	//char url[] = {"http://sfgit.gzsunrun.cn/oauth/token?grant_type=authorization_code"};
-	char url[] = {"https://baidu.com"};
+	char url[] = {"https://sfgit.gzsunrun.cn/oauth/token"};
 	long _response_code;
 	char response[8192];
 	size_t resp_size = 8192;
 	//char data[] = { "xxxxxdddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddddx" };
 	char *data = NULL;
-
 	CelHttpWebRequest *client = cel_httpwebrequest_new(NULL);
-
 	if (data != NULL) {
 		cel_httprequest_set_method(&(client->req), CEL_HTTPM_POST);
 	}
+
 	cel_httprequest_set_url_str(&(client->req), url);
 	if (data != NULL) {
 		cel_httprequest_write(&(client->req), data, strlen(data));
