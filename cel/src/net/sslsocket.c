@@ -275,6 +275,7 @@ int cel_sslsocket_send(CelSslSocket *ssl_sock, CelAsyncBuf *buffers, int count)
 {
     int result;
 
+	//puts(buffers->buf);
     if ((result = cel_ssl_write(
         ssl_sock->ssl, buffers->buf, buffers->len)) > 0)
     {
@@ -292,8 +293,7 @@ int cel_sslsocket_recv(CelSslSocket *ssl_sock, CelAsyncBuf *buffers, int count)
     while ((result = cel_ssl_read(
         ssl_sock->ssl, buffers->buf, buffers->len)) <= 0)
     {
-        if ((error = SSL_get_error(ssl_sock->ssl, result)) 
-            == SSL_ERROR_WANT_READ
+        if ((error = SSL_get_error(ssl_sock->ssl, result)) == SSL_ERROR_WANT_READ
             || (ERR_get_error() == 0 && cel_sys_geterrno() == 0))
         {
             if (cel_sslsocket_recv_bio_mem(ssl_sock) > 0)

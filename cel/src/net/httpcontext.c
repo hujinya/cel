@@ -111,8 +111,8 @@ static void cel_httpcontext_do_recv_request(CelHttpContext *http_ctx,
         {
 			//puts("cel_httpcontext_do_recv_request3");
 			CEL_SETERR((CEL_ERR_LIB,  
-				_T("cel_httpcontext_do_recv_request %s return -1"),
-				cel_httpclient_get_remoteaddr_str(&(http_ctx->http_client))));
+				_T("cel_httpcontext_do_recv_request %s return -1(%s)"),
+				cel_httpclient_get_remoteaddr_str(&(http_ctx->http_client)), cel_geterrstr()));
 			http_ctx->serve_ctx->log_func(CEL_LOGLEVEL_ERR, "%s", cel_geterrstr());
 			cel_httpcontext_free(http_ctx);
         }
@@ -126,8 +126,8 @@ static void cel_httpcontext_do_recv_request(CelHttpContext *http_ctx,
 			{
 				//if (req->reading_state > CEL_HTTPREQUEST_READING_METHOD)
 				CEL_SETERR((CEL_ERR_LIB, 
-					_T("cel_httpclient_async_recv_request %s return -1"),
-					cel_httpclient_get_remoteaddr_str(&(http_ctx->http_client))));
+					_T("cel_httpclient_async_recv_request %s return -1(%s)"),
+					cel_httpclient_get_remoteaddr_str(&(http_ctx->http_client)), cel_geterrstr()));
 				http_ctx->serve_ctx->log_func(CEL_LOGLEVEL_ERR, "%s", cel_geterrstr());
 				cel_httpcontext_free(http_ctx);
 			}
@@ -172,8 +172,8 @@ static void cel_httpcontext_do_handshake(CelHttpContext *http_ctx, CelAsyncResul
 		&(http_ctx->req), 
 		(CelHttpRecvRequestCallbackFunc)cel_httpcontext_do_recv_request) == -1)
 	{
-		CEL_SETERR((CEL_ERR_LIB,_T("cel_httpclient_async_recv_request %s return -1"),
-					cel_httpclient_get_remoteaddr_str(&(http_ctx->http_client))));
+		CEL_SETERR((CEL_ERR_LIB,_T("cel_httpclient_async_recv_request %s return -1(%s)"),
+					cel_httpclient_get_remoteaddr_str(&(http_ctx->http_client)), cel_geterrstr()));
 		http_ctx->serve_ctx->log_func(CEL_LOGLEVEL_ERR, "%s", cel_geterrstr());
 		cel_httpcontext_free(http_ctx);
 	}
@@ -193,8 +193,8 @@ static void cel_httpcontext_do_send_response(CelHttpContext *http_ctx,
     if (result->ret <= 0)
     {
         CEL_SETERR((CEL_ERR_LIB,  
-			_T("cel_httpcontext_do_send_response %s return -1"),
-            cel_httpclient_get_remoteaddr_str(&(http_ctx->http_client))));
+			_T("cel_httpcontext_do_send_response %s return -1(%s)"),
+            cel_httpclient_get_remoteaddr_str(&(http_ctx->http_client)), cel_geterrstr()));
 		http_ctx->serve_ctx->log_func(CEL_LOGLEVEL_ERR, "%s", cel_geterrstr());
         cel_httpcontext_free(http_ctx);
         return ;
@@ -262,8 +262,8 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx)
 			&(http_ctx->rsp),
 			(CelHttpSendResponseCallbackFunc)cel_httpcontext_do_send_response) == -1)
 		{
-			CEL_SETERR((CEL_ERR_LIB, _T("cel_httpcontext_async_send_response %s error"),
-				cel_httpclient_get_remoteaddr_str(&(http_ctx->http_client))));
+			CEL_SETERR((CEL_ERR_LIB, _T("cel_httpcontext_async_send_response %s error(%s)"),
+				cel_httpclient_get_remoteaddr_str(&(http_ctx->http_client)), cel_geterrstr()));
 			http_ctx->serve_ctx->log_func(CEL_LOGLEVEL_ERR, "%s", cel_geterrstr());
 			cel_httpcontext_free(http_ctx);
 			return CEL_RET_ERROR;
@@ -300,8 +300,8 @@ int cel_httpcontext_routing(CelHttpContext *http_ctx)
 				(CelHttpShutdownCallbackFunc)cel_httpcontext_do_shutdown) == -1)
 			{
 				CEL_SETERR((CEL_ERR_LIB,  
-					_T("cel_httpcontext_do_send_response %s shutdown return -1"),
-					cel_httpclient_get_remoteaddr_str(&(http_ctx->http_client))));
+					_T("cel_httpcontext_do_send_response %s shutdown return -1(%s)"),
+					cel_httpclient_get_remoteaddr_str(&(http_ctx->http_client)), cel_geterrstr()));
 				http_ctx->serve_ctx->log_func(CEL_LOGLEVEL_ERR, "%s", cel_geterrstr());
 				cel_httpcontext_free(http_ctx);
 				return CEL_RET_ERROR;
@@ -367,7 +367,7 @@ int cel_httpcontext_response_write(CelHttpContext *http_ctx,
 		cel_httpresponse_end(&(http_ctx->rsp));
         break;
     default:
-        CEL_SETERR((CEL_ERR_LIB, _T("cel_httpcontext_result error")));
+        CEL_SETERR((CEL_ERR_LIB, _T("cel_httpcontext_result error(%s)"), cel_geterrstr()));
 		http_ctx->serve_ctx->log_func(CEL_LOGLEVEL_ERR, "%s", cel_geterrstr());
         cel_httpcontext_free(http_ctx);
         return -1;

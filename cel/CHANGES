@@ -1,3 +1,6 @@
+* Thu Sep 4 2025 Hu Jinya <hjy@gzsunrun.cn> 1.6.0.80
+- feat: 升级openssl.3\mysqlclient.21。
+
 * Mon Jun 30 2025 Hu Jinya <hjy@gzsunrun.cn> 1.5.5.79
 - fix: 修复调用cel_httpbodycache_reading未判读返回出错问题。
 - feat: CelHttpServeContext增加日志输出钩子函数。

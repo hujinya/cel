@@ -37,9 +37,9 @@ CXXFLAGS = -Wall -Wno-deprecated -fPIC  -g  -I ../../cel/include -I ../../mysql/
 LIBS = -lpthread -lcrypt -l:libmysqlclient.so.21.2.39 -l:libssl.so.3.0.13 -l:libcrypto.so.3.0.13
 
 MAJOR = 1
-MINOR = 5
-REVISION = 5
-BUILD = 79
+MINOR = 6
+REVISION = 0
+BUILD = 80
 EXTRA = ""
 VERSION_FILE= "../include/cel/_version.h"
 
