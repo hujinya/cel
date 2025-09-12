@@ -29,9 +29,10 @@ typedef struct bio_buf_mem_st {
 int cel_bio_mem_grow(CelBio *bio)
 {
     BUF_MEM *bm;
+	size_t length, size;
 	BIO_get_mem_ptr(bio, &bm);
-    size_t length = bm->length, size;
-
+    
+	length = bm->length;
     if ((size = cel_capacity_get_min(bm->max + 1)) < CEL_BIO_MEM_SIZE)
         size = CEL_BIO_MEM_SIZE;
     if (BUF_MEM_grow_clean(bm, size) == (int)size)

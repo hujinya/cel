@@ -38,8 +38,8 @@ LIBS = -lpthread -lcrypt -l:libmysqlclient.so.21.2.39 -l:libssl.so.3.0.13 -l:lib
 
 MAJOR = 1
 MINOR = 6
-REVISION = 0
-BUILD = 80
+REVISION = 1
+BUILD = 81
 EXTRA = ""
 VERSION_FILE= "../include/cel/_version.h"
 

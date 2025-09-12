@@ -41,7 +41,7 @@ void _cel_httpwebrequest_free_derefed(CelHttpWebRequest *web_req)
     cel_free(web_req);
 }
 
-CelHttpWebRequest *cel_httpwebrequest_new_httpclient(CelHttpClient *http_client)
+CelHttpWebRequest *cel_httpwebrequest_new(CelSslContext *ssl_ctx)
 {
 	CelHttpWebRequest *new_web_req;
 
@@ -50,25 +50,14 @@ CelHttpWebRequest *cel_httpwebrequest_new_httpclient(CelHttpClient *http_client)
 		CEL_SETERR((CEL_ERR_LIB, _T("Http web request new return null.")));
 		return NULL;
 	}
-	memcpy(&(new_web_req->http_client), http_client, sizeof(CelHttpClient));
-	cel_httprequest_init(&(new_web_req->req));
-	cel_httpresponse_init(&(new_web_req->rsp));
-	new_web_req->execute_callback = NULL;
-	cel_refcounted_init(&(new_web_req->ref_counted),
-		(CelFreeFunc)_cel_httpwebrequest_free_derefed);
-	return new_web_req;
-}
-
-CelHttpWebRequest *cel_httpwebrequest_new(CelSslContext *ssl_ctx)
-{
-	CelHttpClient http_client;
-	CelHttpWebRequest *new_web_req;
-
-	if (cel_httpclient_init_family(&http_client, AF_INET, ssl_ctx) == 0)
+	if (cel_httpclient_init_family(&(new_web_req->http_client), AF_INET, ssl_ctx) == 0)
 	{
-		if ((new_web_req = cel_httpwebrequest_new_httpclient(&http_client)) != NULL)
-			return new_web_req;
-		cel_httpclient_destroy(&http_client);
+		cel_httprequest_init(&(new_web_req->req));
+		cel_httpresponse_init(&(new_web_req->rsp));
+		new_web_req->execute_callback = NULL;
+		cel_refcounted_init(&(new_web_req->ref_counted),
+			(CelFreeFunc)_cel_httpwebrequest_free_derefed);
+		return new_web_req;
 	}
 	return NULL;
 }
@@ -78,6 +67,24 @@ void cel_httpwebrequest_free(CelHttpWebRequest *web_req)
 	CEL_DEBUG((_T("Http web request %s closed."), 
 		cel_httpwebrequest_get_remoteaddr_str(web_req)));
 	cel_refcounted_destroy(&(web_req->ref_counted), web_req);
+}
+
+int cel_webrequest_do_request(CelHttpWebRequest *web_req,
+							  CelHttpStatusCode *rsp_status, void *rsp_body, size_t *rsp_body_size)
+{
+	cel_httprequest_end(&(web_req->req));
+	if (cel_httpclient_execute(&(web_req->http_client), &(web_req->req), &(web_req->rsp)) != 0)
+	{
+		return -1;
+	}
+	if (rsp_status != NULL) {
+		*rsp_status = web_req->rsp.status;
+	}
+	if (rsp_body != NULL) {
+		*rsp_body_size = (size_t)cel_httpresponse_get_body_data(
+			&(web_req->rsp), 0, 0, rsp_body, *rsp_body_size);
+	}
+	return 0;
 }
 
 void cel_httpwebrequest_do_shutdown(CelHttpWebRequest *web_req, CelAsyncResult *result)

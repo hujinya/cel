@@ -38,7 +38,6 @@ struct _CelHttpWebRequest
 void _cel_httpwebrequest_destroy_derefed(CelHttpWebRequest *web_req);
 void cel_httpwebrequest_destroy(CelHttpWebRequest *web_req);
 
-CelHttpWebRequest *cel_httpwebrequest_new_httpclient(CelHttpClient *http_client);
 CelHttpWebRequest *cel_httpwebrequest_new(CelSslContext *ssl_ctx);
 void _cel_httpwebrequest_free_derefed(CelHttpWebRequest *web_req);
 void cel_httpwebrequest_free(CelHttpWebRequest *web_req);
@@ -47,27 +46,31 @@ void cel_httpwebrequest_free(CelHttpWebRequest *web_req);
     cel_socket_set_nonblock((CelSocket *)web_req, is_nonblock)
 #define cel_httpwebrequest_get_channel(web_req) \
     &((web_req)->http_client.tcp_client.sock.channel)
+
 #define cel_httpwebrequest_get_localaddr(web_req) \
     cel_httpclient_get_localaddr(web_req)
 #define cel_httpwebrequest_get_remoteaddr(web_req) \
     cel_httpclient_get_remoteaddr(web_req)
+
 #define cel_httpwebrequest_get_remoteaddr_str(web_req) \
     cel_sockaddr_ntop(cel_httpclient_get_remoteaddr(web_req))
 #define cel_httpwebrequest_get_localaddr_str(web_req) \
     cel_sockaddr_ntop(cel_httpclient_get_localaddr(web_req))
-#define cel_httpwebrequest_get_url_path(web_req) \
-	cel_httprequest_get_url_path(&(web_req->req))
 
 #define cel_httpwebrequest_get_request(web_req)  &((web_req)->req)
 #define cel_httpwebrequest_get_response(web_req) &((web_req)->rsp)
-#define cel_httpwebrequest_get_routedata(web_req) &((web_req)->http_ctx)
+
+int cel_webrequest_set_url(CelHttpWebRequest *web_req);
+int cel_webrequest_add_header(CelHttpWebRequest *web_req);
+int cel_webrequest_do_request(CelHttpWebRequest *web_req,
+							  CelHttpStatusCode *rsp_status, void *rsp_body, size_t *rsp_body_size);
 
 void _cel_httpwebrequest_execute_callback(CelHttpWebRequest *web_req,
 										  CelHttpRequest *req, CelHttpResponse *rsp,
 										  CelAsyncResult *result);
 static __inline 
 int cel_httpwebrequest_async_execute_request(CelHttpWebRequest *web_req,
-                                            CelHttpWebCallbackFunc callback)
+											 CelHttpWebCallbackFunc callback)
 {
     web_req->execute_callback = callback;
     return cel_httpclient_async_execute(&(web_req->http_client), 

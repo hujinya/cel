@@ -1,3 +1,6 @@
+* Fri Sep 12 2025 Hu Jinya <hjy@gzsunrun.cn> 1.6.1.81
+- feat: 增加时间策略CelTimePolicy。
+
 * Thu Sep 4 2025 Hu Jinya <hjy@gzsunrun.cn> 1.6.0.80
 - feat: 升级openssl.3\mysqlclient.21。
 

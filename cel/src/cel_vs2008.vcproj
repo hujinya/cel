@@ -444,6 +444,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\timepolicy.c"
+				>
+			</File>
+			<File
 				RelativePath=".\timer.c"
 				>
 			</File>
@@ -1345,6 +1349,10 @@
 			</File>
 			<File
 				RelativePath="..\include\cel\time.h"
+				>
+			</File>
+			<File
+				RelativePath="..\include\cel\timepolicy.h"
 				>
 			</File>
 			<File

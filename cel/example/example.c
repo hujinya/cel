@@ -36,6 +36,7 @@ extern int tcplistener_test(int argc, TCHAR *argv[]);
 extern int terminal_test(int argc, TCHAR *argv[]);
 extern int threadpool_test(int argc, TCHAR *argv[]);
 extern int timerheap_test(int argc ,const char *argv[]);
+extern int timepolicy_test(int argc, const char *argv[]);
 extern int timerwheel_test(int argc ,const char *argv[]);
 extern int user_test(int argc, TCHAR *argv[]);
 extern int vrrp_test(int argc, TCHAR *argv[]);
@@ -47,5 +48,5 @@ int _tmain(int argc, TCHAR *argv[])
 {
     //_tscanf(_T("%s", ))
 
-    return httpclient_test(argc, argv);
+    return timepolicy_test(argc, argv);
 }

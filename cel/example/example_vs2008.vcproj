@@ -460,6 +460,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\cel_timepolicy.c"
+				>
+			</File>
+			<File
 				RelativePath=".\cel_timerheap.c"
 				>
 			</File>
