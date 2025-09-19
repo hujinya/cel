@@ -19,9 +19,9 @@
 #include "cel/convert.h"
 
 
-// * ? 00:00:00-23:59:59  按每天
-// ? Working-Day 00:00:00-23:59:59 按星期
-// 1,2,3 ? 00:00:00-23:59:59  按具体天
+// * ? 00:00:00-23:59:59 
+// ? Working-Day 00:00:00-23:59:59 
+// 1,2,3 ? 00:00:00-23:59:59 
 int cel_timepolicy_init(CelTimePolicy *time_policy, const TCHAR *policy_str)
 {
 	int i = 0, j;
@@ -239,7 +239,7 @@ BOOL cel_timepolicy_is_allow(CelTimePolicy *time_policy, CelTime *time)
 	n = cel_arraylist_get_size(&(time_policy->time_ranges));
 	if ( n == 0)
 		return TRUE;
-	for (i = 0; i < n; n++)
+	for (i = 0; i < n; i++)
 	{
 		time_range = (CelTimeRange *)cel_arraylist_get_by_index(
 			&(time_policy->time_ranges), i);
@@ -251,7 +251,7 @@ BOOL cel_timepolicy_is_allow(CelTimePolicy *time_policy, CelTime *time)
 		//if time < ltime rturn false
 		if (cel_time_compare(time, &ltime) < 0 ) {
 			//puts("Start not matched");
-			return FALSE;
+			continue;
 		}
 		cel_time_set_time(&ltime, 
 			time_range->end_hour,
@@ -260,7 +260,7 @@ BOOL cel_timepolicy_is_allow(CelTimePolicy *time_policy, CelTime *time)
 		//if time > ltime rturn false
 		if (cel_time_compare(time, &ltime) > 0) {
 			//puts("End not matched");
-			return FALSE;
+			continue;
 		}
 		return TRUE;
 	}

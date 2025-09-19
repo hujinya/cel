@@ -50,7 +50,7 @@ int timepolicy_test(int argc, const char *argv[])
 	cel_time_init_now(&t);
 	cel_time_asc(&t, timeStr, 32);
 
-	if (cel_timepolicy_init(&tp, _T("* ? 00:00:00-23:59:59")) == -1)
+	if (cel_timepolicy_init(&tp, _T("* ? 09:50:00-10:00:00")) == -1)
 		printf("%s\r\n", cel_geterrstr());
 	timepolicy_print(&tp);
 	printf("%s  - %d\r\n", timeStr, cel_timepolicy_is_allow(&tp, &t));
