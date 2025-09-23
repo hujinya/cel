@@ -462,7 +462,7 @@ int cel_httpclient_execute(CelHttpClient *client,
     if (!cel_httpclient_is_connected(client))
     {
 		use_ssl = req->url.scheme == CEL_HTTPSCHEME_HTTPS ? TRUE : FALSE;
-        if (cel_tcpclient_set_ssl(&(client->tcp_client),use_ssl) != 0
+        if (cel_tcpclient_set_ssl(&(client->tcp_client), use_ssl) != 0
 			|| (host = cel_httprequest_get_url_host(req)) == NULL
             || (port = cel_httprequest_get_url_port(req)) == 0)
         {

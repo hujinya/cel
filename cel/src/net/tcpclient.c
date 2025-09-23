@@ -185,7 +185,7 @@ int cel_tcpclient_set_ssl(CelTcpClient *client, BOOL use_ssl)
         && client->ssl_sock.ssl == NULL)
     {
         ret = cel_sslsocket_init(&(client->ssl_sock), 
-			&(client->sock), cel_sslcontext_client_specific_get());
+			&(client->sock), cel_sslcontext_client_default());
     }
     
 	return ret;

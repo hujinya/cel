@@ -1,19 +1,19 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com)
  *
- * This program is free software; you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License 
- * as published by the Free Software Foundation; either version 2 
- * of the License, or (at your option) any later version. 
- * 
- * This program is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
 #include "cel/net/httpwebrequest.h"
-//#define _CEL_DEBUG
+// #define _CEL_DEBUG
 #include "cel/log.h"
 #include "cel/error.h"
 #include "cel/allocator.h"
@@ -21,7 +21,7 @@
 
 void _cel_httpwebrequest_destroy_derefed(CelHttpWebRequest *web_req)
 {
-	//puts("_cel_httpwebrequest_destroy_derefed");
+	// puts("_cel_httpwebrequest_destroy_derefed");
 	cel_httpclient_destroy(&(web_req->http_client));
 
 	cel_httprequest_destroy(&(web_req->req));
@@ -36,9 +36,9 @@ void cel_httpwebrequest_destroy(CelHttpWebRequest *web_req)
 
 void _cel_httpwebrequest_free_derefed(CelHttpWebRequest *web_req)
 {
-	//puts("_cel_httpwebrequest_free_derefed");
+	// puts("_cel_httpwebrequest_free_derefed");
 	_cel_httpwebrequest_destroy_derefed(web_req);
-    cel_free(web_req);
+	cel_free(web_req);
 }
 
 CelHttpWebRequest *cel_httpwebrequest_new(CelSslContext *ssl_ctx)
@@ -53,10 +53,12 @@ CelHttpWebRequest *cel_httpwebrequest_new(CelSslContext *ssl_ctx)
 	if (cel_httpclient_init_family(&(new_web_req->http_client), AF_INET, ssl_ctx) == 0)
 	{
 		cel_httprequest_init(&(new_web_req->req));
+		cel_httprequest_set_header(&(new_web_req->req), CEL_HTTPHDR_USER_AGENT,
+								   "Cel-http-webrequest/1.1", sizeof("Cel-http-webrequest/1.1"));
 		cel_httpresponse_init(&(new_web_req->rsp));
 		new_web_req->execute_callback = NULL;
 		cel_refcounted_init(&(new_web_req->ref_counted),
-			(CelFreeFunc)_cel_httpwebrequest_free_derefed);
+							(CelFreeFunc)_cel_httpwebrequest_free_derefed);
 		return new_web_req;
 	}
 	return NULL;
@@ -64,8 +66,8 @@ CelHttpWebRequest *cel_httpwebrequest_new(CelSslContext *ssl_ctx)
 
 void cel_httpwebrequest_free(CelHttpWebRequest *web_req)
 {
-	CEL_DEBUG((_T("Http web request %s closed."), 
-		cel_httpwebrequest_get_remoteaddr_str(web_req)));
+	CEL_DEBUG((_T("Http web request %s closed."),
+			   cel_httpwebrequest_get_remoteaddr_str(web_req)));
 	cel_refcounted_destroy(&(web_req->ref_counted), web_req);
 }
 
@@ -77,10 +79,12 @@ int cel_webrequest_do_request(CelHttpWebRequest *web_req,
 	{
 		return -1;
 	}
-	if (rsp_status != NULL) {
+	if (rsp_status != NULL)
+	{
 		*rsp_status = web_req->rsp.status;
 	}
-	if (rsp_body != NULL) {
+	if (rsp_body != NULL)
+	{
 		*rsp_body_size = (size_t)cel_httpresponse_get_body_data(
 			&(web_req->rsp), 0, 0, rsp_body, *rsp_body_size);
 	}
@@ -100,12 +104,12 @@ void _cel_httpwebrequest_execute_callback(CelHttpWebRequest *web_req,
 		web_req->execute_callback(web_req, result);
 	else
 	{
-		if (cel_httpclient_async_shutdown(&(web_req->http_client), 
-			(CelHttpShutdownCallbackFunc)cel_httpwebrequest_do_shutdown) == -1)
+		if (cel_httpclient_async_shutdown(&(web_req->http_client),
+										  (CelHttpShutdownCallbackFunc)cel_httpwebrequest_do_shutdown) == -1)
 		{
 			CEL_SETERR((CEL_ERR_LIB,
-				_T("cel_httpwebrequest_async_send_response_file %s return -1"),
-				cel_httpwebrequest_get_remoteaddr_str(web_req)));
+						_T("cel_httpwebrequest_async_send_response_file %s return -1"),
+						cel_httpwebrequest_get_remoteaddr_str(web_req)));
 			cel_httpwebrequest_free(web_req);
 		}
 	}

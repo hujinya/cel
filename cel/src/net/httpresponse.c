@@ -202,6 +202,7 @@ int cel_httpresponse_init(CelHttpResponse *rsp)
 
     cel_rbtree_init(&(rsp->ext_hdrs), (CelCompareFunc)strcmp, cel_free, cel_free);
     rsp->body_save_in = CEL_HTTPBODY_SAVE_IN_CACHE;
+    
     cel_httpbodycache_init(&(rsp->body_cache), CEL_HTTPBODY_BUF_LEN_MAX);
 
     rsp->reading_state = CEL_HTTPRESPONSE_READING_INIT;

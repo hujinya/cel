@@ -84,7 +84,7 @@ WCHAR *cel_ssl_get_errstr_w(unsigned long err_no);
     (CelSslMethod)cel_keyword_binary_search(\
     ssl_methods, CEL_SSL_METHOD_COUNT, method_str, _tcslen(method_str))
 
-CelSslContext *cel_sslcontext_client_specific_get();
+CelSslContext *cel_sslcontext_client_default();
 
 CelSslContext *cel_sslcontext_new(CelSslMethod method);
 

@@ -8,7 +8,8 @@ int httpclient_test(int argc, TCHAR *argv[])
     printf("Run-time version: %s\n", OpenSSL_version(OPENSSL_VERSION));
 
 	//char url[] = {"http://sfgit.gzsunrun.cn/oauth/token?grant_type=authorization_code"};
-	char url[] = {"https://oauth.aliyun.com/v1/token"};
+	//char url[] = {"https://oauth.aliyun.com/v1/token"};
+	char url[] = {"https://192.168.23.151"};
 	long _response_code;
 	char response[8192];
 	size_t resp_size = 8192;

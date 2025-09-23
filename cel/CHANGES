@@ -1,5 +1,6 @@
-* Fri Sep 12 2025 Hu Jinya <hjy@gzsunrun.cn> 1.6.1.81
+* Fri Sep 12 2025 Hu Jinya <hjy@gzsunrun.cn> 1.6.2.82
 - feat: 增加时间策略CelTimePolicy。
+- fix: 修复cel_sslcontext_client_default不能使用线程存储。
 
 * Thu Sep 4 2025 Hu Jinya <hjy@gzsunrun.cn> 1.6.0.80
 - feat: 升级openssl.3\mysqlclient.21。

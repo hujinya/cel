@@ -138,7 +138,8 @@ int cel_sslsocket_init(CelSslSocket *ssl_sock,
 {
     if (&(ssl_sock->sock) != sock)
         memcpy(&(ssl_sock->sock), sock, sizeof(CelSocket));
-    if ((ssl_sock->ssl = cel_ssl_new(ssl_ctx)) != NULL)
+    if (ssl_ctx != NULL && 
+        (ssl_sock->ssl = cel_ssl_new(ssl_ctx)) != NULL)
     {
         SSL_set_mode(ssl_sock->ssl, SSL_MODE_ENABLE_PARTIAL_WRITE);
         SSL_set_mode(ssl_sock->ssl, SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
@@ -156,8 +157,8 @@ int cel_sslsocket_init(CelSslSocket *ssl_sock,
         }
         cel_ssl_free(ssl_sock->ssl);
     }
-    CEL_SETERR((CEL_ERR_LIB, _T("Ssl socket init failed(%s)."), 
-        cel_ssl_get_errstr(cel_ssl_get_errno())));
+    CEL_SETERR((CEL_ERR_LIB, _T("Ssl socket init failed, ssl_ctx: %p(%s)."), 
+        ssl_ctx, cel_ssl_get_errstr(cel_ssl_get_errno())));
 
     return -1;
 }
