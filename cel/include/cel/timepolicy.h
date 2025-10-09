@@ -33,8 +33,8 @@ typedef struct _CelTimePolicy
 {
 	BOOL is_everyday;
 	BOOL is_weekly;
-	BOOL mdays[31];
-	BOOL wdays[7];
+	unsigned int mdays;  /* 0 - 30 */
+	unsigned int wdays;  /* 0- 6 */
 	CelArrayList time_ranges;
 }CelTimePolicy;
 

@@ -1,0 +1,12 @@
+cel/obj
+cel/obj_aarch64
+cel/lib
+cel/lib_aarch64
+cel/bin/
+cel/bin_aarch64
+cel/src/*.ncb
+cel/src/*.suo
+
+cel/lib/libcel.a
+cel/lib/libcel.so
+cel/bin/cel-example

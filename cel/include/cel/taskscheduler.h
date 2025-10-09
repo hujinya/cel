@@ -67,6 +67,14 @@ typedef struct _CelTaskScheduler
     CelMinHeap *expired_tasks, *unexpired_tasks;
 }CelTaskScheduler;
 
+int cel_tasktrigger_init(CelTaskTrigger *trigger,
+                         CelTaskTriggerType type,
+                         BYTE hour, BYTE min, BYTE sec,
+                         unsigned int mdays, unsigned int wdays, unsigned int months);
+int cel_tasktrigger_compare(CelTaskTrigger *trigger2, CelTaskTrigger *trigger1);
+BOOL cel_tasktrigger_is_expired(CelTaskTrigger *trigger, struct tm *now);
+BOOL cel_tasktrigger_is_start(CelTaskTrigger *trigger, CelTime *dt, struct tm *now);
+
 int cel_task_init(CelTask *task, 
                   CelTaskTriggerType type, 
                   BYTE hour, BYTE min, BYTE sec,
@@ -83,10 +91,6 @@ void cel_task_free(CelTask *task);
 
 #define cel_task_ref(task) cel_refcounted_ref_ptr(&(task->ref_counted))
 #define cel_task_deref(task) cel_refcounted_deref(&(task->ref_counted))
-
-int cel_task_compare(CelTask *task2, CelTask *task1);
-BOOL cel_task_is_expired(CelTask *task, struct tm *now);
-int cel_task_start(CelTask *task, CelTime *dt, struct tm *now);
 
 int cel_taskscheduler_init(CelTaskScheduler *scheduler, CelFreeFunc task_free);
 void cel_taskscheduler_destroy(CelTaskScheduler *scheduler);

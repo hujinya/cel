@@ -13,14 +13,14 @@ void timepolicy_print(CelTimePolicy *tp)
 	else if (tp->is_weekly) {
 		printf("? ");
 		for (i = 0; i < 7; i++) {
-			if (tp->wdays[i])
+			if (CEL_CHECKFLAG(tp->wdays, (U(1) << i)))
 				printf(" %d", i);
 		}
 		printf(" ");
 	}
 	else {
 		for (i = 0; i < 31; i++) {
-			if (tp->mdays[i])
+			if (CEL_CHECKFLAG(tp->mdays, (U(1) << i)))
 				printf("%d ", i);
 		}
 		printf("? ");
