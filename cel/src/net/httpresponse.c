@@ -486,7 +486,7 @@ start:
     {
         if (cel_httpresponse_reading_body_content(rsp, s, len1) != len1)
         {
-            CEL_SETERR((CEL_ERR_LIB, _T("cel_httpresponse_reading_body_content error")));
+            CEL_SETERR((CEL_ERR_LIB, _T("cel_httpresponse_reading_body_content error(%s)"), cel_geterrstr()));
             return CEL_HTTP_ERROR;
         }
         if (rsp->transfer_encoding == CEL_HTTPTE_CHUNKED)
@@ -499,7 +499,7 @@ start:
         {
             if (cel_httpresponse_reading_body_content(rsp, s, len2) != len2)
             {
-                CEL_SETERR((CEL_ERR_LIB, _T("cel_httpresponse_reading_body_content error")));
+                CEL_SETERR((CEL_ERR_LIB, _T("cel_httpresponse_reading_body_content error(%s)"), cel_geterrstr()));
                 return CEL_HTTP_ERROR;
             }
         }
@@ -1098,7 +1098,7 @@ static int cel_httpresponse_body_write_file(CelHttpResponse *rsp,
             || (rsp->body_cache.fp = fopen(
             cel_vstring_str_a(file_path), "wb+")) == NULL))
         {
-            CEL_SETERR((CEL_ERR_LIB, _T("cel_httpresponse_body_write_file failed")));
+            CEL_SETERR((CEL_ERR_LIB, _T("cel_httpresponse_body_write_file failed(%s)"), cel_geterrstr()));
             return -1;
         }
     }

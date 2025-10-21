@@ -526,7 +526,7 @@ start:
     {
         if (cel_httprequest_reading_body_content(req, s, len1) != len1)
         {
-            CEL_SETERR((CEL_ERR_LIB, _T("cel_httprequest_reading_body_content error")));
+            CEL_SETERR((CEL_ERR_LIB, _T("cel_httprequest_reading_body_content error(%s)"), cel_geterrstr()));
             return CEL_HTTP_ERROR;
         }
         if (req->transfer_encoding == CEL_HTTPTE_CHUNKED)
@@ -539,7 +539,7 @@ start:
         {
             if (cel_httprequest_reading_body_content(req, s, len2) != len2)
             {
-                CEL_SETERR((CEL_ERR_LIB, _T("cel_httprequest_reading_body_content error")));
+                CEL_SETERR((CEL_ERR_LIB, _T("cel_httprequest_reading_body_content error(%s)"), cel_geterrstr()));
                 return CEL_HTTP_ERROR;
             }
         }

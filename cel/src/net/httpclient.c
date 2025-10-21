@@ -107,7 +107,7 @@ int cel_httpclient_reading_recv_request(CelHttpClient *client, CelHttpRequest *r
     cel_stream_set_position(s, 0);
 	if (cel_httprequest_reading(req) == CEL_HTTP_ERROR)
 	{
-		CEL_SETERR((CEL_ERR_LIB, _T("cel_httprequest_reading error")));
+		CEL_SETERR((CEL_ERR_LIB, _T("cel_httprequest_reading error(%s)"), cel_geterrstr()));
 		return -1;
 	}
 	if (cel_stream_get_remaining_length(s) > 0)
@@ -191,7 +191,7 @@ int cel_httpclient_writing_send_requset(CelHttpClient *client, CelHttpRequest *r
 			return 1;
 		if (cel_httprequest_writing(req) == CEL_HTTP_ERROR)
 		{
-			CEL_SETERR((CEL_ERR_LIB, _T("cel_httprequest_writing error")));
+			CEL_SETERR((CEL_ERR_LIB, _T("cel_httprequest_writing error(%s)"), cel_geterrstr()));
 			return -1;
 		}
 		cel_stream_set_position(s, 0);
@@ -228,7 +228,7 @@ void cel_httpclient_do_send_requset(CelHttpClient *client,
     if (result->ret <= 0
         || (ret = cel_httpclient_writing_send_requset(client, req)) == -1)
     {
-        //CEL_SETERR((CEL_ERR_LIB, _T("cel_httpclient_do_send_requset return -1")));
+        //CEL_SETERR((CEL_ERR_LIB, _T("cel_httpclient_do_send_requset return -1(%s)")));
         result->ret = -1;
         send_req_callback(client, req, result);
         return;
@@ -283,7 +283,7 @@ int cel_httpclient_reading_recv_response(CelHttpClient *client, CelHttpResponse 
 	cel_stream_set_position(s, 0);
 	if (cel_httpresponse_reading(rsp) == CEL_HTTP_ERROR)
 	{
-		CEL_SETERR((CEL_ERR_LIB, _T("cel_httpresponse_reading error")));
+		CEL_SETERR((CEL_ERR_LIB, _T("cel_httpresponse_reading error(%s)"), cel_geterrstr()));
 		return -1;
 	}
     if (cel_stream_get_remaining_length(s) > 0)
@@ -368,7 +368,7 @@ int cel_httpclient_writing_send_response(CelHttpClient *client, CelHttpResponse 
             return 1;
         if (cel_httpresponse_writing(rsp) == CEL_HTTP_ERROR)
         {
-                CEL_SETERR((CEL_ERR_LIB, _T("cel_httpresponse_writing error")));
+                CEL_SETERR((CEL_ERR_LIB, _T("cel_httpresponse_writing error(%s)"), cel_geterrstr()));
                 return -1;
         }
         cel_stream_set_position(s, 0);
@@ -593,7 +593,7 @@ int cel_httpclient_async_execute(CelHttpClient *client,
 			|| (host = cel_httprequest_get_url_host(req)) == NULL
             || (port = cel_httprequest_get_url_port(req)) == 0)
         {
-            CEL_SETERR((CEL_ERR_LIB, _T("cel_httpclient_async_execute error")));
+            CEL_SETERR((CEL_ERR_LIB, _T("cel_httpclient_async_execute error(%s)"), cel_geterrstr()));
             return -1;
         }
         return cel_httpclient_async_connect_host(client,

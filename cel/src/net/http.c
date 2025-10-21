@@ -944,7 +944,7 @@ int cel_httpbodycache_reading(CelHttpBodyCache *cache,
                 || (cache->fp = fopen(
                 cel_vstring_str_a(&(cache->file_path)), "wb+")) == NULL))
             {
-                CEL_SETERR((CEL_ERR_LIB, _T("Open body cache file failed.")));
+                CEL_SETERR((CEL_ERR_LIB, _T("Open body cache file failed.(%s)"), cel_geterrstr()));
                 return -1;
             }
             cache->clear_file = TRUE;
@@ -1047,7 +1047,7 @@ long long cel_httpbodycache_save_file(CelHttpBodyCache *cache,
         && (cel_mkdirs_a(cel_filedir_a(file_path), CEL_UMASK) == -1
         || (fp = fopen(file_path, "wb+")) == NULL))
     {
-        CEL_SETERR((CEL_ERR_LIB, _T("cel_httprequest_save_body_data failed")));
+        CEL_SETERR((CEL_ERR_LIB, _T("cel_httprequest_save_body_data failed(%s)"), cel_geterrstr()));
         return -1;
     }
     if (cache->fp != NULL)
