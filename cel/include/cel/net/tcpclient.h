@@ -144,14 +144,8 @@ int cel_tcpclient_connect(CelTcpClient *client, CelSockAddr *remote_addr)
 		cel_ssl_set_endpoint(client->ssl_sock.ssl, CEL_SSLEP_CLIENT);
 	return cel_socket_connect(&(client->sock), remote_addr);
 }
-static __inline
 int cel_tcpclient_connect_host(CelTcpClient *client, 
-							   const TCHAR *host, unsigned short port)
-{
-	if (client->ssl_sock.use_ssl)
-		cel_ssl_set_endpoint(client->ssl_sock.ssl, CEL_SSLEP_CLIENT);
-	return cel_socket_connect_host(&(client->sock), host, port);
-}
+							   const TCHAR *host, unsigned short port);
 static __inline 
 int cel_tcpclient_handshake(CelTcpClient *client)
 {

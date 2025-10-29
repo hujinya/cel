@@ -16,6 +16,7 @@
 #include "cel/log.h"
 #include "cel/error.h"
 #include "cel/allocator.h"
+#include "cel/net/if.h"
 
 void _cel_tcpclient_destroy_derefed(CelTcpClient *client)
 {
@@ -189,6 +190,25 @@ int cel_tcpclient_set_ssl(CelTcpClient *client, BOOL use_ssl)
     }
     
 	return ret;
+}
+
+int cel_tcpclient_connect_host(CelTcpClient *client, 
+							   const TCHAR *host, unsigned short port)
+{
+    CelIpAddr ipaddr;
+    CelIp6Addr ip6addr;
+    if (client->ssl_sock.use_ssl)
+    {
+        cel_ssl_set_endpoint(client->ssl_sock.ssl, CEL_SSLEP_CLIENT);
+        // 如果是域名设置sni
+        if (cel_ipaddr_pton(host, &ipaddr) != 1 &&
+            cel_ip6addr_pton(host, &ip6addr) != 1)
+        {
+            //puts(host);
+            SSL_set_tlsext_host_name(client->ssl_sock.ssl, host);
+        }
+    }
+    return cel_socket_connect_host(&(client->sock), host, port);
 }
 
 void cel_tcpclient_do_connect(CelTcpClient *client, CelAsyncResult *result)

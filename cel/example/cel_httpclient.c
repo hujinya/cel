@@ -1,7 +1,9 @@
 #include "cel/net/httpwebrequest.h"
 
+
 int httpclient_test(int argc, TCHAR *argv[])
 {
+	_cel_ssl_debug = TRUE;
 	cel_cryptomutex_register(NULL, NULL);
 	cel_ssllibrary_init();
 	printf("OpenSSL version: %s\n", OPENSSL_VERSION_TEXT);
@@ -9,12 +11,13 @@ int httpclient_test(int argc, TCHAR *argv[])
 
 	//char url[] = {"http://sfgit.gzsunrun.cn/oauth/token?grant_type=authorization_code"};
 	//char url[] = {"https://oauth.aliyun.com/v1/token"};
-	char url[] = {"https://192.168.23.151"};
+	//char url[] = {"https://192.168.23.151"};
+	char url[] = {"https://auth.huaweicloud.com/authui/login.html?service=https%3A%2F%2Fconsole.huaweicloud.com%2Fconsole%2F%3Flocale%3Dzh-cn#/login"};
 	long _response_code;
 	char response[8192];
 	size_t resp_size = 8192;
 	char data[] = { "grant_type=authorization_code&code=sk8Zw0sP&redirect_uri=https://192.168.23.154/iam/auth/v3/login/aliyun&client_id=4241193690420488418&client_secret=9e6kfJoHVz4WYuB5J3HrD8jt6OSClcmPO8mvBVFxuROe6BFy26mXG6dtXRRyHvx4" };
-
+	
 	CelHttpWebRequest *client = cel_httpwebrequest_new(NULL);
 	if (data != NULL) {
 		cel_httprequest_set_method(&(client->req), CEL_HTTPM_POST);
@@ -34,7 +37,7 @@ int httpclient_test(int argc, TCHAR *argv[])
 	_response_code = (long)cel_httpresponse_get_statuscode(&(client->rsp));
 	long size = cel_httpresponse_get_body_data(&(client->rsp), 0, 0, response, resp_size);
 	response[size] = '\0'; 
-	puts(response);
+	printf("code %d, rsp %s\r\n", client->rsp.status, response);
 	cel_httpwebrequest_free(client);
 	return 0;
 }

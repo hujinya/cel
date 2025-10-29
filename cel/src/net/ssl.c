@@ -16,8 +16,10 @@
 #include "cel/log.h"
 #include "cel/error.h"
 
+BOOL _cel_ssl_debug = FALSE;
+
 CelKeyword ssl_methods[] =
-    {
+{
         {sizeof(_T("TLS")) - 1, _T("TLS"), (const void *)TLS_method},
         {sizeof(_T("TLS_server")) - 1, _T("TLS_server"), (const void *)TLS_server_method},
         {sizeof(_T("TLS_client")) - 1, _T("TLS_client"), (const void *)TLS_client_method},
@@ -39,6 +41,61 @@ WCHAR *cel_ssl_get_errstr_w(unsigned long err_no)
     return err->stic.w_buffer;
 }
 
+void cel_ssl_debug_callback(const SSL *ssl, int where, int ret)
+{
+    const char *str = "undefined";
+    int w = where & ~SSL_ST_MASK;
+    if (w & SSL_ST_CONNECT)
+    {
+        str = "SSL_connect";
+    }
+    else if (w & SSL_ST_ACCEPT)
+    {
+        str = "SSL_accept";
+    }
+    else
+    {
+        str = "SSL_undefined";
+    }
+    // 状态变化
+    if (where & SSL_CB_LOOP)
+    {
+        fprintf(stderr, "DEBUG: %s: %s\n", str, SSL_state_string_long(ssl));
+    }
+    // 警告信息
+    else if (where & SSL_CB_ALERT)
+    {
+        str = (where & SSL_CB_READ) ? "read" : "write";
+        fprintf(stderr, "DEBUG: SSL3 alert %s: %s: %s\n",
+                str,
+                SSL_alert_type_string_long(ret),
+                SSL_alert_desc_string_long(ret));
+    }
+    // 退出状态
+    else if (where & SSL_CB_EXIT)
+    {
+        if (ret == 0)
+        {
+            fprintf(stderr, "DEBUG: %s: failed in %s\n",
+                    str, SSL_state_string_long(ssl));
+        }
+        else if (ret < 0)
+        {
+            fprintf(stderr, "DEBUG: %s: error in %s\n",
+                    str, SSL_state_string_long(ssl));
+        }
+    }
+    // 握手开始/结束
+    else if (where & SSL_CB_HANDSHAKE_START)
+    {
+        fprintf(stderr, "DEBUG: Handshake started\n");
+    }
+    else if (where & SSL_CB_HANDSHAKE_DONE)
+    {
+        fprintf(stderr, "DEBUG: Handshake completed successfully\n");
+    }
+}
+
 CelSslContext *cel_sslcontext_client_default()
 {
     static CelSslContext *ctx_specific;
@@ -54,14 +111,16 @@ CelSslContext *cel_sslcontext_client_default()
                             cel_ssl_get_errstr(cel_ssl_get_errno())));
                 return NULL;
             }
+            if (_cel_ssl_debug)
+                SSL_CTX_set_info_callback(ctx_specific, cel_ssl_debug_callback);
+            
             SSL_CTX_set_min_proto_version(ctx_specific, SSL3_VERSION);
             SSL_CTX_set_max_proto_version(ctx_specific, TLS1_3_VERSION);
-            SSL_CTX_set_options(ctx_specific, SSL_OP_ALL | SSL_OP_NO_COMPRESSION);
 
+            SSL_CTX_set_verify(ctx_specific, SSL_VERIFY_NONE, NULL);
+            SSL_CTX_set_options(ctx_specific, SSL_OP_ALL | SSL_OP_NO_COMPRESSION);
             SSL_CTX_set_mode(ctx_specific,
                              SSL_MODE_ENABLE_PARTIAL_WRITE | SSL_MODE_ACCEPT_MOVING_WRITE_BUFFER);
-
-            cel_sslcontext_set_verify(ctx_specific, CEL_SSLVM_NONE, NULL); 
         }
         cel_multithread_mutex_unlock(CEL_MT_MUTEX_SSL_CONTEXT);
     }

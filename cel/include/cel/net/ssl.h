@@ -29,6 +29,8 @@
 extern "C" {
 #endif
 
+extern BOOL _cel_ssl_debug;
+
 typedef enum _CelSslMethod
 {
     CEL_SSL_METHOD_UNDEFINED = -1,
@@ -45,13 +47,6 @@ typedef enum _CelSslMethod
 
     CEL_SSL_METHOD_COUNT
 }CelSslMethod;
-
-typedef enum _CelSslVerifyMode
-{
-    CEL_SSLVM_NONE, 
-    CEL_SSLVM_OPTIONAL, 
-    CEL_SSLVM_REQUIRED, 
-}CelSslVerifyMode;
 
 typedef enum _CelSslEndpoint
 {
@@ -92,32 +87,7 @@ CelSslContext *cel_sslcontext_new(CelSslMethod method);
 #define cel_sslcontext_free(ctx) SSL_CTX_free(ctx)
 
 int cel_sslcontext_set_own_cert(CelSslContext *ctx, 
-                                char *cert_file, char *key_file, char *pswd);
-/*
- * SSL_VERIFY_NONE:     peer certificate is not checked (default), this is 
- *                      insecure and SHOULD be avoided.
- * SSL_VERIFY_OPTIONAL: peer certificate is checked, however the handshake 
- *                      continues  even if verification failed;  
- *                      ssl_get_verify_result() can becalled after 
- *                      the handshake is complete.
- * SSL_VERIFY_REQUIRED: peer *must* present a valid certificate, handshake is 
- *                      aborted if verification failed.
- */
-static __inline 
-void cel_sslcontext_set_verify(CelSslContext *ctx, 
-                               CelSslVerifyMode mode, 
-                               CelSslVerifyCallbackFunc callback_func)
-{
-    int _mode;
-
-    if (mode == CEL_SSLVM_REQUIRED)
-    {
-        _mode = SSL_VERIFY_PEER 
-            |SSL_VERIFY_FAIL_IF_NO_PEER_CERT
-            |SSL_VERIFY_CLIENT_ONCE;
-    }
-    SSL_CTX_set_verify(ctx, _mode, callback_func);
-}    
+                                char *cert_file, char *key_file, char *pswd);  
 /* void cel_sslcontext_set_verify_depth(CelSslContext *ctx, int depth)*/
 #define cel_sslcontext_set_verify_depth(ctx, depth) \
     SSL_CTX_set_verify_depth(ctx, depth)
