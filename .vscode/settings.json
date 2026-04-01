@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "httprequest.h": "c",
-        "version.h": "c",
-        "timepolicy.h": "c",
-        "allocator.h": "c",
-        "types.h": "c"
-    }
-}

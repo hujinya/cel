@@ -18,7 +18,7 @@
 
 #ifndef HAVE_OPENSSL_CRYPTO_H
 
-int  cel_mdcontext_init(CelMdContext *ctx, CelMd *md)
+int cel_mdcontext_init(CelMdContext *ctx, CelMd *md)
 {
     return 0;
 }

@@ -32,6 +32,7 @@ extern int profiles_test(int argc, TCHAR *argv[]);
 extern int queue_test(int argc, TCHAR *argv[]);
 extern int socket_test(int argc, TCHAR *argv[]);
 extern int sslsocket_test(int argc, TCHAR *argv[]);
+extern int sqlconpool_test(int argc, TCHAR *argv[]);
 extern int tcplistener_test(int argc, TCHAR *argv[]);
 extern int terminal_test(int argc, TCHAR *argv[]);
 extern int threadpool_test(int argc, TCHAR *argv[]);
@@ -48,5 +49,5 @@ int _tmain(int argc, TCHAR *argv[])
 {
     //_tscanf(_T("%s", ))
 
-    return httpclient_test(argc, argv);
+    return sqlconpool_test(argc, argv);
 }

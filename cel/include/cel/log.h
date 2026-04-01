@@ -211,8 +211,14 @@ int cel_log_emerg(const TCHAR *fmt, ...);
        cel_log_emerg args
 
 /* File sink function */
-int cel_logmsg_fwrite(CelLogMsg **msgs, size_t n, void *user_data);
-int cel_logmsg_fflush(void *user_data);
+typedef struct _CelFileLogger{
+    TCHAR path[CEL_PATHLEN];
+    TCHAR filename[CEL_FNLEN];
+    int max_age;
+}CelFileLogger;
+int cel_logmsg_fwrite(CelLogMsg **msgs, size_t n, CelFileLogger *logger);
+int cel_logmsg_fflush(CelFileLogger *logger);
+
 /* Consle sink function */
 int cel_logmsg_puts(CelLogMsg **msgs, size_t n, void *user_data);
 /* Db sink function */

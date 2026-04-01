@@ -12,6 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
  * GNU General Public License for more details.
  */
+#include <ctype.h>
 #include "cel/log.h"
 #include "cel/error.h"
 #include "cel/allocator.h"
@@ -138,8 +139,8 @@ int cel_logger_hook_register(CelLogger *logger, const TCHAR *name,
     }
     if (write_func == NULL)
     {
-        write_func = cel_logmsg_fwrite;
-        flush_func = cel_logmsg_fflush;
+        write_func = (CelLogMsgWriteFunc)cel_logmsg_fwrite;
+        flush_func = (CelLogMsgFlushFunc)cel_logmsg_fflush;
     }
     if (name != NULL)
         strncpy(hook->name, name, CEL_KNLEN);
@@ -583,7 +584,11 @@ static int cel_log_fremove_callback(const TCHAR *dir, const TCHAR *file_name,
     TCHAR file[CEL_PATHLEN];
 
     //puts(file_name);
-    if (_ttol(file_name) < *((long *)user_data))
+    int i = 0;
+    while (file_name[i] && !isdigit((unsigned char)file_name[i])) {
+        i++;
+    }
+    if (_ttol(&file_name[i]) < *((long *)user_data))
     {
         _sntprintf(file, CEL_PATHLEN, _T("%s%s"), dir, file_name);
         cel_fremove(file);
@@ -591,7 +596,7 @@ static int cel_log_fremove_callback(const TCHAR *dir, const TCHAR *file_name,
     return 0;
 }
 
-int cel_logmsg_fwrite(CelLogMsg **msgs, size_t n, void *path)
+int cel_logmsg_fwrite(CelLogMsg **msgs, size_t n, CelFileLogger *logger)
 {
     static int file_day = -1;
 	static CelTime timestamp_cached = { 0, 0 };
@@ -600,7 +605,7 @@ int cel_logmsg_fwrite(CelLogMsg **msgs, size_t n, void *path)
     size_t i = 0;
     int msg_day;
     long lfile;
-    TCHAR filename[15], file_path[CEL_PATHLEN];
+    TCHAR date_name[CEL_FNLEN], file_path[CEL_PATHLEN];
 
     while (i < n)
     {
@@ -615,23 +620,22 @@ int cel_logmsg_fwrite(CelLogMsg **msgs, size_t n, void *path)
                 cel_fclose(s_fp);
                 s_fp = NULL;
             }
-            cel_time_add_days(&(msg->timestamp), -30);
-            cel_time_strfltime(&(msg->timestamp), filename, 13, 
-                _T("%Y%m%d.log"));
-            lfile = _ttol(filename);
-            cel_foreachdir((TCHAR *)path, cel_log_fremove_callback, &lfile);
-            cel_time_add_days(&(msg->timestamp), 30);
+            cel_time_add_days(&(msg->timestamp), -(logger->max_age));
+            cel_time_strfltime(&(msg->timestamp), date_name, CEL_FNLEN, _T("%Y%m%d"));
+            //只比较日期部分
+            lfile = _ttol(date_name);
+            cel_foreachdir(logger->path, cel_log_fremove_callback, &lfile);
+            cel_time_add_days(&(msg->timestamp), logger->max_age);
         }
         /* Open log file, uninstall log hook if open failed. */
         if (s_fp == NULL)
         {
-            cel_time_strfltime(&(msg->timestamp), filename, 15, 
-                _T("%Y%m%d.log"));
-            _sntprintf(file_path, CEL_PATHLEN, _T("%s%s"), 
-                (TCHAR *)path, filename);
+            cel_time_strfltime(&(msg->timestamp), date_name, CEL_FNLEN, _T("%Y%m%d"));
+            _sntprintf(file_path, CEL_PATHLEN, _T("%s%s.%s"), 
+                logger->path, logger->filename, date_name);
             //_putts(file_path);
             if ((s_fp = cel_fopen(file_path, _T("a"))) == NULL 
-                && (cel_mkdirs((TCHAR *)path, CEL_UMASK) == -1
+                && (cel_mkdirs(logger->path, CEL_UMASK) == -1
                 || (s_fp = cel_fopen(file_path, _T("a"))) == NULL))
             {
                 _putts(cel_geterrstr());
@@ -658,7 +662,7 @@ int cel_logmsg_fwrite(CelLogMsg **msgs, size_t n, void *path)
     return 0;
 }
 
-int cel_logmsg_fflush(void *path)
+int cel_logmsg_fflush(CelFileLogger *logger)
 {
     return cel_fflush(s_fp);
 }

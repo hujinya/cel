@@ -25,7 +25,7 @@ STRIP = $(CROSS)strip
 AR = $(CROSS)ar
 
 CXXFLAGS = -Wall -Wno-deprecated -fPIC  -g  -I ../../cel/include -I ../../mysql/include -I ../../openssl/include
-LIBS = -lpthread -lcrypt -l:libssl.so.3.0.13 -l:libcrypto.so.3.0.13 -l:libcel.a
+LIBS = -lpthread -lcrypt -l:libssl.so.3.0.13 -l:libcrypto.so.3.0.13 -l:libmysqlclient.so.21.2.39 -l:libcel.a
 
 
 MAJOR = 0
