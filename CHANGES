@@ -1,3 +1,6 @@
+* Thu Apr 1 2026 Hu Jinya <hjy@gzsunrun.cn> 1.6.4.84
+- feat： https握手失败增加错误原因打印。
+
 * Wed Oct 29 2025 Hu Jinya <hjy@gzsunrun.cn> 1.6.3.83
 - feat: 增加时间策略CelTimePolicy。
 - fix: 修复cel_sslcontext_client_default不能使用线程存储。

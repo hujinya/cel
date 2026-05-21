@@ -32,7 +32,7 @@ typedef struct _CelEventLoopThread
 
 typedef struct _CelEventLoopGroup
 {
-    BOOL is_shared;
+    BOOL is_shared;  //是否共享CelEventLoop，共享时调用会有加锁
     CelEventLoop *evt_loop;
     int n_threads;
     CelEventLoopThread *evt_loop_threads;

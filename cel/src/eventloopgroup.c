@@ -1,15 +1,15 @@
 /**
  * CEL(C Extension Library)
- * Copyright (C)2008 Hu Jinya(hu_jinya@163.com) 
+ * Copyright (C)2008 Hu Jinya(hu_jinya@163.com)
  *
- * This program is free software; you can redistribute it and/or 
- * modify it under the terms of the GNU General Public License 
- * as published by the Free Software Foundation; either version 2 
- * of the License, or (at your option) any later version. 
- * 
- * This program is distributed in the hope that it will be useful, 
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  */
 #include "cel/eventloopgroup.h"
@@ -23,19 +23,19 @@ CelEventLoopThreadId *_cel_eventloopthread_id()
     CelEventLoopThreadId *ptr;
 
     if ((ptr = (CelEventLoopThreadId *)
-        cel_multithread_get_keyvalue(CEL_MT_KEY_EVENTLOOPTHREADID)) == NULL)
+             cel_multithread_get_keyvalue(CEL_MT_KEY_EVENTLOOPTHREADID)) == NULL)
     {
-		if ((ptr = (CelEventLoopThreadId *)
-			_cel_sys_malloc(sizeof(CelEventLoopThreadId))) != NULL)
-		{
-			ptr->i = 0;
-			if (cel_multithread_set_keyvalue(
-				CEL_MT_KEY_EVENTLOOPTHREADID, ptr) != -1
-				&& cel_multithread_set_keydestructor(
-				CEL_MT_KEY_EVENTLOOPTHREADID, _cel_sys_free) != -1)
-				return ptr;
-			_cel_sys_free(ptr);
-		}
+        if ((ptr = (CelEventLoopThreadId *)
+                 _cel_sys_malloc(sizeof(CelEventLoopThreadId))) != NULL)
+        {
+            ptr->i = 0;
+            if (cel_multithread_set_keyvalue(
+                    CEL_MT_KEY_EVENTLOOPTHREADID, ptr) != -1 &&
+                cel_multithread_set_keydestructor(
+                    CEL_MT_KEY_EVENTLOOPTHREADID, _cel_sys_free) != -1)
+                return ptr;
+            _cel_sys_free(ptr);
+        }
         return NULL;
     }
     return ptr;
@@ -46,17 +46,17 @@ static int cel_eventloopgroup_start(CelEventLoopThread *evt_loop_thread)
     CelEventLoopThreadId *thread_id = _cel_eventloopthread_id();
 
     thread_id->i = evt_loop_thread->i;
-    //printf("thread id %d\r\n", thread_id->i);
+    // printf("thread id %d\r\n", thread_id->i);
     cel_eventloop_run(evt_loop_thread->evt_loop);
     CEL_DEBUG((_T("Event loop thread %d exit.(%s)"),
-		(int)cel_thread_getid(), cel_geterrstr()));
+               (int)cel_thread_getid(), cel_geterrstr()));
     cel_thread_exit(0);
 
     return 0;
 }
 
-int cel_eventloopgroup_init(CelEventLoopGroup *group, 
-                            int max_fileds,
+int cel_eventloopgroup_init(CelEventLoopGroup *group,
+                            int max_fields,
                             int n_threads, BOOL is_shared)
 {
     int i, n_cpus;
@@ -67,31 +67,32 @@ int cel_eventloopgroup_init(CelEventLoopGroup *group,
     if (n_threads <= 0)
         n_threads = n_cpus;
     if (n_threads > CEL_THDNUM)
-        n_threads = n_threads / 2;
-    else if (n_threads < 4)
-        n_threads = 4;
+        n_threads = CEL_THDNUM;
 
-    if (is_shared
-        && (group->evt_loop = cel_eventloop_new(n_threads, max_fileds)) == NULL)
+    //是否共享CelEventLoop，共享时调用会有加锁
+    if (is_shared && (group->evt_loop = cel_eventloop_new(n_threads, max_fields)) == NULL)
         return -1;
     group->is_shared = is_shared;
-    
+
     if ((group->evt_loop_threads = (CelEventLoopThread *)
-        cel_calloc(1, sizeof(CelEventLoopThread) * n_threads)) != NULL)
+             cel_calloc(1, sizeof(CelEventLoopThread) * n_threads)) != NULL)
     {
         group->n_threads = n_threads;
-        for (i  = 0; i < group->n_threads; i++)
+        for (i = 0; i < group->n_threads; i++)
         {
             evt_loop_thread = &(group->evt_loop_threads[i]);
             evt_loop_thread->i = i;
             if (is_shared)
                 evt_loop_thread->evt_loop = group->evt_loop;
             else
-                evt_loop_thread->evt_loop = cel_eventloop_new(1, max_fileds);
-            cel_thread_create(&(evt_loop_thread->thread), NULL, 
-                cel_eventloopgroup_start, evt_loop_thread);
-            cel_setcpumask(&mask, i % n_cpus);
-            cel_thread_setaffinity(&(evt_loop_thread->thread), &mask);
+                evt_loop_thread->evt_loop = cel_eventloop_new(1, max_fields);
+            cel_thread_create(&(evt_loop_thread->thread), NULL,
+                              cel_eventloopgroup_start, evt_loop_thread);
+            if (n_threads <= n_cpus)
+            {
+                cel_setcpumask(&mask, i % n_cpus);
+                cel_thread_setaffinity(&(evt_loop_thread->thread), &mask);
+            }
         }
     }
 
@@ -122,10 +123,10 @@ CelEventLoopGroup *cel_eventloopgroup_new(int max_fileds,
     CelEventLoopGroup *group;
 
     if ((group = (CelEventLoopGroup *)
-        cel_malloc(sizeof(CelEventLoopGroup))) != NULL)
+             cel_malloc(sizeof(CelEventLoopGroup))) != NULL)
     {
-        if (cel_eventloopgroup_init(group, 
-            max_fileds, n_threads, is_shared) == 0)
+        if (cel_eventloopgroup_init(group,
+                                    max_fileds, n_threads, is_shared) == 0)
             return group;
         cel_free(group);
     }
@@ -134,6 +135,6 @@ CelEventLoopGroup *cel_eventloopgroup_new(int max_fileds,
 
 void cel_eventloopgroup_free(CelEventLoopGroup *group)
 {
-    cel_eventloopgroup_destroy(group); 
+    cel_eventloopgroup_destroy(group);
     cel_free(group);
 }

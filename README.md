@@ -1,4 +1,3 @@
-@'
 # CEL (C Extension Library)
 
 [![Platform](https://img.shields.io/badge/platform-UNIX%20%7C%20Windows-blue)]()
@@ -7,9 +6,9 @@
 
 ## 📖 项目简介
 
-**CEL (C Extension Library)** 是一个用 C 语言编写的高性能、跨平台基础扩展库，提供常用的数据结构、系统操作、数据库连接池、加解密、网络通信及协程等功能模块。旨在为 C/C++ 微服务项目提供一套统一、高效、易用的基础工具库。
+**CEL (C Extension Library)** 是一个用 C 语言编写的高性能、跨平台基础扩展库，提供常用的数据结构、系统操作、日志、内存分配器、数据库连接池、加解密、网络通信及协程等功能模块。旨在为 C/C++ 微服务项目提供一套统一、高效、易用的基础工具库。
 
-> **Copyright (C) 2008 - 2017 Hu Jinya <hu_jinya@163.com>**
+> **Copyright (C) 2008 - 2026 Hu Jinya <hu_jinya@163.com>**
 
 基于cel开发一个restful微服务示例可参考https://github.com/hujinya/cel-demo
 
@@ -53,7 +52,7 @@ cel/
     ├── Makefile           # 示例编译配置
     └── cel_*.c            # 各模块测试代码
 
-> ⚠️ **注意**: `_unix/` 和 `_win/` 目录为内部跨平台封装，**不建议直接引用**，请通过统一接口调用
+> ⚠️ **注意**: _开头的文件夹、文件**请不要直接引用**，表示内部封装或者正在开发的模块，`_unix/` 和 `_win/` 目录为内部跨平台封装
 
 ## 🔧 依赖要求
 
@@ -73,21 +72,19 @@ cel/
 ### 编译与安装
 
 1. 进入源码根目录
-    cd cel
+cd cel
 
 2. x86_64编译
-
-  make
+make
 
 3. arm64编译
-
-  make ARCH=aarch64
+make ARCH=aarch64
 
 4. 运行测试示例
-    ./bin/cel-example
+./bin/cel-example
 
 5. （可选）清理编译
-    make clean
+make clean
 
 ### 在项目中使用
 
@@ -415,7 +412,7 @@ cd cel
 本项目采用 **GNU General Public License v2.0**
 
 CEL(C Extension Library)
-Copyright (C) 2008 - 2025 Hu Jinya <hu_jinya@163.com>
+Copyright (C) 2008 - 2026 Hu Jinya <hu_jinya@163.com>
 
 This program is free software; you can redistribute it and/or 
 modify it under the terms of the GNU General Public License 

@@ -162,8 +162,8 @@ static void cel_httpcontext_do_handshake(CelHttpContext *http_ctx, CelAsyncResul
 {
 	if (result->ret != 1)
 	{
-		CEL_SETERR((CEL_ERR_LIB, _T("cel_httpcontext_do_handshake failed, client %s"),
-			cel_httpclient_get_remoteaddr_str(&(http_ctx->http_client))));
+		CEL_SETERR((CEL_ERR_LIB, _T("cel_httpcontext_do_handshake failed, client %s(%s)"),
+			cel_httpclient_get_remoteaddr_str(&(http_ctx->http_client)), cel_geterrstr()));
 		http_ctx->serve_ctx->log_func(CEL_LOGLEVEL_ERR, "%s", cel_geterrstr());
 		cel_httpcontext_free(http_ctx);
 		return ;
